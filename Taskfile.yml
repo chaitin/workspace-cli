@@ -1,0 +1,36 @@
+version: "3"
+
+vars:
+  BIN_NAME: cws
+  BUILD_DIR: bin
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  fmt:
+    desc: Format Go source files
+    cmds:
+      - go fmt ./...
+
+  lint:
+    desc: Run compile checks
+    cmds:
+      - env GOCACHE=/tmp/go-build go vet ./...
+
+  test:
+    desc: Run unit tests
+    cmds:
+      - env GOCACHE=/tmp/go-build go test ./...
+
+  build:
+    desc: Build the cws binary
+    cmds:
+      - mkdir -p {{.BUILD_DIR}}
+      - env GOCACHE=/tmp/go-build go build -o {{.BUILD_DIR}}/{{.BIN_NAME}} .
+
+  run:chaitin:
+    desc: Run the chaitin demo command
+    cmds:
+      - env GOCACHE=/tmp/go-build go run . chaitin

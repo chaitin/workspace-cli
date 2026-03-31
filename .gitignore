@@ -1,0 +1,27 @@
+# Build artifacts
+/bin/
+/cws
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go
+*.test
+*.out
+coverage.out
+cover.out
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*.tmp
+*~
+.netrwhist
+.project
+.classpath
+.settings/
