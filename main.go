@@ -7,8 +7,9 @@ import (
 	"strings"
 
 	"github.com/chaitin/workspace-cli/products/chaitin"
-	"github.com/chaitin/workspace-cli/products/xray"
 	"github.com/chaitin/workspace-cli/products/cloudwalker"
+	"github.com/chaitin/workspace-cli/products/tanswer"
+	"github.com/chaitin/workspace-cli/products/xray"
 	"github.com/spf13/cobra"
 )
 
@@ -32,6 +33,7 @@ func newApp() *app {
 
 	a.registerProductCommand(chaitin.NewCommand())
 	a.registerProductCommand(cloudwalker.NewCommand())
+	a.registerProductCommand(tanswer.NewCommand())
 
 	xrayCmd, err := xray.NewCommand()
 	if err != nil {
