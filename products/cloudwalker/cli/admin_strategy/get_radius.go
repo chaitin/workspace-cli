@@ -15,6 +15,7 @@ var GetRadiusCmd = &cobra.Command{
 	Short: "获取Radius配置",
 	Long:  `获取Radius配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AdminStrategyService.GetRadius", nil, &result)

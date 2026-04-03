@@ -17,6 +17,7 @@ var GetUserAuthorizedKeysCmd = &cobra.Command{
 	Short: "获取用户公钥信息",
 	Long:  `获取用户公钥信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "UserAssetService.GetUserAuthorizedKeys", getUserAuthorizedKeysParams, &result)

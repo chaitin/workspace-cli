@@ -17,6 +17,7 @@ var ListByPlanCmd = &cobra.Command{
 	Short: "根据PlanId筛选条件获取弱口令事件列表",
 	Long:  `根据PlanId筛选条件获取弱口令事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.ListByPlan", listByPlanParams, &result)

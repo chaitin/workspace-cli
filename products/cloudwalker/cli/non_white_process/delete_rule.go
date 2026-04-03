@@ -4,6 +4,7 @@ package non_white_process
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteRuleParams DeleteRuleParams
+var DeleteRuleCustomAttrJSON string
 
 var DeleteRuleCmd = &cobra.Command{
 	Use:   "delete_rule",
 	Short: "删除命令白名单规则",
 	Long:  `删除命令白名单规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteRuleCustomAttrJSON), &deleteRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NonWhiteProcessService.DeleteRule", deleteRuleParams, &result)
@@ -30,8 +38,7 @@ var DeleteRuleCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteRuleCmd.Flags().StringVar(&DeleteRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteRuleCmd.Flags().StringSliceVar(&deleteRuleParams.HostComment, "host-comment", nil, "主机备注")
 	DeleteRuleCmd.Flags().Float64SliceVar(&deleteRuleParams.HostId, "host-id", nil, "主机ID")
 	DeleteRuleCmd.Flags().StringSliceVar(&deleteRuleParams.HostIp, "host-ip", nil, "主机IP")

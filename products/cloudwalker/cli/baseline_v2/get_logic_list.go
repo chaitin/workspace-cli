@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getLogicListParams GetLogicListParams
+var GetLogicListOrderByJSON string
 
 var GetLogicListCmd = &cobra.Command{
 	Use:   "get_logic_list",
 	Short: "获取核查逻辑列表",
 	Long:  `获取核查逻辑列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetLogicListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetLogicListOrderByJSON), &getLogicListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.GetLogicList", getLogicListParams, &result)
@@ -38,8 +46,7 @@ func init() {
 	GetLogicListCmd.Flags().StringSliceVar(&getLogicListParams.Name, "name", nil, "核查项名称")
 	GetLogicListCmd.Flags().IntVar(&getLogicListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetLogicListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetLogicListCmd.Flags().StringVar(&GetLogicListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetLogicListCmd.Flags().StringSliceVar(&getLogicListParams.Tags, "tags", nil, "TAG")
 	GetLogicListCmd.Flags().StringSliceVar(&getLogicListParams.Type, "type", nil, "核查项类型")
 	GetLogicListCmd.Flags().StringSliceVar(&getLogicListParams.UpdatedAt, "updated-at", nil, "修改时间")

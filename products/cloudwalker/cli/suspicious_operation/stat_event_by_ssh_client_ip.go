@@ -4,6 +4,7 @@ package suspicious_operation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statEventBySshClientIpParams StatEventBySshClientIpParams
+var StatEventBySshClientIpCustomAttrJSON string
 
 var StatEventBySshClientIpCmd = &cobra.Command{
 	Use:   "stat_event_by_ssh_client_ip",
 	Short: "返回按 SSH登录地址 聚合的统计视图",
 	Long:  `返回按 SSH登录地址 聚合的统计视图`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatEventBySshClientIpCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventBySshClientIpCustomAttrJSON), &statEventBySshClientIpParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SuspiciousOperationService.StatEventBySSHClientIP", statEventBySshClientIpParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	StatEventBySshClientIpCmd.Flags().StringSliceVar(&statEventBySshClientIpParams.Comment, "comment", nil, "用户自定义备注")
 	StatEventBySshClientIpCmd.Flags().StringSliceVar(&statEventBySshClientIpParams.ContainerHashId, "container-hash-id", nil, "容器Id")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatEventBySshClientIpCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatEventBySshClientIpCmd.Flags().StringVar(&StatEventBySshClientIpCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatEventBySshClientIpCmd.Flags().StringSliceVar(&statEventBySshClientIpParams.Egid, "egid", nil, "有效用户组ID")
 	StatEventBySshClientIpCmd.Flags().StringSliceVar(&statEventBySshClientIpParams.Egname, "egname", nil, "有效用户组名")
 	StatEventBySshClientIpCmd.Flags().Float64SliceVar(&statEventBySshClientIpParams.Euid, "euid", nil, "有效用户ID")

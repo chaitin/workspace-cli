@@ -4,6 +4,7 @@ package sensitive_file_scan
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var createRuleParams CreateRuleParams
+var CreateRuleExcludeRuleJSON string
 
 var CreateRuleCmd = &cobra.Command{
 	Use:   "create_rule",
 	Short: "创建文件完整性扫描规则",
 	Long:  `创建文件完整性扫描规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateRuleExcludeRuleJSON != "" {
+			if err := json.Unmarshal([]byte(CreateRuleExcludeRuleJSON), &createRuleParams.ExcludeRule); err != nil {
+				cmd.PrintErrln("Error parsing exclude-rule:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitiveFileScanService.CreateRule", createRuleParams, &result)
@@ -31,8 +39,7 @@ var CreateRuleCmd = &cobra.Command{
 func init() {
 	CreateRuleCmd.Flags().StringSliceVar(&createRuleParams.Action, "action", nil, "动作")
 	// exclude_rule is complex type []map[string]interface{}, use JSON string
-	var excludeRuleJSON string
-	CreateRuleCmd.Flags().StringVar(&excludeRuleJSON, "exclude-rule", "", "排除规则 (JSON, e.g. [{\"method\": \"prefix\", \"rule\": \"/etc/passwd\"}])")
+	CreateRuleCmd.Flags().StringVar(&CreateRuleExcludeRuleJSON, "exclude-rule", "", "排除规则 (JSON, e.g. [{\"method\": \"prefix\", \"rule\": \"/etc/passwd\"}])")
 	CreateRuleCmd.Flags().IntVar(&createRuleParams.Level, "level", 0, "事件级别")
 	CreateRuleCmd.Flags().StringSliceVar(&createRuleParams.Path, "path", nil, "路径")
 	CreateRuleCmd.Flags().BoolVar(&createRuleParams.Recursive, "recursive", false, "递归监控子目录")

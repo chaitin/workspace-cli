@@ -17,6 +17,7 @@ var CreateRuleCmd = &cobra.Command{
 	Short: "创建命令白名单规则",
 	Long:  `创建命令白名单规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NonWhiteProcessService.CreateRule", createRuleParams, &result)

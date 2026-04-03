@@ -17,6 +17,7 @@ var GetVulnCmd = &cobra.Command{
 	Short: "获取应急漏洞事件详情",
 	Long:  `获取应急漏洞事件详情`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EmergencyVulnV1Service.GetVuln", getVulnParams, &result)

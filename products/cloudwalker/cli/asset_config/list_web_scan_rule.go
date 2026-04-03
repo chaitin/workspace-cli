@@ -4,6 +4,7 @@ package asset_config
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listWebScanRuleParams ListWebScanRuleParams
+var ListWebScanRuleCustomAttrJSON string
 
 var ListWebScanRuleCmd = &cobra.Command{
 	Use:   "list_web_scan_rule",
 	Short: "获取 Web 自定义路径列表",
 	Long:  `获取 Web 自定义路径列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListWebScanRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListWebScanRuleCustomAttrJSON), &listWebScanRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AssetConfigService.ListWebScanRule", listWebScanRuleParams, &result)
@@ -31,8 +39,7 @@ var ListWebScanRuleCmd = &cobra.Command{
 func init() {
 	ListWebScanRuleCmd.Flags().IntVar(&listWebScanRuleParams.Count, "count", 20, "每页记录数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListWebScanRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListWebScanRuleCmd.Flags().StringVar(&ListWebScanRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListWebScanRuleCmd.Flags().BoolVar(&listWebScanRuleParams.Enable, "enable", false, "是否启用")
 	ListWebScanRuleCmd.Flags().StringSliceVar(&listWebScanRuleParams.HostComment, "host-comment", nil, "主机备注")
 	ListWebScanRuleCmd.Flags().Float64SliceVar(&listWebScanRuleParams.HostId, "host-id", nil, "主机ID")

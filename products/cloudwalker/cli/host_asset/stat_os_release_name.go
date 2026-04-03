@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statOsReleaseNameParams StatOsReleaseNameParams
+var StatOsReleaseNameCustomAttrJSON string
 
 var StatOsReleaseNameCmd = &cobra.Command{
 	Use:   "stat_os_release_name",
 	Short: "获取按 操作系统发行版本名称 聚合的主机分布",
 	Long:  `获取按 操作系统发行版本名称 聚合的主机分布`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatOsReleaseNameCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatOsReleaseNameCustomAttrJSON), &statOsReleaseNameParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.StatOsReleaseName", statOsReleaseNameParams, &result)
@@ -40,8 +48,7 @@ func init() {
 	StatOsReleaseNameCmd.Flags().StringSliceVar(&statOsReleaseNameParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	StatOsReleaseNameCmd.Flags().StringSliceVar(&statOsReleaseNameParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatOsReleaseNameCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatOsReleaseNameCmd.Flags().StringVar(&StatOsReleaseNameCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatOsReleaseNameCmd.Flags().BoolVar(&statOsReleaseNameParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	StatOsReleaseNameCmd.Flags().BoolVar(&statOsReleaseNameParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	StatOsReleaseNameCmd.Flags().StringSliceVar(&statOsReleaseNameParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")

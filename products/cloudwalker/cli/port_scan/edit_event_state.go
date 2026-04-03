@@ -4,6 +4,7 @@ package port_scan
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editEventStateParams EditEventStateParams
+var EditEventStateCustomAttrJSON string
+var EditEventStateSelectJSON string
 
 var EditEventStateCmd = &cobra.Command{
 	Use:   "edit_event_state",
 	Short: "编辑事件状态",
 	Long:  `编辑事件状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditEventStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventStateCustomAttrJSON), &editEventStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if EditEventStateSelectJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventStateSelectJSON), &editEventStateParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PortScanService.EditEventState", editEventStateParams, &result)
@@ -31,8 +46,7 @@ var EditEventStateCmd = &cobra.Command{
 func init() {
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Comment, "comment", nil, "comment")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditEventStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditEventStateCmd.Flags().StringVar(&EditEventStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.FinishedAt, "finished-at", nil, "finished_at")
 	EditEventStateCmd.Flags().Float64SliceVar(&editEventStateParams.Gids, "gids", nil, "业务组 ID")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.HostComment, "host-comment", nil, "主机备注")
@@ -48,8 +62,7 @@ func init() {
 	EditEventStateCmd.Flags().Float64SliceVar(&editEventStateParams.Port, "port", nil, "port")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.RuleId, "rule-id", nil, "规则ID")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	EditEventStateCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 162, \"id\": 154, \"source_ip\": \"127.0.0.1\"}])")
+	EditEventStateCmd.Flags().StringVar(&EditEventStateSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 162, \"id\": 154, \"source_ip\": \"127.0.0.1\"}])")
 	EditEventStateCmd.Flags().BoolVar(&editEventStateParams.SelectAll, "select-all", false, "是否全选")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.SourceIp, "source-ip", nil, "source_ip")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.StartedAt, "started-at", nil, "started_at")

@@ -4,6 +4,7 @@ package tamper_proof
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteEventListParams DeleteEventListParams
+var DeleteEventListCustomAttrJSON string
 
 var DeleteEventListCmd = &cobra.Command{
 	Use:   "delete_event_list",
 	Short: "删除事件",
 	Long:  `删除事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteEventListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteEventListCustomAttrJSON), &deleteEventListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.DeleteEventList", deleteEventListParams, &result)
@@ -30,8 +38,7 @@ var DeleteEventListCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteEventListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteEventListCmd.Flags().StringVar(&DeleteEventListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteEventListCmd.Flags().Float64SliceVar(&deleteEventListParams.Gids, "gids", nil, "业务组 ID")
 	DeleteEventListCmd.Flags().StringSliceVar(&deleteEventListParams.HostComment, "host-comment", nil, "主机备注")
 	DeleteEventListCmd.Flags().Float64SliceVar(&deleteEventListParams.HostId, "host-id", nil, "主机ID")

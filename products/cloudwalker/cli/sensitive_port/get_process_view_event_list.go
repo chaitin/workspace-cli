@@ -4,6 +4,7 @@ package sensitive_port
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getProcessViewEventListParams GetProcessViewEventListParams
+var GetProcessViewEventListCustomAttrJSON string
+var GetProcessViewEventListOrderByJSON string
+var GetProcessViewEventListSelectJSON string
 
 var GetProcessViewEventListCmd = &cobra.Command{
 	Use:   "get_process_view_event_list",
 	Short: "获取高危端口事件列表(进程视角)",
 	Long:  `获取高危端口事件列表(进程视角)`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetProcessViewEventListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetProcessViewEventListCustomAttrJSON), &getProcessViewEventListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetProcessViewEventListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetProcessViewEventListOrderByJSON), &getProcessViewEventListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetProcessViewEventListSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetProcessViewEventListSelectJSON), &getProcessViewEventListParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitivePortService.GetProcessViewEventList", getProcessViewEventListParams, &result)
@@ -34,8 +56,7 @@ func init() {
 	GetProcessViewEventListCmd.Flags().Float64Var(&getProcessViewEventListParams.Count, "count", 20, "数量")
 	GetProcessViewEventListCmd.Flags().StringSliceVar(&getProcessViewEventListParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetProcessViewEventListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetProcessViewEventListCmd.Flags().StringVar(&GetProcessViewEventListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetProcessViewEventListCmd.Flags().StringSliceVar(&getProcessViewEventListParams.Exepath, "exepath", nil, "可执行文件路径")
 	GetProcessViewEventListCmd.Flags().Float64SliceVar(&getProcessViewEventListParams.Gids, "gids", nil, "业务组 ID 列表")
 	GetProcessViewEventListCmd.Flags().StringSliceVar(&getProcessViewEventListParams.HostComment, "host-comment", nil, "主机备注")
@@ -49,16 +70,14 @@ func init() {
 	GetProcessViewEventListCmd.Flags().Float64Var(&getProcessViewEventListParams.Offset, "offset", 0, "偏移量")
 	GetProcessViewEventListCmd.Flags().Float64SliceVar(&getProcessViewEventListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetProcessViewEventListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetProcessViewEventListCmd.Flags().StringVar(&GetProcessViewEventListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetProcessViewEventListCmd.Flags().Float64SliceVar(&getProcessViewEventListParams.Pid, "pid", nil, "PID")
 	GetProcessViewEventListCmd.Flags().StringSliceVar(&getProcessViewEventListParams.Pname, "pname", nil, "进程名")
 	GetProcessViewEventListCmd.Flags().StringSliceVar(&getProcessViewEventListParams.Port, "port", nil, "端口")
 	GetProcessViewEventListCmd.Flags().Float64SliceVar(&getProcessViewEventListParams.PortState, "port-state", nil, "端口状态")
 	GetProcessViewEventListCmd.Flags().StringSliceVar(&getProcessViewEventListParams.Protocol, "protocol", nil, "协议")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetProcessViewEventListCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 165, \"id\": 192, \"pname\": \"unknown\", \"port\": 22, \"protocol\": \"tcp\"}])")
+	GetProcessViewEventListCmd.Flags().StringVar(&GetProcessViewEventListSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 165, \"id\": 192, \"pname\": \"unknown\", \"port\": 22, \"protocol\": \"tcp\"}])")
 	GetProcessViewEventListCmd.Flags().BoolVar(&getProcessViewEventListParams.SelectAll, "select-all", false, "是否全选")
 	GetProcessViewEventListCmd.Flags().IntSliceVar(&getProcessViewEventListParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")
 	GetProcessViewEventListCmd.Flags().StringSliceVar(&getProcessViewEventListParams.UpdatedAt, "updated-at", nil, "事件更新时间")

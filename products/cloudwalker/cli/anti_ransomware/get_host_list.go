@@ -4,6 +4,7 @@ package anti_ransomware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getHostListParams GetHostListParams
+var GetHostListCustomAttrJSON string
+var GetHostListOrderByJSON string
 
 var GetHostListCmd = &cobra.Command{
 	Use:   "get_host_list",
 	Short: "获取主机防护状态列表",
 	Long:  `获取主机防护状态列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetHostListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostListCustomAttrJSON), &getHostListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetHostListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostListOrderByJSON), &getHostListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AntiRansomwareService.GetHostList", getHostListParams, &result)
@@ -31,8 +46,7 @@ var GetHostListCmd = &cobra.Command{
 func init() {
 	GetHostListCmd.Flags().IntVar(&getHostListParams.Count, "count", 20, "返回规则的数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetHostListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetHostListCmd.Flags().StringVar(&GetHostListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetHostListCmd.Flags().StringSliceVar(&getHostListParams.DecoyCount, "decoy-count", nil, "诱饵数量，范围筛选")
 	GetHostListCmd.Flags().StringSliceVar(&getHostListParams.DecoyFileSize, "decoy-file-size", nil, "诱饵文件大小，范围筛选")
 	GetHostListCmd.Flags().StringSliceVar(&getHostListParams.DecoyPath, "decoy-path", nil, "诱饵路径")
@@ -52,8 +66,7 @@ func init() {
 	GetHostListCmd.Flags().IntVar(&getHostListParams.Offset, "offset", 0, "返回规则的偏移值")
 	GetHostListCmd.Flags().Float64SliceVar(&getHostListParams.Oid, "oid", nil, "机构ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetHostListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetHostListCmd.Flags().StringVar(&GetHostListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetHostListCmd.Flags().Float64SliceVar(&getHostListParams.State, "state", nil, "防护状态：0 防护中，1 不生效")
 }
 

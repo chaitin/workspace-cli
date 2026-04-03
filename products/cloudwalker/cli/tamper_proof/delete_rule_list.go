@@ -17,6 +17,7 @@ var DeleteRuleListCmd = &cobra.Command{
 	Short: "删除规则",
 	Long:  `删除规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.DeleteRuleList", deleteRuleListParams, &result)

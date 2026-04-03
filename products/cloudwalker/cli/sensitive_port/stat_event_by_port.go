@@ -4,6 +4,7 @@ package sensitive_port
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var statEventByPortParams StatEventByPortParams
+var StatEventByPortCustomAttrJSON string
+var StatEventByPortSelectJSON string
 
 var StatEventByPortCmd = &cobra.Command{
 	Use:   "stat_event_by_port",
 	Short: "高危端口分布",
 	Long:  `高危端口分布`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatEventByPortCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByPortCustomAttrJSON), &statEventByPortParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if StatEventByPortSelectJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByPortSelectJSON), &statEventByPortParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitivePortService.StatEventByPort", statEventByPortParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	StatEventByPortCmd.Flags().StringSliceVar(&statEventByPortParams.Comment, "comment", nil, "用户自定义备注")
 	StatEventByPortCmd.Flags().StringSliceVar(&statEventByPortParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatEventByPortCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatEventByPortCmd.Flags().StringVar(&StatEventByPortCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatEventByPortCmd.Flags().StringSliceVar(&statEventByPortParams.Exepath, "exepath", nil, "可执行文件路径")
 	StatEventByPortCmd.Flags().Float64SliceVar(&statEventByPortParams.Gids, "gids", nil, "业务组 ID 列表")
 	StatEventByPortCmd.Flags().StringSliceVar(&statEventByPortParams.HostComment, "host-comment", nil, "主机备注")
@@ -52,8 +66,7 @@ func init() {
 	StatEventByPortCmd.Flags().Float64SliceVar(&statEventByPortParams.PortState, "port-state", nil, "端口状态")
 	StatEventByPortCmd.Flags().StringSliceVar(&statEventByPortParams.Protocol, "protocol", nil, "协议")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	StatEventByPortCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 165, \"id\": 192, \"pname\": \"unknown\", \"port\": 22, \"protocol\": \"tcp\"}])")
+	StatEventByPortCmd.Flags().StringVar(&StatEventByPortSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 165, \"id\": 192, \"pname\": \"unknown\", \"port\": 22, \"protocol\": \"tcp\"}])")
 	StatEventByPortCmd.Flags().BoolVar(&statEventByPortParams.SelectAll, "select-all", false, "是否全选")
 	StatEventByPortCmd.Flags().IntSliceVar(&statEventByPortParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")
 	StatEventByPortCmd.Flags().StringSliceVar(&statEventByPortParams.UpdatedAt, "updated-at", nil, "事件更新时间")

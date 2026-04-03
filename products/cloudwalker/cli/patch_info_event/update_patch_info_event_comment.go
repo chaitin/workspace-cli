@@ -4,6 +4,7 @@ package patch_info_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var updatePatchInfoEventCommentParams UpdatePatchInfoEventCommentParams
+var UpdatePatchInfoEventCommentCustomAttrJSON string
+var UpdatePatchInfoEventCommentSelectJSON string
 
 var UpdatePatchInfoEventCommentCmd = &cobra.Command{
 	Use:   "update_patch_info_event_comment",
 	Short: "修改事件备注",
 	Long:  `修改事件备注`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if UpdatePatchInfoEventCommentCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(UpdatePatchInfoEventCommentCustomAttrJSON), &updatePatchInfoEventCommentParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if UpdatePatchInfoEventCommentSelectJSON != "" {
+			if err := json.Unmarshal([]byte(UpdatePatchInfoEventCommentSelectJSON), &updatePatchInfoEventCommentParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PatchInfoEventService.UpdatePatchInfoEventComment", updatePatchInfoEventCommentParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	UpdatePatchInfoEventCommentCmd.Flags().StringSliceVar(&updatePatchInfoEventCommentParams.Comment, "comment", nil, "用户自定义备注")
 	UpdatePatchInfoEventCommentCmd.Flags().StringSliceVar(&updatePatchInfoEventCommentParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	UpdatePatchInfoEventCommentCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	UpdatePatchInfoEventCommentCmd.Flags().StringVar(&UpdatePatchInfoEventCommentCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	UpdatePatchInfoEventCommentCmd.Flags().StringSliceVar(&updatePatchInfoEventCommentParams.Cve, "cve", nil, "CVE 编号")
 	UpdatePatchInfoEventCommentCmd.Flags().Float64SliceVar(&updatePatchInfoEventCommentParams.Gids, "gids", nil, "业务组 ID")
 	UpdatePatchInfoEventCommentCmd.Flags().StringSliceVar(&updatePatchInfoEventCommentParams.GroupName, "group-name", nil, "业务组名")
@@ -54,8 +68,7 @@ func init() {
 	UpdatePatchInfoEventCommentCmd.Flags().Float64SliceVar(&updatePatchInfoEventCommentParams.PlanId, "plan-id", nil, "计划ID")
 	UpdatePatchInfoEventCommentCmd.Flags().StringSliceVar(&updatePatchInfoEventCommentParams.PublishTime, "publish-time", nil, "补丁发布时间")
 	// select is object type, use JSON string
-	var selectJSON string
-	UpdatePatchInfoEventCommentCmd.Flags().StringVar(&selectJSON, "select", "", "选项 (JSON, e.g. {})")
+	UpdatePatchInfoEventCommentCmd.Flags().StringVar(&UpdatePatchInfoEventCommentSelectJSON, "select", "", "选项 (JSON, e.g. {})")
 	UpdatePatchInfoEventCommentCmd.Flags().BoolVar(&updatePatchInfoEventCommentParams.SelectAll, "select-all", false, "是否全选")
 	UpdatePatchInfoEventCommentCmd.Flags().StringSliceVar(&updatePatchInfoEventCommentParams.Trait, "trait", nil, "特征")
 	UpdatePatchInfoEventCommentCmd.Flags().StringSliceVar(&updatePatchInfoEventCommentParams.Type, "type", nil, "补丁类型 KB/Ubuntu")

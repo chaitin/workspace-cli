@@ -4,6 +4,7 @@ package asset_cert
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getListParams GetListParams
+var GetListCustomAttrJSON string
+var GetListOrderByJSON string
 
 var GetListCmd = &cobra.Command{
 	Use:   "get_list",
 	Short: "获取主机证书信息",
 	Long:  `获取主机证书信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetListCustomAttrJSON), &getListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetListOrderByJSON), &getListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AssetCertService.GetList", getListParams, &result)
@@ -32,8 +47,7 @@ func init() {
 	GetListCmd.Flags().IntVar(&getListParams.Count, "count", 20, "数量")
 	GetListCmd.Flags().StringSliceVar(&getListParams.CreatedAt, "created-at", nil, "发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetListCmd.Flags().StringVar(&GetListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetListCmd.Flags().Float64SliceVar(&getListParams.Gids, "gids", nil, "业务组")
 	GetListCmd.Flags().StringSliceVar(&getListParams.HostComment, "host-comment", nil, "主机备注")
 	GetListCmd.Flags().Float64SliceVar(&getListParams.HostId, "host-id", nil, "主机ID, 用于主机详情页面")
@@ -48,8 +62,7 @@ func init() {
 	GetListCmd.Flags().IntVar(&getListParams.Offset, "offset", 0, "偏移量")
 	GetListCmd.Flags().Float64SliceVar(&getListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetListCmd.Flags().StringVar(&GetListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetListCmd.Flags().StringSliceVar(&getListParams.SerialNumber, "serial-number", nil, "序列号")
 	GetListCmd.Flags().StringSliceVar(&getListParams.Sha1Fingerprint, "sha1-fingerprint", nil, "SHA1 指纹，小写八进制")
 	GetListCmd.Flags().StringSliceVar(&getListParams.SignatureAlgorithm, "signature-algorithm", nil, "签名算法")

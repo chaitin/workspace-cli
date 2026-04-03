@@ -4,6 +4,7 @@ package anti_ransomware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var markAsReadParams MarkAsReadParams
+var MarkAsReadCustomAttrJSON string
 
 var MarkAsReadCmd = &cobra.Command{
 	Use:   "mark_as_read",
 	Short: "标记事件为已读",
 	Long:  `标记事件为已读`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if MarkAsReadCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(MarkAsReadCustomAttrJSON), &markAsReadParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AntiRansomwareService.MarkAsRead", markAsReadParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.Comment, "comment", nil, "备注")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.CreateAt, "create-at", nil, "告警时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	MarkAsReadCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	MarkAsReadCmd.Flags().StringVar(&MarkAsReadCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.ExecPath, "exec-path", nil, "执行路径")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.ExposedIp, "exposed-ip", nil, "主机外网 IP")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.Family, "family", nil, "恶意软件家族")

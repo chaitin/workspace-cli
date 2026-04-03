@@ -4,6 +4,7 @@ package emergency_vuln_v1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var editEventCommentParams EditEventCommentParams
+var EditEventCommentSelectJSON string
 
 var EditEventCommentCmd = &cobra.Command{
 	Use:   "edit_event_comment",
 	Short: "改变所选应急漏洞事件备注",
 	Long:  `改变所选应急漏洞事件备注`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditEventCommentSelectJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventCommentSelectJSON), &editEventCommentParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EmergencyVulnV1Service.EditEventComment", editEventCommentParams, &result)
@@ -31,8 +39,7 @@ var EditEventCommentCmd = &cobra.Command{
 func init() {
 	EditEventCommentCmd.Flags().StringVar(&editEventCommentParams.NewComment, "new-comment", "", "新的事件备注")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	EditEventCommentCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"event_id\": 120, \"host_id\": 111, \"vuln_id\": 111}])")
+	EditEventCommentCmd.Flags().StringVar(&EditEventCommentSelectJSON, "select", "", "select (JSON, e.g. [{\"event_id\": 120, \"host_id\": 111, \"vuln_id\": 111}])")
 	EditEventCommentCmd.Flags().BoolVar(&editEventCommentParams.SelectAll, "select-all", false, "select_all")
 }
 

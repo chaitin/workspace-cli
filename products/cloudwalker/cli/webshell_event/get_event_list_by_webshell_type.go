@@ -4,6 +4,7 @@ package webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getEventListByWebshellTypeParams GetEventListByWebshellTypeParams
+var GetEventListByWebshellTypeCustomAttrJSON string
+var GetEventListByWebshellTypeOrderByJSON string
+var GetEventListByWebshellTypeSelectJSON string
 
 var GetEventListByWebshellTypeCmd = &cobra.Command{
 	Use:   "get_event_list_by_webshell_type",
 	Short: "根据Webshell 类型获取事件列表",
 	Long:  `根据Webshell 类型获取事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListByWebshellTypeCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByWebshellTypeCustomAttrJSON), &getEventListByWebshellTypeParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListByWebshellTypeOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByWebshellTypeOrderByJSON), &getEventListByWebshellTypeParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetEventListByWebshellTypeSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByWebshellTypeSelectJSON), &getEventListByWebshellTypeParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.GetEventListByWebshellType", getEventListByWebshellTypeParams, &result)
@@ -33,8 +55,7 @@ func init() {
 	GetEventListByWebshellTypeCmd.Flags().IntVar(&getEventListByWebshellTypeParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetEventListByWebshellTypeCmd.Flags().StringSliceVar(&getEventListByWebshellTypeParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListByWebshellTypeCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListByWebshellTypeCmd.Flags().StringVar(&GetEventListByWebshellTypeCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListByWebshellTypeCmd.Flags().StringSliceVar(&getEventListByWebshellTypeParams.Domain, "domain", nil, "域名")
 	GetEventListByWebshellTypeCmd.Flags().StringSliceVar(&getEventListByWebshellTypeParams.FileName, "file-name", nil, "文件名")
 	GetEventListByWebshellTypeCmd.Flags().StringSliceVar(&getEventListByWebshellTypeParams.FilePath, "file-path", nil, "文件路径")
@@ -52,12 +73,10 @@ func init() {
 	GetEventListByWebshellTypeCmd.Flags().IntVar(&getEventListByWebshellTypeParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventListByWebshellTypeCmd.Flags().Float64SliceVar(&getEventListByWebshellTypeParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListByWebshellTypeCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListByWebshellTypeCmd.Flags().StringVar(&GetEventListByWebshellTypeOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListByWebshellTypeCmd.Flags().Float64SliceVar(&getEventListByWebshellTypeParams.PlanId, "plan-id", nil, "任务 id")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetEventListByWebshellTypeCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
+	GetEventListByWebshellTypeCmd.Flags().StringVar(&GetEventListByWebshellTypeSelectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
 	GetEventListByWebshellTypeCmd.Flags().BoolVar(&getEventListByWebshellTypeParams.SelectAll, "select-all", false, "是否全选")
 	GetEventListByWebshellTypeCmd.Flags().Float64SliceVar(&getEventListByWebshellTypeParams.StatEventId, "stat-event-id", nil, "统计事件 ID")
 	GetEventListByWebshellTypeCmd.Flags().IntSliceVar(&getEventListByWebshellTypeParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

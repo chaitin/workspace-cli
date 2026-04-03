@@ -17,6 +17,7 @@ var RetryTaskByPlanCmd = &cobra.Command{
 	Short: "重试任务计划中的失败的任务",
 	Long:  `重试任务计划中的失败的任务`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.RetryTaskByPlan", retryTaskByPlanParams, &result)

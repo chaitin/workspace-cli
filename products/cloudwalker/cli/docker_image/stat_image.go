@@ -4,6 +4,7 @@ package docker_image
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statImageParams StatImageParams
+var StatImageCustomAttrJSON string
 
 var StatImageCmd = &cobra.Command{
 	Use:   "stat_image",
 	Short: "获取Docker镜像统计",
 	Long:  `获取Docker镜像统计`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatImageCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatImageCustomAttrJSON), &statImageParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DockerImageService.StatImage", statImageParams, &result)
@@ -30,8 +38,7 @@ var StatImageCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatImageCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatImageCmd.Flags().StringVar(&StatImageCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatImageCmd.Flags().Float64SliceVar(&statImageParams.Gids, "gids", nil, "gids")
 	StatImageCmd.Flags().StringSliceVar(&statImageParams.HostComment, "host-comment", nil, "主机备注")
 	StatImageCmd.Flags().Float64SliceVar(&statImageParams.HostId, "host-id", nil, "主机 ID")

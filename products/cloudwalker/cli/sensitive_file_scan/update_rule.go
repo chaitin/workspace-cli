@@ -4,6 +4,7 @@ package sensitive_file_scan
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var updateRuleParams UpdateRuleParams
+var UpdateRuleExcludeRuleJSON string
 
 var UpdateRuleCmd = &cobra.Command{
 	Use:   "update_rule",
 	Short: "更新文件完整性任务检测规则",
 	Long:  `更新文件完整性任务检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if UpdateRuleExcludeRuleJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateRuleExcludeRuleJSON), &updateRuleParams.ExcludeRule); err != nil {
+				cmd.PrintErrln("Error parsing exclude-rule:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitiveFileScanService.UpdateRule", updateRuleParams, &result)
@@ -31,8 +39,7 @@ var UpdateRuleCmd = &cobra.Command{
 func init() {
 	UpdateRuleCmd.Flags().StringSliceVar(&updateRuleParams.Action, "action", nil, "动作")
 	// exclude_rule is complex type []map[string]interface{}, use JSON string
-	var excludeRuleJSON string
-	UpdateRuleCmd.Flags().StringVar(&excludeRuleJSON, "exclude-rule", "", "排除规则 (JSON, e.g. [{\"method\": \"prefix\", \"rule\": \"/etc/passwd\"}])")
+	UpdateRuleCmd.Flags().StringVar(&UpdateRuleExcludeRuleJSON, "exclude-rule", "", "排除规则 (JSON, e.g. [{\"method\": \"prefix\", \"rule\": \"/etc/passwd\"}])")
 	UpdateRuleCmd.Flags().StringVar(&updateRuleParams.Id, "id", "", "规则 id")
 	UpdateRuleCmd.Flags().Float64Var(&updateRuleParams.Level, "level", 0, "级别")
 	UpdateRuleCmd.Flags().StringSliceVar(&updateRuleParams.Path, "path", nil, "路径")

@@ -17,6 +17,7 @@ var GetFileStateCmd = &cobra.Command{
 	Short: "获取文件状态",
 	Long:  `获取文件状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetFileState", getFileStateParams, &result)

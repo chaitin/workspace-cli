@@ -17,6 +17,7 @@ var UpsertProxyHostCmd = &cobra.Command{
 	Short: "更新插入代理",
 	Long:  `更新插入代理`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PackageService.UpsertProxyHost", upsertProxyHostParams, &result)

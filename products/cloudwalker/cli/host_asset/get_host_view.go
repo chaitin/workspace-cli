@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getHostViewParams GetHostViewParams
+var GetHostViewCustomAttrJSON string
+var GetHostViewOrderByJSON string
 
 var GetHostViewCmd = &cobra.Command{
 	Use:   "get_host_view",
 	Short: "获取主机信息",
 	Long:  `获取主机信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetHostViewCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostViewCustomAttrJSON), &getHostViewParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetHostViewOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostViewOrderByJSON), &getHostViewParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetHostView", getHostViewParams, &result)
@@ -41,8 +56,7 @@ func init() {
 	GetHostViewCmd.Flags().StringSliceVar(&getHostViewParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	GetHostViewCmd.Flags().StringSliceVar(&getHostViewParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetHostViewCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetHostViewCmd.Flags().StringVar(&GetHostViewCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetHostViewCmd.Flags().BoolVar(&getHostViewParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	GetHostViewCmd.Flags().BoolVar(&getHostViewParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	GetHostViewCmd.Flags().StringSliceVar(&getHostViewParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")
@@ -68,8 +82,7 @@ func init() {
 	GetHostViewCmd.Flags().IntVar(&getHostViewParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetHostViewCmd.Flags().Float64SliceVar(&getHostViewParams.Oid, "oid", nil, "组织 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetHostViewCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetHostViewCmd.Flags().StringVar(&GetHostViewOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetHostViewCmd.Flags().StringSliceVar(&getHostViewParams.OrgName, "org-name", nil, "组织名称")
 	GetHostViewCmd.Flags().StringSliceVar(&getHostViewParams.Os, "os", nil, "主机操作系统")
 	GetHostViewCmd.Flags().StringSliceVar(&getHostViewParams.OsReleaseVersion, "os-release-version", nil, "系统版本")

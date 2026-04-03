@@ -4,6 +4,7 @@ package sensitive_port
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getHostViewEventListParams GetHostViewEventListParams
+var GetHostViewEventListCustomAttrJSON string
+var GetHostViewEventListOrderByJSON string
+var GetHostViewEventListSelectJSON string
 
 var GetHostViewEventListCmd = &cobra.Command{
 	Use:   "get_host_view_event_list",
 	Short: "获取高危端口事件列表(主机视角)",
 	Long:  `获取高危端口事件列表(主机视角)`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetHostViewEventListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostViewEventListCustomAttrJSON), &getHostViewEventListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetHostViewEventListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostViewEventListOrderByJSON), &getHostViewEventListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetHostViewEventListSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostViewEventListSelectJSON), &getHostViewEventListParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitivePortService.GetHostViewEventList", getHostViewEventListParams, &result)
@@ -34,8 +56,7 @@ func init() {
 	GetHostViewEventListCmd.Flags().Float64Var(&getHostViewEventListParams.Count, "count", 20, "数量")
 	GetHostViewEventListCmd.Flags().StringSliceVar(&getHostViewEventListParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetHostViewEventListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetHostViewEventListCmd.Flags().StringVar(&GetHostViewEventListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetHostViewEventListCmd.Flags().StringSliceVar(&getHostViewEventListParams.Exepath, "exepath", nil, "可执行文件路径")
 	GetHostViewEventListCmd.Flags().Float64SliceVar(&getHostViewEventListParams.Gids, "gids", nil, "业务组 ID 列表")
 	GetHostViewEventListCmd.Flags().StringSliceVar(&getHostViewEventListParams.HostComment, "host-comment", nil, "主机备注")
@@ -49,16 +70,14 @@ func init() {
 	GetHostViewEventListCmd.Flags().Float64Var(&getHostViewEventListParams.Offset, "offset", 0, "偏移量")
 	GetHostViewEventListCmd.Flags().Float64SliceVar(&getHostViewEventListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetHostViewEventListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetHostViewEventListCmd.Flags().StringVar(&GetHostViewEventListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetHostViewEventListCmd.Flags().Float64SliceVar(&getHostViewEventListParams.Pid, "pid", nil, "PID")
 	GetHostViewEventListCmd.Flags().StringSliceVar(&getHostViewEventListParams.Pname, "pname", nil, "进程名")
 	GetHostViewEventListCmd.Flags().StringSliceVar(&getHostViewEventListParams.Port, "port", nil, "端口")
 	GetHostViewEventListCmd.Flags().Float64SliceVar(&getHostViewEventListParams.PortState, "port-state", nil, "端口状态")
 	GetHostViewEventListCmd.Flags().StringSliceVar(&getHostViewEventListParams.Protocol, "protocol", nil, "协议")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetHostViewEventListCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 165, \"id\": 192, \"pname\": \"unknown\", \"port\": 22, \"protocol\": \"tcp\"}])")
+	GetHostViewEventListCmd.Flags().StringVar(&GetHostViewEventListSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 165, \"id\": 192, \"pname\": \"unknown\", \"port\": 22, \"protocol\": \"tcp\"}])")
 	GetHostViewEventListCmd.Flags().BoolVar(&getHostViewEventListParams.SelectAll, "select-all", false, "是否全选")
 	GetHostViewEventListCmd.Flags().IntSliceVar(&getHostViewEventListParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")
 	GetHostViewEventListCmd.Flags().StringSliceVar(&getHostViewEventListParams.UpdatedAt, "updated-at", nil, "事件更新时间")

@@ -4,6 +4,7 @@ package sensitive_file
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var editEventStateParams EditEventStateParams
+var EditEventStateCustomAttrJSON string
 
 var EditEventStateCmd = &cobra.Command{
 	Use:   "edit_event_state",
 	Short: "修改敏感文件事件状态",
 	Long:  `修改敏感文件事件状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditEventStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventStateCustomAttrJSON), &editEventStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitiveFileService.EditEventState", editEventStateParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Comment, "comment", nil, "用户自定义备注")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.CreatedAt, "created-at", nil, "事件创建事件")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditEventStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditEventStateCmd.Flags().StringVar(&EditEventStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditEventStateCmd.Flags().Float64SliceVar(&editEventStateParams.Gids, "gids", nil, "业务组 ID 列表")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.HostComment, "host-comment", nil, "主机备注")
 	EditEventStateCmd.Flags().Float64SliceVar(&editEventStateParams.HostId, "host-id", nil, "主机 ID")

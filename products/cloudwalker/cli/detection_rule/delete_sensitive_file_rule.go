@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteSensitiveFileRuleParams DeleteSensitiveFileRuleParams
+var DeleteSensitiveFileRuleCustomAttrJSON string
 
 var DeleteSensitiveFileRuleCmd = &cobra.Command{
 	Use:   "delete_sensitive_file_rule",
 	Short: "删除敏感文件检测规则",
 	Long:  `删除敏感文件检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteSensitiveFileRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteSensitiveFileRuleCustomAttrJSON), &deleteSensitiveFileRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.DeleteSensitiveFileRule", deleteSensitiveFileRuleParams, &result)
@@ -30,8 +38,7 @@ var DeleteSensitiveFileRuleCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteSensitiveFileRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteSensitiveFileRuleCmd.Flags().StringVar(&DeleteSensitiveFileRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteSensitiveFileRuleCmd.Flags().BoolVar(&deleteSensitiveFileRuleParams.Enable, "enable", false, "是否启用")
 	DeleteSensitiveFileRuleCmd.Flags().StringSliceVar(&deleteSensitiveFileRuleParams.HostComment, "host-comment", nil, "主机备注")
 	DeleteSensitiveFileRuleCmd.Flags().Float64SliceVar(&deleteSensitiveFileRuleParams.HostId, "host-id", nil, "主机ID")

@@ -4,6 +4,7 @@ package network_audit_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var createWhitelistParams CreateWhitelistParams
+var CreateWhitelistCustomAttrJSON string
+var CreateWhitelistSelectJSON string
+var CreateWhitelistWhitelistJSON string
 
 var CreateWhitelistCmd = &cobra.Command{
 	Use:   "create_whitelist",
 	Short: "生成白名单规则",
 	Long:  `生成白名单规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateWhitelistCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(CreateWhitelistCustomAttrJSON), &createWhitelistParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if CreateWhitelistSelectJSON != "" {
+			if err := json.Unmarshal([]byte(CreateWhitelistSelectJSON), &createWhitelistParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
+		if CreateWhitelistWhitelistJSON != "" {
+			if err := json.Unmarshal([]byte(CreateWhitelistWhitelistJSON), &createWhitelistParams.Whitelist); err != nil {
+				cmd.PrintErrln("Error parsing whitelist:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NetworkAuditEventService.CreateWhitelist", createWhitelistParams, &result)
@@ -34,8 +56,7 @@ func init() {
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.ContainerId, "container-id", nil, "容器id")
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.CreatedAt, "created-at", nil, "发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	CreateWhitelistCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	CreateWhitelistCmd.Flags().StringVar(&CreateWhitelistCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	CreateWhitelistCmd.Flags().Float64SliceVar(&createWhitelistParams.Gids, "gids", nil, "业务组 ID")
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.GroupName, "group-name", nil, "业务组名")
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.HostComment, "host-comment", nil, "主机备注")
@@ -49,8 +70,7 @@ func init() {
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.ProcessName, "process-name", nil, "进程名")
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.RemoteAddrType, "remote-addr-type", nil, "远程IP类型，intranet(内网)、internet(外网)")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	CreateWhitelistCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 151, \"id\": 151, \"process_name\": \"AliSecureCheckAdvanced.exe\", \"target\": \"119.96.137.252\"}])")
+	CreateWhitelistCmd.Flags().StringVar(&CreateWhitelistSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 151, \"id\": 151, \"process_name\": \"AliSecureCheckAdvanced.exe\", \"target\": \"119.96.137.252\"}])")
 	CreateWhitelistCmd.Flags().BoolVar(&createWhitelistParams.SelectAll, "select-all", false, "选择所有事件")
 	CreateWhitelistCmd.Flags().Float64SliceVar(&createWhitelistParams.StatEventId, "stat-event-id", nil, "事件统计 ID")
 	CreateWhitelistCmd.Flags().IntSliceVar(&createWhitelistParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")
@@ -59,8 +79,7 @@ func init() {
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.UpdatedAt, "updated-at", nil, "更新时间")
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.WhiteRuleId, "white-rule-id", nil, "白名单规则 ID")
 	// whitelist is object type, use JSON string
-	var whitelistJSON string
-	CreateWhitelistCmd.Flags().StringVar(&whitelistJSON, "whitelist", "", "whitelist (JSON, e.g. {\"agent_range\": [1, 2, 3], \"builtin_id\": \"1\", \"business_group_range\": [1, 2, 3], \"...\": \"...\"})")
+	CreateWhitelistCmd.Flags().StringVar(&CreateWhitelistWhitelistJSON, "whitelist", "", "whitelist (JSON, e.g. {\"agent_range\": [1, 2, 3], \"builtin_id\": \"1\", \"business_group_range\": [1, 2, 3], \"...\": \"...\"})")
 }
 
 // CreateWhitelistParams 请求参数

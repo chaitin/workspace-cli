@@ -4,6 +4,7 @@ package webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editEventStateParams EditEventStateParams
+var EditEventStateCustomAttrJSON string
+var EditEventStateSelectJSON string
 
 var EditEventStateCmd = &cobra.Command{
 	Use:   "edit_event_state",
 	Short: "改变所选事件的处置状态",
 	Long:  `改变所选事件的处置状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditEventStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventStateCustomAttrJSON), &editEventStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if EditEventStateSelectJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventStateSelectJSON), &editEventStateParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.EditEventState", editEventStateParams, &result)
@@ -32,8 +47,7 @@ func init() {
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Comment, "comment", nil, "用户自定义备注")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditEventStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditEventStateCmd.Flags().StringVar(&EditEventStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Domain, "domain", nil, "域名")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.FileName, "file-name", nil, "文件名")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.FilePath, "file-path", nil, "文件路径")
@@ -52,8 +66,7 @@ func init() {
 	EditEventStateCmd.Flags().Float64SliceVar(&editEventStateParams.Oid, "oid", nil, "机构 ID")
 	EditEventStateCmd.Flags().Float64SliceVar(&editEventStateParams.PlanId, "plan-id", nil, "任务 id")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	EditEventStateCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
+	EditEventStateCmd.Flags().StringVar(&EditEventStateSelectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
 	EditEventStateCmd.Flags().BoolVar(&editEventStateParams.SelectAll, "select-all", false, "是否全选")
 	EditEventStateCmd.Flags().Float64SliceVar(&editEventStateParams.StatEventId, "stat-event-id", nil, "统计事件 ID")
 	EditEventStateCmd.Flags().IntSliceVar(&editEventStateParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

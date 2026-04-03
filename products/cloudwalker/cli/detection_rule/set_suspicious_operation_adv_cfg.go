@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var setSuspiciousOperationAdvCfgParams SetSuspiciousOperationAdvCfgParams
+var SetSuspiciousOperationAdvCfgEngineJSON string
+var SetSuspiciousOperationAdvCfgEnvNameJSON string
 
 var SetSuspiciousOperationAdvCfgCmd = &cobra.Command{
 	Use:   "set_suspicious_operation_adv_cfg",
 	Short: "设置可疑命令高级配置",
 	Long:  `设置可疑命令高级配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SetSuspiciousOperationAdvCfgEngineJSON != "" {
+			if err := json.Unmarshal([]byte(SetSuspiciousOperationAdvCfgEngineJSON), &setSuspiciousOperationAdvCfgParams.Engine); err != nil {
+				cmd.PrintErrln("Error parsing engine:", err)
+				return
+			}
+		}
+		if SetSuspiciousOperationAdvCfgEnvNameJSON != "" {
+			if err := json.Unmarshal([]byte(SetSuspiciousOperationAdvCfgEnvNameJSON), &setSuspiciousOperationAdvCfgParams.EnvName); err != nil {
+				cmd.PrintErrln("Error parsing env-name:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.SetSuspiciousOperationAdvCfg", setSuspiciousOperationAdvCfgParams, &result)
@@ -32,11 +47,9 @@ func init() {
 	SetSuspiciousOperationAdvCfgCmd.Flags().BoolVar(&setSuspiciousOperationAdvCfgParams.BuiltinEnable, "builtin-enable", false, "内置规则是否启用")
 	SetSuspiciousOperationAdvCfgCmd.Flags().BoolVar(&setSuspiciousOperationAdvCfgParams.CustomEnvEnable, "custom-env-enable", false, "自定义环境变量是否启用")
 	// engine is complex type []map[string]interface{}, use JSON string
-	var engineJSON string
-	SetSuspiciousOperationAdvCfgCmd.Flags().StringVar(&engineJSON, "engine", "", "智能检测引擎 (JSON, e.g. [{\"enable\": true, \"id\": 1, \"name\": \"RCE 检测\", \"threshold\": \"low\"}])")
+	SetSuspiciousOperationAdvCfgCmd.Flags().StringVar(&SetSuspiciousOperationAdvCfgEngineJSON, "engine", "", "智能检测引擎 (JSON, e.g. [{\"enable\": true, \"id\": 1, \"name\": \"RCE 检测\", \"threshold\": \"low\"}])")
 	// env_name is object type, use JSON string
-	var envNameJSON string
-	SetSuspiciousOperationAdvCfgCmd.Flags().StringVar(&envNameJSON, "env-name", "", "环境变量名称 (JSON, e.g. {\"env_ssh_hostname\": \"SSH_HOSTNAME\", \"env_ssh_ip_addr\": \"SSH_IP_ADDR\", \"env_ssh_tty\": \"SSH_TTY\", \"env_ssh_username\": \"SSH_USERNAME\"})")
+	SetSuspiciousOperationAdvCfgCmd.Flags().StringVar(&SetSuspiciousOperationAdvCfgEnvNameJSON, "env-name", "", "环境变量名称 (JSON, e.g. {\"env_ssh_hostname\": \"SSH_HOSTNAME\", \"env_ssh_ip_addr\": \"SSH_IP_ADDR\", \"env_ssh_tty\": \"SSH_TTY\", \"env_ssh_username\": \"SSH_USERNAME\"})")
 }
 
 // SetSuspiciousOperationAdvCfgParams 请求参数

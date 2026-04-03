@@ -4,6 +4,7 @@ package anti_ransomware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var editEventCommentParams EditEventCommentParams
+var EditEventCommentCustomAttrJSON string
 
 var EditEventCommentCmd = &cobra.Command{
 	Use:   "edit_event_comment",
 	Short: "改变所选事件备注",
 	Long:  `改变所选事件备注`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditEventCommentCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventCommentCustomAttrJSON), &editEventCommentParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AntiRansomwareService.EditEventComment", editEventCommentParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.Comment, "comment", nil, "备注")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.CreateAt, "create-at", nil, "告警时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditEventCommentCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditEventCommentCmd.Flags().StringVar(&EditEventCommentCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.ExecPath, "exec-path", nil, "执行路径")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.ExposedIp, "exposed-ip", nil, "主机外网 IP")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.Family, "family", nil, "恶意软件家族")

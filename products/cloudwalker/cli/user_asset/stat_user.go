@@ -4,6 +4,7 @@ package user_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statUserParams StatUserParams
+var StatUserCustomAttrJSON string
 
 var StatUserCmd = &cobra.Command{
 	Use:   "stat_user",
 	Short: "用户统计信息",
 	Long:  `用户统计信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatUserCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatUserCustomAttrJSON), &statUserParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "UserAssetService.StatUser", statUserParams, &result)
@@ -31,8 +39,7 @@ var StatUserCmd = &cobra.Command{
 func init() {
 	StatUserCmd.Flags().BoolSliceVar(&statUserParams.CanLogin, "can-login", nil, "是否可登录，true代表可登录，false代表不可登录")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatUserCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatUserCmd.Flags().StringVar(&StatUserCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatUserCmd.Flags().BoolSliceVar(&statUserParams.Enabled, "enabled", nil, "是否启用，true代表启用，false代表禁用")
 	StatUserCmd.Flags().Float64SliceVar(&statUserParams.Gid, "gid", nil, "用户组id")
 	StatUserCmd.Flags().Float64SliceVar(&statUserParams.Gids, "gids", nil, "业务组")

@@ -4,6 +4,7 @@ package revshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getEventByHostListParams GetEventByHostListParams
+var GetEventByHostListCustomAttrJSON string
+var GetEventByHostListOrderByJSON string
 
 var GetEventByHostListCmd = &cobra.Command{
 	Use:   "get_event_by_host_list",
 	Short: "获取按主机 ID 聚合的事件列表",
 	Long:  `获取按主机 ID 聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventByHostListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventByHostListCustomAttrJSON), &getEventByHostListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventByHostListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventByHostListOrderByJSON), &getEventByHostListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "RevshellEventService.GetEventByHostList", getEventByHostListParams, &result)
@@ -32,8 +47,7 @@ func init() {
 	GetEventByHostListCmd.Flags().IntVar(&getEventByHostListParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetEventByHostListCmd.Flags().StringSliceVar(&getEventByHostListParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventByHostListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventByHostListCmd.Flags().StringVar(&GetEventByHostListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.Gids, "gids", nil, "gids")
 	GetEventByHostListCmd.Flags().StringSliceVar(&getEventByHostListParams.HostComment, "host-comment", nil, "主机备注")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.HostId, "host-id", nil, "主机 ID")
@@ -48,8 +62,7 @@ func init() {
 	GetEventByHostListCmd.Flags().IntVar(&getEventByHostListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventByHostListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventByHostListCmd.Flags().StringVar(&GetEventByHostListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventByHostListCmd.Flags().StringSliceVar(&getEventByHostListParams.ParentCmdline, "parent-cmdline", nil, "父 Shell 命令行")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.ParentPid, "parent-pid", nil, "父进程 ID")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.Pid, "pid", nil, "进程 ID")

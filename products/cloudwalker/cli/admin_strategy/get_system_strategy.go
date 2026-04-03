@@ -15,6 +15,7 @@ var GetSystemStrategyCmd = &cobra.Command{
 	Short: "获取系统默认策略",
 	Long:  `获取系统默认策略`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AdminStrategyService.GetSystemStrategy", nil, &result)

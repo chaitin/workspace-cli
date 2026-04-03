@@ -17,6 +17,7 @@ var ApplyPackageCmd = &cobra.Command{
 	Short: "应用升级包",
 	Long:  `应用升级包`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PackageService.ApplyPackage", applyPackageParams, &result)

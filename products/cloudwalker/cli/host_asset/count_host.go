@@ -15,6 +15,7 @@ var CountHostCmd = &cobra.Command{
 	Short: "获取主机资产数量",
 	Long:  `获取主机资产数量`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.CountHost", nil, &result)

@@ -17,6 +17,7 @@ var GetApplyHistoryCmd = &cobra.Command{
 	Short: "获取历史更新记录",
 	Long:  `获取历史更新记录`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PackageService.GetApplyHistory", getApplyHistoryParams, &result)

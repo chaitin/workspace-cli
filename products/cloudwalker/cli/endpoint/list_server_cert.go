@@ -15,6 +15,7 @@ var ListServerCertCmd = &cobra.Command{
 	Short: "获取证书列表参数",
 	Long:  `获取证书列表参数`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EndpointService.ListServerCert", nil, &result)

@@ -4,6 +4,7 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enableAgentIpCfgParams EnableAgentIpCfgParams
+var EnableAgentIpCfgCustomAttrJSON string
 
 var EnableAgentIpCfgCmd = &cobra.Command{
 	Use:   "enable_agent_ip_cfg",
 	Short: "启禁用探针自定义 IP 配置",
 	Long:  `启禁用探针自定义 IP 配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnableAgentIpCfgCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EnableAgentIpCfgCustomAttrJSON), &enableAgentIpCfgParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentService.EnableAgentIPCfg", enableAgentIpCfgParams, &result)
@@ -30,8 +38,7 @@ var EnableAgentIpCfgCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EnableAgentIpCfgCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EnableAgentIpCfgCmd.Flags().StringVar(&EnableAgentIpCfgCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EnableAgentIpCfgCmd.Flags().BoolSliceVar(&enableAgentIpCfgParams.Enable, "enable", nil, "是否启用")
 	EnableAgentIpCfgCmd.Flags().BoolVar(&enableAgentIpCfgParams.Enablement, "enablement", false, "启用或禁用")
 	EnableAgentIpCfgCmd.Flags().StringSliceVar(&enableAgentIpCfgParams.HostComment, "host-comment", nil, "主机备注")

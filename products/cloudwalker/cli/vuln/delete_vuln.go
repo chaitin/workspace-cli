@@ -4,6 +4,7 @@ package vuln
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var deleteVulnParams DeleteVulnParams
+var DeleteVulnCustomAttrJSON string
+var DeleteVulnSelectJSON string
 
 var DeleteVulnCmd = &cobra.Command{
 	Use:   "delete_vuln",
 	Short: "根据漏洞 ID 删除漏洞",
 	Long:  `根据漏洞 ID 删除漏洞`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteVulnCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteVulnCustomAttrJSON), &deleteVulnParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if DeleteVulnSelectJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteVulnSelectJSON), &deleteVulnParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "VulnService.DeleteVuln", deleteVulnParams, &result)
@@ -44,8 +59,7 @@ func init() {
 	DeleteVulnCmd.Flags().StringSliceVar(&deleteVulnParams.Confidentiality, "confidentiality", nil, "机密性影响")
 	DeleteVulnCmd.Flags().StringSliceVar(&deleteVulnParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteVulnCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteVulnCmd.Flags().StringVar(&DeleteVulnCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteVulnCmd.Flags().StringSliceVar(&deleteVulnParams.Cve, "cve", nil, "CVE 编号")
 	DeleteVulnCmd.Flags().StringSliceVar(&deleteVulnParams.CvssScore, "cvss-score", nil, "CVSS 分数")
 	DeleteVulnCmd.Flags().StringSliceVar(&deleteVulnParams.Cwe, "cwe", nil, "CWE 编号")
@@ -68,8 +82,7 @@ func init() {
 	DeleteVulnCmd.Flags().Float64SliceVar(&deleteVulnParams.PlanId, "plan-id", nil, "任务 id")
 	DeleteVulnCmd.Flags().StringSliceVar(&deleteVulnParams.PublishDate, "publish-date", nil, "漏洞发布时间")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	DeleteVulnCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"app_product\": \"windows_nt\", \"app_vendor\": \"null\", \"host_id\": 111, \"id\": 120, \"vuln_id\": 111}])")
+	DeleteVulnCmd.Flags().StringVar(&DeleteVulnSelectJSON, "select", "", "select (JSON, e.g. [{\"app_product\": \"windows_nt\", \"app_vendor\": \"null\", \"host_id\": 111, \"id\": 120, \"vuln_id\": 111}])")
 	DeleteVulnCmd.Flags().BoolVar(&deleteVulnParams.SelectAll, "select-all", false, "select_all")
 	DeleteVulnCmd.Flags().IntSliceVar(&deleteVulnParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")
 	DeleteVulnCmd.Flags().StringSliceVar(&deleteVulnParams.Tags, "tags", nil, "漏洞标签")

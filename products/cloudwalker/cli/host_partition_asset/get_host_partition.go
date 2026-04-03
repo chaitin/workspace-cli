@@ -4,6 +4,7 @@ package host_partition_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getHostPartitionParams GetHostPartitionParams
+var GetHostPartitionOrderByJSON string
 
 var GetHostPartitionCmd = &cobra.Command{
 	Use:   "get_host_partition",
 	Short: "获取主机分区信息",
 	Long:  `获取主机分区信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetHostPartitionOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostPartitionOrderByJSON), &getHostPartitionParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostPartitionAssetService.GetHostPartition", getHostPartitionParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	GetHostPartitionCmd.Flags().IntVar(&getHostPartitionParams.HostId, "host-id", 0, "主机 ID")
 	GetHostPartitionCmd.Flags().IntVar(&getHostPartitionParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetHostPartitionCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetHostPartitionCmd.Flags().StringVar(&GetHostPartitionOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 }
 
 // GetHostPartitionParams 请求参数

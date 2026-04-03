@@ -4,6 +4,7 @@ package brute_force
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getWhitelistParams GetWhitelistParams
+var GetWhitelistCustomAttrJSON string
 
 var GetWhitelistCmd = &cobra.Command{
 	Use:   "get_whitelist",
 	Short: "获取白名单规则",
 	Long:  `获取白名单规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetWhitelistCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetWhitelistCustomAttrJSON), &getWhitelistParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BruteForceService.GetWhitelist", getWhitelistParams, &result)
@@ -34,8 +42,7 @@ func init() {
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.Comment, "comment", nil, "comment")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.CreatedAt, "created-at", nil, "爆破开始时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetWhitelistCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetWhitelistCmd.Flags().StringVar(&GetWhitelistCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.Description, "description", nil, "爆破描述")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.FailureCount, "failure-count", nil, "failure_count")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.FinishedAt, "finished-at", nil, "finished_at")

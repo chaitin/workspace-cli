@@ -17,6 +17,7 @@ var GetImageCmd = &cobra.Command{
 	Short: "获取Docker镜像资产详情",
 	Long:  `获取Docker镜像资产详情`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DockerImageService.GetImage", getImageParams, &result)

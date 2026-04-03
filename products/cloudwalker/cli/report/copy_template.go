@@ -17,6 +17,7 @@ var CopyTemplateCmd = &cobra.Command{
 	Short: "复制模板",
 	Long:  `复制模板`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ReportService.CopyTemplate", copyTemplateParams, &result)

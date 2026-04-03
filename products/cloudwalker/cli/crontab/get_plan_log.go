@@ -17,6 +17,7 @@ var GetPlanLogCmd = &cobra.Command{
 	Short: "获取任务计划日志",
 	Long:  `获取任务计划日志`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.GetPlanLog", getPlanLogParams, &result)

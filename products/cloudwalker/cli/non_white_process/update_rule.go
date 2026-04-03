@@ -17,6 +17,7 @@ var UpdateRuleCmd = &cobra.Command{
 	Short: "更新命令白名单规则",
 	Long:  `更新命令白名单规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NonWhiteProcessService.UpdateRule", updateRuleParams, &result)

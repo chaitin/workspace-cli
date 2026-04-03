@@ -4,6 +4,7 @@ package firewall
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getConnectionCollectRuleParams GetConnectionCollectRuleParams
+var GetConnectionCollectRuleFilterJSON string
+var GetConnectionCollectRulePageJSON string
 
 var GetConnectionCollectRuleCmd = &cobra.Command{
 	Use:   "get_connection_collect_rule",
 	Short: "获取连接采集规则",
 	Long:  `获取连接采集规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetConnectionCollectRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetConnectionCollectRuleFilterJSON), &getConnectionCollectRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetConnectionCollectRulePageJSON != "" {
+			if err := json.Unmarshal([]byte(GetConnectionCollectRulePageJSON), &getConnectionCollectRuleParams.Page); err != nil {
+				cmd.PrintErrln("Error parsing page:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.GetConnectionCollectRule", getConnectionCollectRuleParams, &result)
@@ -30,11 +45,9 @@ var GetConnectionCollectRuleCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	GetConnectionCollectRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选条件 (JSON, e.g. {\"created_at\": [\"xxxxxxxxx\"], \"enable\": true, \"host_ip\": [\"192.168.1.1\"], \"...\": \"...\"})")
+	GetConnectionCollectRuleCmd.Flags().StringVar(&GetConnectionCollectRuleFilterJSON, "filter", "", "筛选条件 (JSON, e.g. {\"created_at\": [\"xxxxxxxxx\"], \"enable\": true, \"host_ip\": [\"192.168.1.1\"], \"...\": \"...\"})")
 	// page is object type, use JSON string
-	var pageJSON string
-	GetConnectionCollectRuleCmd.Flags().StringVar(&pageJSON, "page", "", "分页参数 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
+	GetConnectionCollectRuleCmd.Flags().StringVar(&GetConnectionCollectRulePageJSON, "page", "", "分页参数 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
 }
 
 // GetConnectionCollectRuleParams 请求参数

@@ -15,6 +15,7 @@ var GetNsqStatisticsCmd = &cobra.Command{
 	Short: "获取 NSQ 统计信息",
 	Long:  `获取 NSQ 统计信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AdminMonitorService.GetNsqStatistics", nil, &result)

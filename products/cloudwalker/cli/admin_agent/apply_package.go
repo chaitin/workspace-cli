@@ -17,6 +17,7 @@ var ApplyPackageCmd = &cobra.Command{
 	Short: "应用探针模块升级包",
 	Long:  `应用探针模块升级包`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AdminAgentService.ApplyPackage", applyPackageParams, &result)

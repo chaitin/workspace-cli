@@ -4,6 +4,7 @@ package security_check
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editEventCommentParams EditEventCommentParams
+var EditEventCommentCustomAttrJSON string
+var EditEventCommentFilterJSON string
 
 var EditEventCommentCmd = &cobra.Command{
 	Use:   "edit_event_comment",
 	Short: "改变所选事件备注",
 	Long:  `改变所选事件备注`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditEventCommentCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventCommentCustomAttrJSON), &editEventCommentParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if EditEventCommentFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventCommentFilterJSON), &editEventCommentParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SecurityCheckService.EditEventComment", editEventCommentParams, &result)
@@ -32,11 +47,9 @@ func init() {
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.Comment, "comment", nil, "用户自定义备注")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditEventCommentCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditEventCommentCmd.Flags().StringVar(&EditEventCommentCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	EditEventCommentCmd.Flags().StringVar(&filterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 15, \"id\": 15, \"item_id\": \"15\"}])")
+	EditEventCommentCmd.Flags().StringVar(&EditEventCommentFilterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 15, \"id\": 15, \"item_id\": \"15\"}])")
 	EditEventCommentCmd.Flags().Float64SliceVar(&editEventCommentParams.Gids, "gids", nil, "业务组 ID 列表")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.Hint, "hint", nil, "脆弱点")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.HostComment, "host-comment", nil, "主机备注")

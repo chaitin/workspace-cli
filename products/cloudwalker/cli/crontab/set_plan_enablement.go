@@ -17,6 +17,7 @@ var SetPlanEnablementCmd = &cobra.Command{
 	Short: "设置任务计划自动执行",
 	Long:  `设置任务计划自动执行`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.SetPlanEnablement", setPlanEnablementParams, &result)

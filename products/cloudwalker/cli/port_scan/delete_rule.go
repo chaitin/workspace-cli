@@ -4,6 +4,7 @@ package port_scan
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteRuleParams DeleteRuleParams
+var DeleteRuleFilterJSON string
 
 var DeleteRuleCmd = &cobra.Command{
 	Use:   "delete_rule",
 	Short: "删除规则",
 	Long:  `删除规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteRuleFilterJSON), &deleteRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PortScanService.DeleteRule", deleteRuleParams, &result)
@@ -30,8 +38,7 @@ var DeleteRuleCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	DeleteRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "规则过滤条件 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": [true], \"host_comment\": [\"主机备注\"], \"...\": \"...\"})")
+	DeleteRuleCmd.Flags().StringVar(&DeleteRuleFilterJSON, "filter", "", "规则过滤条件 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": [true], \"host_comment\": [\"主机备注\"], \"...\": \"...\"})")
 }
 
 // DeleteRuleParams 请求参数

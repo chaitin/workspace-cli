@@ -4,6 +4,7 @@ package weak_passwd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var createWhitelistParams CreateWhitelistParams
+var CreateWhitelistCustomAttrJSON string
+var CreateWhitelistFilterJSON string
+var CreateWhitelistWhitelistJSON string
 
 var CreateWhitelistCmd = &cobra.Command{
 	Use:   "create_whitelist",
 	Short: "生成白名单规则",
 	Long:  `生成白名单规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateWhitelistCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(CreateWhitelistCustomAttrJSON), &createWhitelistParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if CreateWhitelistFilterJSON != "" {
+			if err := json.Unmarshal([]byte(CreateWhitelistFilterJSON), &createWhitelistParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if CreateWhitelistWhitelistJSON != "" {
+			if err := json.Unmarshal([]byte(CreateWhitelistWhitelistJSON), &createWhitelistParams.Whitelist); err != nil {
+				cmd.PrintErrln("Error parsing whitelist:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.CreateWhitelist", createWhitelistParams, &result)
@@ -34,11 +56,9 @@ func init() {
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.Comment, "comment", nil, "用户自定义备注")
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.CreatedAt, "created-at", nil, "创建事件")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	CreateWhitelistCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	CreateWhitelistCmd.Flags().StringVar(&CreateWhitelistCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	CreateWhitelistCmd.Flags().StringVar(&filterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 3643, \"id\": 3643, \"password\": \"123456\", \"service\": \"ssh\", \"username\": \"test\"}])")
+	CreateWhitelistCmd.Flags().StringVar(&CreateWhitelistFilterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 3643, \"id\": 3643, \"password\": \"123456\", \"service\": \"ssh\", \"username\": \"test\"}])")
 	CreateWhitelistCmd.Flags().Float64SliceVar(&createWhitelistParams.Gids, "gids", nil, "业务组 ID 列表")
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.HostComment, "host-comment", nil, "主机备注")
 	CreateWhitelistCmd.Flags().Float64SliceVar(&createWhitelistParams.HostId, "host-id", nil, "主机 ID")
@@ -60,8 +80,7 @@ func init() {
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.Username, "username", nil, "用户名")
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.WhiteRuleId, "white-rule-id", nil, "白名单规则 ID")
 	// whitelist is object type, use JSON string
-	var whitelistJSON string
-	CreateWhitelistCmd.Flags().StringVar(&whitelistJSON, "whitelist", "", "whitelist (JSON, e.g. {\"agent_range\": [1, 2, 3], \"builtin_id\": \"1\", \"business_group_range\": [1, 2, 3], \"...\": \"...\"})")
+	CreateWhitelistCmd.Flags().StringVar(&CreateWhitelistWhitelistJSON, "whitelist", "", "whitelist (JSON, e.g. {\"agent_range\": [1, 2, 3], \"builtin_id\": \"1\", \"business_group_range\": [1, 2, 3], \"...\": \"...\"})")
 }
 
 // CreateWhitelistParams 请求参数

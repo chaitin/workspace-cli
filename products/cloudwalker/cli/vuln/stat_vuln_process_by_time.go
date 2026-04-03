@@ -4,6 +4,7 @@ package vuln
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statVulnProcessByTimeParams StatVulnProcessByTimeParams
+var StatVulnProcessByTimeCustomAttrJSON string
 
 var StatVulnProcessByTimeCmd = &cobra.Command{
 	Use:   "stat_vuln_process_by_time",
 	Short: "根据时间汇总漏洞处理详情",
 	Long:  `根据时间汇总漏洞处理详情`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatVulnProcessByTimeCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatVulnProcessByTimeCustomAttrJSON), &statVulnProcessByTimeParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "VulnService.StatVulnProcessByTime", statVulnProcessByTimeParams, &result)
@@ -44,8 +52,7 @@ func init() {
 	StatVulnProcessByTimeCmd.Flags().StringSliceVar(&statVulnProcessByTimeParams.Confidentiality, "confidentiality", nil, "机密性影响")
 	StatVulnProcessByTimeCmd.Flags().StringSliceVar(&statVulnProcessByTimeParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatVulnProcessByTimeCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatVulnProcessByTimeCmd.Flags().StringVar(&StatVulnProcessByTimeCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatVulnProcessByTimeCmd.Flags().StringSliceVar(&statVulnProcessByTimeParams.Cve, "cve", nil, "CVE 编号")
 	StatVulnProcessByTimeCmd.Flags().StringSliceVar(&statVulnProcessByTimeParams.CvssScore, "cvss-score", nil, "CVSS 分数")
 	StatVulnProcessByTimeCmd.Flags().StringSliceVar(&statVulnProcessByTimeParams.Cwe, "cwe", nil, "CWE 编号")

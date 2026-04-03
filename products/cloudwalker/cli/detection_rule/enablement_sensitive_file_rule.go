@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enablementSensitiveFileRuleParams EnablementSensitiveFileRuleParams
+var EnablementSensitiveFileRuleFilterJSON string
 
 var EnablementSensitiveFileRuleCmd = &cobra.Command{
 	Use:   "enablement_sensitive_file_rule",
 	Short: "启禁用敏感文件检测规则",
 	Long:  `启禁用敏感文件检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnablementSensitiveFileRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EnablementSensitiveFileRuleFilterJSON), &enablementSensitiveFileRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.EnablementSensitiveFileRule", enablementSensitiveFileRuleParams, &result)
@@ -31,8 +39,7 @@ var EnablementSensitiveFileRuleCmd = &cobra.Command{
 func init() {
 	EnablementSensitiveFileRuleCmd.Flags().BoolVar(&enablementSensitiveFileRuleParams.Enable, "enable", false, "是否启用")
 	// filter is object type, use JSON string
-	var filterJSON string
-	EnablementSensitiveFileRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": true, \"host_comment\": [\"主机备注\"], \"...\": \"...\"})")
+	EnablementSensitiveFileRuleCmd.Flags().StringVar(&EnablementSensitiveFileRuleFilterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": true, \"host_comment\": [\"主机备注\"], \"...\": \"...\"})")
 }
 
 // EnablementSensitiveFileRuleParams 请求参数

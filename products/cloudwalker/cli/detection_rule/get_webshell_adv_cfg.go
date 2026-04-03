@@ -15,6 +15,7 @@ var GetWebshellAdvCfgCmd = &cobra.Command{
 	Short: "获取 Webshell 高级配置",
 	Long:  `获取 Webshell 高级配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.GetWebshellAdvCfg", nil, &result)

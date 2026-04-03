@@ -4,6 +4,7 @@ package agent_detector
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listDetectorAgentParams ListDetectorAgentParams
+var ListDetectorAgentCustomAttrJSON string
 
 var ListDetectorAgentCmd = &cobra.Command{
 	Use:   "list_detector_agent",
 	Short: "获取检测探针列表",
 	Long:  `获取检测探针列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListDetectorAgentCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListDetectorAgentCustomAttrJSON), &listDetectorAgentParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentDetectorService.ListDetectorAgent", listDetectorAgentParams, &result)
@@ -31,8 +39,7 @@ var ListDetectorAgentCmd = &cobra.Command{
 func init() {
 	ListDetectorAgentCmd.Flags().IntVar(&listDetectorAgentParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListDetectorAgentCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListDetectorAgentCmd.Flags().StringVar(&ListDetectorAgentCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListDetectorAgentCmd.Flags().Float64SliceVar(&listDetectorAgentParams.GroupId, "group-id", nil, "业务组 ID")
 	ListDetectorAgentCmd.Flags().StringSliceVar(&listDetectorAgentParams.HostComment, "host-comment", nil, "主机备注")
 	ListDetectorAgentCmd.Flags().Float64SliceVar(&listDetectorAgentParams.HostId, "host-id", nil, "主机 ID")

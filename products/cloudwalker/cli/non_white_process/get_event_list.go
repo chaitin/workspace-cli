@@ -4,6 +4,7 @@ package non_white_process
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getEventListParams GetEventListParams
+var GetEventListCustomAttrJSON string
+var GetEventListFilterJSON string
+var GetEventListOrderByJSON string
 
 var GetEventListCmd = &cobra.Command{
 	Use:   "get_event_list",
 	Short: "获取事件列表",
 	Long:  `获取事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListCustomAttrJSON), &getEventListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListFilterJSON), &getEventListParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetEventListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListOrderByJSON), &getEventListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NonWhiteProcessService.GetEventList", getEventListParams, &result)
@@ -36,16 +58,14 @@ func init() {
 	GetEventListCmd.Flags().IntVar(&getEventListParams.Count, "count", 20, "数量")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListCmd.Flags().StringVar(&GetEventListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.Cwd, "cwd", nil, "执行目录")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.Egid, "egid", nil, "有效用户组ID")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.Egname, "egname", nil, "有效用户组名")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.Euid, "euid", nil, "有效用户ID")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.Euname, "euname", nil, "有效用户名")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetEventListCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. [{\"cmdline\": \"\", \"host_id\": 0.0, \"id\": 0.0, \"name\": \"\"}])")
+	GetEventListCmd.Flags().StringVar(&GetEventListFilterJSON, "filter", "", "filter (JSON, e.g. [{\"cmdline\": \"\", \"host_id\": 0.0, \"id\": 0.0, \"name\": \"\"}])")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.Gid, "gid", nil, "用户组ID")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.Gids, "gids", nil, "业务组ID")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.Gname, "gname", nil, "用户组")
@@ -63,8 +83,7 @@ func init() {
 	GetEventListCmd.Flags().IntVar(&getEventListParams.Offset, "offset", 0, "偏移量")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListCmd.Flags().StringVar(&GetEventListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.Path, "path", nil, "可执行文件路径")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.Pid, "pid", nil, "pid")
 	GetEventListCmd.Flags().BoolVar(&getEventListParams.SelectAll, "select-all", false, "select_all")

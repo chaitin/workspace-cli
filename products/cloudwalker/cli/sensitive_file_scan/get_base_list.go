@@ -17,6 +17,7 @@ var GetBaseListCmd = &cobra.Command{
 	Short: "获取文件一致性基准列表",
 	Long:  `获取文件一致性基准列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitiveFileScanService.GetBaseList", getBaseListParams, &result)

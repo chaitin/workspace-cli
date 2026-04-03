@@ -17,6 +17,7 @@ var EditCustomSolutionCmd = &cobra.Command{
 	Short: "修改补丁修复方案",
 	Long:  `修改补丁修复方案`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PatchInfoService.EditCustomSolution", editCustomSolutionParams, &result)

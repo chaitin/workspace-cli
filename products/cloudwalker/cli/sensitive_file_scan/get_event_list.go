@@ -4,6 +4,7 @@ package sensitive_file_scan
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getEventListParams GetEventListParams
+var GetEventListCustomAttrJSON string
+var GetEventListOrderByJSON string
 
 var GetEventListCmd = &cobra.Command{
 	Use:   "get_event_list",
 	Short: "获取敏感文件事件列表",
 	Long:  `获取敏感文件事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListCustomAttrJSON), &getEventListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListOrderByJSON), &getEventListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitiveFileScanService.GetEventList", getEventListParams, &result)
@@ -34,8 +49,7 @@ func init() {
 	GetEventListCmd.Flags().IntVar(&getEventListParams.Count, "count", 20, "数量")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.CreatedAt, "created-at", nil, "事件创建事件")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListCmd.Flags().StringVar(&GetEventListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.Gids, "gids", nil, "业务组 ID 列表")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.HostComment, "host-comment", nil, "主机备注")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.HostId, "host-id", nil, "主机 ID")
@@ -47,8 +61,7 @@ func init() {
 	GetEventListCmd.Flags().IntVar(&getEventListParams.Offset, "offset", 0, "偏移量")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListCmd.Flags().StringVar(&GetEventListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.Path, "path", nil, "文件路径")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.PlanName, "plan-name", nil, "任务名称")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

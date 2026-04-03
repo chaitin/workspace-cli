@@ -4,6 +4,7 @@ package suspicious_operation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getEventListBySshClientIpParams GetEventListBySshClientIpParams
+var GetEventListBySshClientIpCustomAttrJSON string
+var GetEventListBySshClientIpOrderByJSON string
 
 var GetEventListBySshClientIpCmd = &cobra.Command{
 	Use:   "get_event_list_by_ssh_client_ip",
 	Short: "返回按 SSH登录 聚合的可疑操作列表",
 	Long:  `返回按 SSH登录 聚合的可疑操作列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListBySshClientIpCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListBySshClientIpCustomAttrJSON), &getEventListBySshClientIpParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListBySshClientIpOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListBySshClientIpOrderByJSON), &getEventListBySshClientIpParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SuspiciousOperationService.GetEventListBySSHClientIP", getEventListBySshClientIpParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	GetEventListBySshClientIpCmd.Flags().StringSliceVar(&getEventListBySshClientIpParams.ContainerHashId, "container-hash-id", nil, "容器Id")
 	GetEventListBySshClientIpCmd.Flags().IntVar(&getEventListBySshClientIpParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListBySshClientIpCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListBySshClientIpCmd.Flags().StringVar(&GetEventListBySshClientIpCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListBySshClientIpCmd.Flags().StringSliceVar(&getEventListBySshClientIpParams.Egid, "egid", nil, "有效用户组ID")
 	GetEventListBySshClientIpCmd.Flags().StringSliceVar(&getEventListBySshClientIpParams.Egname, "egname", nil, "有效用户组名")
 	GetEventListBySshClientIpCmd.Flags().Float64SliceVar(&getEventListBySshClientIpParams.Euid, "euid", nil, "有效用户ID")
@@ -54,8 +68,7 @@ func init() {
 	GetEventListBySshClientIpCmd.Flags().IntVar(&getEventListBySshClientIpParams.Offset, "offset", 0, "偏移量")
 	GetEventListBySshClientIpCmd.Flags().Float64SliceVar(&getEventListBySshClientIpParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListBySshClientIpCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListBySshClientIpCmd.Flags().StringVar(&GetEventListBySshClientIpOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListBySshClientIpCmd.Flags().StringSliceVar(&getEventListBySshClientIpParams.RuleName, "rule-name", nil, "规则名称")
 	GetEventListBySshClientIpCmd.Flags().StringSliceVar(&getEventListBySshClientIpParams.SessionId, "session-id", nil, "会话ID")
 	GetEventListBySshClientIpCmd.Flags().StringSliceVar(&getEventListBySshClientIpParams.SshClientIp, "ssh-client-ip", nil, "ssh登陆地址")

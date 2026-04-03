@@ -4,6 +4,7 @@ package non_white_process
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var whiteEventParams WhiteEventParams
+var WhiteEventCustomAttrJSON string
+var WhiteEventFilterJSON string
 
 var WhiteEventCmd = &cobra.Command{
 	Use:   "white_event",
 	Short: "加白事件",
 	Long:  `加白事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if WhiteEventCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(WhiteEventCustomAttrJSON), &whiteEventParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if WhiteEventFilterJSON != "" {
+			if err := json.Unmarshal([]byte(WhiteEventFilterJSON), &whiteEventParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NonWhiteProcessService.WhiteEvent", whiteEventParams, &result)
@@ -35,16 +50,14 @@ func init() {
 	WhiteEventCmd.Flags().StringSliceVar(&whiteEventParams.ContainerHashId, "container-hash-id", nil, "容器ID")
 	WhiteEventCmd.Flags().StringSliceVar(&whiteEventParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	WhiteEventCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	WhiteEventCmd.Flags().StringVar(&WhiteEventCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	WhiteEventCmd.Flags().StringSliceVar(&whiteEventParams.Cwd, "cwd", nil, "执行目录")
 	WhiteEventCmd.Flags().Float64SliceVar(&whiteEventParams.Egid, "egid", nil, "有效用户组ID")
 	WhiteEventCmd.Flags().StringSliceVar(&whiteEventParams.Egname, "egname", nil, "有效用户组名")
 	WhiteEventCmd.Flags().Float64SliceVar(&whiteEventParams.Euid, "euid", nil, "有效用户ID")
 	WhiteEventCmd.Flags().StringSliceVar(&whiteEventParams.Euname, "euname", nil, "有效用户名")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	WhiteEventCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. [{\"cmdline\": \"\", \"host_id\": 0.0, \"id\": 0.0, \"name\": \"\"}])")
+	WhiteEventCmd.Flags().StringVar(&WhiteEventFilterJSON, "filter", "", "filter (JSON, e.g. [{\"cmdline\": \"\", \"host_id\": 0.0, \"id\": 0.0, \"name\": \"\"}])")
 	WhiteEventCmd.Flags().Float64SliceVar(&whiteEventParams.Gid, "gid", nil, "用户组ID")
 	WhiteEventCmd.Flags().Float64SliceVar(&whiteEventParams.Gids, "gids", nil, "业务组ID")
 	WhiteEventCmd.Flags().StringSliceVar(&whiteEventParams.Gname, "gname", nil, "用户组")

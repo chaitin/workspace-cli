@@ -4,6 +4,7 @@ package whitelist
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listWhitelistParams ListWhitelistParams
+var ListWhitelistCustomAttrJSON string
 
 var ListWhitelistCmd = &cobra.Command{
 	Use:   "list_whitelist",
 	Short: "获取事件加白规则列表",
 	Long:  `获取事件加白规则列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListWhitelistCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListWhitelistCustomAttrJSON), &listWhitelistParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WhitelistService.ListWhitelist", listWhitelistParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	ListWhitelistCmd.Flags().IntVar(&listWhitelistParams.Count, "count", 20, "每页记录数量")
 	ListWhitelistCmd.Flags().StringSliceVar(&listWhitelistParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListWhitelistCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListWhitelistCmd.Flags().StringVar(&ListWhitelistCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListWhitelistCmd.Flags().BoolVar(&listWhitelistParams.Enable, "enable", false, "是否启用")
 	ListWhitelistCmd.Flags().StringSliceVar(&listWhitelistParams.HostComment, "host-comment", nil, "主机备注")
 	ListWhitelistCmd.Flags().Float64SliceVar(&listWhitelistParams.HostId, "host-id", nil, "主机ID")

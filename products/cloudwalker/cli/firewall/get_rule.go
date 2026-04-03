@@ -4,6 +4,7 @@ package firewall
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getRuleParams GetRuleParams
+var GetRuleFilterJSON string
+var GetRulePageJSON string
 
 var GetRuleCmd = &cobra.Command{
 	Use:   "get_rule",
 	Short: "获取规则列表",
 	Long:  `获取规则列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetRuleFilterJSON), &getRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetRulePageJSON != "" {
+			if err := json.Unmarshal([]byte(GetRulePageJSON), &getRuleParams.Page); err != nil {
+				cmd.PrintErrln("Error parsing page:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.GetRule", getRuleParams, &result)
@@ -30,11 +45,9 @@ var GetRuleCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	GetRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"action\": [\"ACCEPT\"], \"cidr\": [\"\"], \"created_at\": [\"\"], \"...\": \"...\"})")
+	GetRuleCmd.Flags().StringVar(&GetRuleFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"action\": [\"ACCEPT\"], \"cidr\": [\"\"], \"created_at\": [\"\"], \"...\": \"...\"})")
 	// page is object type, use JSON string
-	var pageJSON string
-	GetRuleCmd.Flags().StringVar(&pageJSON, "page", "", "分页器 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
+	GetRuleCmd.Flags().StringVar(&GetRulePageJSON, "page", "", "分页器 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
 }
 
 // GetRuleParams 请求参数

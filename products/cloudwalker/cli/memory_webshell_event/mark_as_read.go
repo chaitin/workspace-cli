@@ -4,6 +4,7 @@ package memory_webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var markAsReadParams MarkAsReadParams
+var MarkAsReadCustomAttrJSON string
+var MarkAsReadSelectJSON string
 
 var MarkAsReadCmd = &cobra.Command{
 	Use:   "mark_as_read",
 	Short: "标记事件为已读",
 	Long:  `标记事件为已读`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if MarkAsReadCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(MarkAsReadCustomAttrJSON), &markAsReadParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if MarkAsReadSelectJSON != "" {
+			if err := json.Unmarshal([]byte(MarkAsReadSelectJSON), &markAsReadParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "MemoryWebshellEventService.MarkAsRead", markAsReadParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.Comment, "comment", nil, "用户自定义备注")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	MarkAsReadCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	MarkAsReadCmd.Flags().StringVar(&MarkAsReadCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	MarkAsReadCmd.Flags().Float64SliceVar(&markAsReadParams.Gids, "gids", nil, "业务组 ID")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.HostComment, "host-comment", nil, "主机备注")
 	MarkAsReadCmd.Flags().Float64SliceVar(&markAsReadParams.HostId, "host-id", nil, "主机 ID")
@@ -49,8 +63,7 @@ func init() {
 	MarkAsReadCmd.Flags().Float64SliceVar(&markAsReadParams.PlanId, "plan-id", nil, "任务 id")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.ProcessName, "process-name", nil, "进程名称")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	MarkAsReadCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"class_name\": \".class\", \"host_id\": 162, \"id\": 154, \"server_name\": \"tomcat\"}])")
+	MarkAsReadCmd.Flags().StringVar(&MarkAsReadSelectJSON, "select", "", "select (JSON, e.g. [{\"class_name\": \".class\", \"host_id\": 162, \"id\": 154, \"server_name\": \"tomcat\"}])")
 	MarkAsReadCmd.Flags().BoolVar(&markAsReadParams.SelectAll, "select-all", false, "是否全选")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.ServerName, "server-name", nil, "服务名称")
 	MarkAsReadCmd.Flags().Float64SliceVar(&markAsReadParams.StatEventId, "stat-event-id", nil, "事件统计 ID")

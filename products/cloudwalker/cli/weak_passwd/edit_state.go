@@ -4,6 +4,7 @@ package weak_passwd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editStateParams EditStateParams
+var EditStateCustomAttrJSON string
+var EditStateFilterJSON string
 
 var EditStateCmd = &cobra.Command{
 	Use:   "edit_state",
 	Short: "修改弱口令事件状态",
 	Long:  `修改弱口令事件状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditStateCustomAttrJSON), &editStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if EditStateFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EditStateFilterJSON), &editStateParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.EditState", editStateParams, &result)
@@ -34,11 +49,9 @@ func init() {
 	EditStateCmd.Flags().StringSliceVar(&editStateParams.Comment, "comment", nil, "用户自定义备注")
 	EditStateCmd.Flags().StringSliceVar(&editStateParams.CreatedAt, "created-at", nil, "创建事件")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditStateCmd.Flags().StringVar(&EditStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	EditStateCmd.Flags().StringVar(&filterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 3643, \"id\": 3643, \"password\": \"123456\", \"service\": \"ssh\", \"username\": \"test\"}])")
+	EditStateCmd.Flags().StringVar(&EditStateFilterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 3643, \"id\": 3643, \"password\": \"123456\", \"service\": \"ssh\", \"username\": \"test\"}])")
 	EditStateCmd.Flags().Float64SliceVar(&editStateParams.Gids, "gids", nil, "业务组 ID 列表")
 	EditStateCmd.Flags().StringSliceVar(&editStateParams.HostComment, "host-comment", nil, "主机备注")
 	EditStateCmd.Flags().Float64SliceVar(&editStateParams.HostId, "host-id", nil, "主机 ID")

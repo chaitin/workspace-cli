@@ -4,6 +4,7 @@ package security_tool
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getTaskResultListParams GetTaskResultListParams
+var GetTaskResultListResultFilterJSON string
 
 var GetTaskResultListCmd = &cobra.Command{
 	Use:   "get_task_result_list",
 	Short: "获取任务执行结果列表",
 	Long:  `获取任务执行结果列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetTaskResultListResultFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetTaskResultListResultFilterJSON), &getTaskResultListParams.ResultFilter); err != nil {
+				cmd.PrintErrln("Error parsing result-filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SecurityToolService.GetTaskResultList", getTaskResultListParams, &result)
@@ -38,8 +46,7 @@ func init() {
 	GetTaskResultListCmd.Flags().IntVar(&getTaskResultListParams.Offset, "offset", 0, "偏移量")
 	GetTaskResultListCmd.Flags().IntVar(&getTaskResultListParams.PlanId, "plan-id", 0, "计划ID")
 	// result_filter is object type, use JSON string
-	var resultFilterJSON string
-	GetTaskResultListCmd.Flags().StringVar(&resultFilterJSON, "result-filter", "", "返回值过滤 (JSON, e.g. {})")
+	GetTaskResultListCmd.Flags().StringVar(&GetTaskResultListResultFilterJSON, "result-filter", "", "返回值过滤 (JSON, e.g. {})")
 }
 
 // GetTaskResultListParams 请求参数

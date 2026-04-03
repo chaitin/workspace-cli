@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var batchEditHostAttributeParams BatchEditHostAttributeParams
+var BatchEditHostAttributeAttributeModifyJSON string
+var BatchEditHostAttributeCustomAttrJSON string
+var BatchEditHostAttributeSelectJSON string
 
 var BatchEditHostAttributeCmd = &cobra.Command{
 	Use:   "batch_edit_host_attribute",
 	Short: "批量编辑主机属性信息",
 	Long:  `批量编辑主机属性信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if BatchEditHostAttributeAttributeModifyJSON != "" {
+			if err := json.Unmarshal([]byte(BatchEditHostAttributeAttributeModifyJSON), &batchEditHostAttributeParams.AttributeModify); err != nil {
+				cmd.PrintErrln("Error parsing attribute-modify:", err)
+				return
+			}
+		}
+		if BatchEditHostAttributeCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(BatchEditHostAttributeCustomAttrJSON), &batchEditHostAttributeParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if BatchEditHostAttributeSelectJSON != "" {
+			if err := json.Unmarshal([]byte(BatchEditHostAttributeSelectJSON), &batchEditHostAttributeParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.BatchEditHostAttribute", batchEditHostAttributeParams, &result)
@@ -31,8 +53,7 @@ var BatchEditHostAttributeCmd = &cobra.Command{
 func init() {
 	BatchEditHostAttributeCmd.Flags().Float64SliceVar(&batchEditHostAttributeParams.AgentInstallPlanId, "agent-install-plan-id", nil, "探针升级任务 ID")
 	// attribute_modify is complex type []map[string]interface{}, use JSON string
-	var attributeModifyJSON string
-	BatchEditHostAttributeCmd.Flags().StringVar(&attributeModifyJSON, "attribute-modify", "", "attribute_modify (JSON, e.g. [{\"action\": \"\", \"attr_name\": \"\", \"attr_type\": \"\", \"attr_value\": [\"\"]}])")
+	BatchEditHostAttributeCmd.Flags().StringVar(&BatchEditHostAttributeAttributeModifyJSON, "attribute-modify", "", "attribute_modify (JSON, e.g. [{\"action\": \"\", \"attr_name\": \"\", \"attr_type\": \"\", \"attr_value\": [\"\"]}])")
 	BatchEditHostAttributeCmd.Flags().StringSliceVar(&batchEditHostAttributeParams.BashState, "bash-state", nil, "安全bash")
 	BatchEditHostAttributeCmd.Flags().StringSliceVar(&batchEditHostAttributeParams.BashVersion, "bash-version", nil, "安全bash版本")
 	BatchEditHostAttributeCmd.Flags().StringSliceVar(&batchEditHostAttributeParams.CapacityEnhancementDriveState, "capacity-enhancement-drive-state", nil, "能力增强驱动安装状态")
@@ -43,8 +64,7 @@ func init() {
 	BatchEditHostAttributeCmd.Flags().StringSliceVar(&batchEditHostAttributeParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	BatchEditHostAttributeCmd.Flags().StringSliceVar(&batchEditHostAttributeParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	BatchEditHostAttributeCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	BatchEditHostAttributeCmd.Flags().StringVar(&BatchEditHostAttributeCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	BatchEditHostAttributeCmd.Flags().BoolVar(&batchEditHostAttributeParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	BatchEditHostAttributeCmd.Flags().BoolVar(&batchEditHostAttributeParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	BatchEditHostAttributeCmd.Flags().StringSliceVar(&batchEditHostAttributeParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")
@@ -79,8 +99,7 @@ func init() {
 	BatchEditHostAttributeCmd.Flags().StringSliceVar(&batchEditHostAttributeParams.ResLimitMemory, "res-limit-memory", nil, "内存资源限制")
 	BatchEditHostAttributeCmd.Flags().StringSliceVar(&batchEditHostAttributeParams.ResLimitNetwork, "res-limit-network", nil, "网络资源限制")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	BatchEditHostAttributeCmd.Flags().StringVar(&selectJSON, "select", "", "选择项目 (JSON, e.g. [{\"id\": 196}])")
+	BatchEditHostAttributeCmd.Flags().StringVar(&BatchEditHostAttributeSelectJSON, "select", "", "选择项目 (JSON, e.g. [{\"id\": 196}])")
 	BatchEditHostAttributeCmd.Flags().BoolVar(&batchEditHostAttributeParams.SelectAll, "select-all", false, "是否选取所有")
 	BatchEditHostAttributeCmd.Flags().StringSliceVar(&batchEditHostAttributeParams.ServerAddresses, "server-addresses", nil, "探针连接的服务端的地址（若该字段不是真正的服务端地址，说明存在反向代理）")
 	BatchEditHostAttributeCmd.Flags().StringSliceVar(&batchEditHostAttributeParams.Tags, "tags", nil, "特征")

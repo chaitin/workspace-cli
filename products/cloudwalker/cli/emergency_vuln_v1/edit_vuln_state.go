@@ -4,6 +4,7 @@ package emergency_vuln_v1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var editVulnStateParams EditVulnStateParams
+var EditVulnStateSelectJSON string
 
 var EditVulnStateCmd = &cobra.Command{
 	Use:   "edit_vuln_state",
 	Short: "修改应急漏洞事件状态",
 	Long:  `修改应急漏洞事件状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditVulnStateSelectJSON != "" {
+			if err := json.Unmarshal([]byte(EditVulnStateSelectJSON), &editVulnStateParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EmergencyVulnV1Service.EditVulnState", editVulnStateParams, &result)
@@ -31,8 +39,7 @@ var EditVulnStateCmd = &cobra.Command{
 func init() {
 	EditVulnStateCmd.Flags().IntVar(&editVulnStateParams.NewState, "new-state", 0, "新的事件状态(1-有风险，2-已忽略，3-已处理)")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	EditVulnStateCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"event_id\": 120, \"host_id\": 111, \"vuln_id\": 111}])")
+	EditVulnStateCmd.Flags().StringVar(&EditVulnStateSelectJSON, "select", "", "select (JSON, e.g. [{\"event_id\": 120, \"host_id\": 111, \"vuln_id\": 111}])")
 	EditVulnStateCmd.Flags().BoolVar(&editVulnStateParams.SelectAll, "select-all", false, "select_all")
 }
 

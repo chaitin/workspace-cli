@@ -4,6 +4,7 @@ package patch_info_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getPatchInfoEventListByHostParams GetPatchInfoEventListByHostParams
+var GetPatchInfoEventListByHostCustomAttrJSON string
+var GetPatchInfoEventListByHostOrderByJSON string
+var GetPatchInfoEventListByHostSelectJSON string
 
 var GetPatchInfoEventListByHostCmd = &cobra.Command{
 	Use:   "get_patch_info_event_list_by_host",
 	Short: "获取按 主机 聚合的事件列表",
 	Long:  `获取按 主机 聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetPatchInfoEventListByHostCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetPatchInfoEventListByHostCustomAttrJSON), &getPatchInfoEventListByHostParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetPatchInfoEventListByHostOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetPatchInfoEventListByHostOrderByJSON), &getPatchInfoEventListByHostParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetPatchInfoEventListByHostSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetPatchInfoEventListByHostSelectJSON), &getPatchInfoEventListByHostParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PatchInfoEventService.GetPatchInfoEventListByHost", getPatchInfoEventListByHostParams, &result)
@@ -34,8 +56,7 @@ func init() {
 	GetPatchInfoEventListByHostCmd.Flags().IntVar(&getPatchInfoEventListByHostParams.Count, "count", 20, "数量")
 	GetPatchInfoEventListByHostCmd.Flags().StringSliceVar(&getPatchInfoEventListByHostParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetPatchInfoEventListByHostCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetPatchInfoEventListByHostCmd.Flags().StringVar(&GetPatchInfoEventListByHostCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetPatchInfoEventListByHostCmd.Flags().StringSliceVar(&getPatchInfoEventListByHostParams.Cve, "cve", nil, "CVE 编号")
 	GetPatchInfoEventListByHostCmd.Flags().Float64SliceVar(&getPatchInfoEventListByHostParams.Gids, "gids", nil, "业务组 ID")
 	GetPatchInfoEventListByHostCmd.Flags().StringSliceVar(&getPatchInfoEventListByHostParams.GroupName, "group-name", nil, "业务组名")
@@ -52,14 +73,12 @@ func init() {
 	GetPatchInfoEventListByHostCmd.Flags().IntVar(&getPatchInfoEventListByHostParams.Offset, "offset", 0, "偏移量")
 	GetPatchInfoEventListByHostCmd.Flags().Float64SliceVar(&getPatchInfoEventListByHostParams.Oid, "oid", nil, "oid")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetPatchInfoEventListByHostCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetPatchInfoEventListByHostCmd.Flags().StringVar(&GetPatchInfoEventListByHostOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetPatchInfoEventListByHostCmd.Flags().Float64SliceVar(&getPatchInfoEventListByHostParams.PatchState, "patch-state", nil, "事件状态(1-risky,2-ignored,3-fixed,4-fixing,5-fix_failed)")
 	GetPatchInfoEventListByHostCmd.Flags().Float64SliceVar(&getPatchInfoEventListByHostParams.PlanId, "plan-id", nil, "计划ID")
 	GetPatchInfoEventListByHostCmd.Flags().StringSliceVar(&getPatchInfoEventListByHostParams.PublishTime, "publish-time", nil, "补丁发布时间")
 	// select is object type, use JSON string
-	var selectJSON string
-	GetPatchInfoEventListByHostCmd.Flags().StringVar(&selectJSON, "select", "", "选项 (JSON, e.g. {})")
+	GetPatchInfoEventListByHostCmd.Flags().StringVar(&GetPatchInfoEventListByHostSelectJSON, "select", "", "选项 (JSON, e.g. {})")
 	GetPatchInfoEventListByHostCmd.Flags().BoolVar(&getPatchInfoEventListByHostParams.SelectAll, "select-all", false, "是否全选")
 	GetPatchInfoEventListByHostCmd.Flags().StringSliceVar(&getPatchInfoEventListByHostParams.Trait, "trait", nil, "特征")
 	GetPatchInfoEventListByHostCmd.Flags().StringSliceVar(&getPatchInfoEventListByHostParams.Type, "type", nil, "补丁类型 KB/Ubuntu")

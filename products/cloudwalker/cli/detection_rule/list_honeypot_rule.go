@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listHoneypotRuleParams ListHoneypotRuleParams
+var ListHoneypotRuleCustomAttrJSON string
 
 var ListHoneypotRuleCmd = &cobra.Command{
 	Use:   "list_honeypot_rule",
 	Short: "获取蜜罐诱捕检测规则列表",
 	Long:  `获取蜜罐诱捕检测规则列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListHoneypotRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListHoneypotRuleCustomAttrJSON), &listHoneypotRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.ListHoneypotRule", listHoneypotRuleParams, &result)
@@ -31,8 +39,7 @@ var ListHoneypotRuleCmd = &cobra.Command{
 func init() {
 	ListHoneypotRuleCmd.Flags().IntVar(&listHoneypotRuleParams.Count, "count", 20, "每页记录数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListHoneypotRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListHoneypotRuleCmd.Flags().StringVar(&ListHoneypotRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListHoneypotRuleCmd.Flags().BoolVar(&listHoneypotRuleParams.Enable, "enable", false, "是否启用")
 	ListHoneypotRuleCmd.Flags().StringSliceVar(&listHoneypotRuleParams.HoneypotName, "honeypot-name", nil, "蜜罐名称")
 	ListHoneypotRuleCmd.Flags().StringSliceVar(&listHoneypotRuleParams.HostComment, "host-comment", nil, "主机备注")

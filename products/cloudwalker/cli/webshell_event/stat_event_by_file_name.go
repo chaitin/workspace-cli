@@ -4,6 +4,7 @@ package webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statEventByFileNameParams StatEventByFileNameParams
+var StatEventByFileNameCustomAttrJSON string
 
 var StatEventByFileNameCmd = &cobra.Command{
 	Use:   "stat_event_by_file_name",
 	Short: "获取按文件名聚合的统计结果",
 	Long:  `获取按文件名聚合的统计结果`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatEventByFileNameCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByFileNameCustomAttrJSON), &statEventByFileNameParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.StatEventByFileName", statEventByFileNameParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	StatEventByFileNameCmd.Flags().IntVar(&statEventByFileNameParams.Count, "count", 20, "返回数据数量")
 	StatEventByFileNameCmd.Flags().StringSliceVar(&statEventByFileNameParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatEventByFileNameCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatEventByFileNameCmd.Flags().StringVar(&StatEventByFileNameCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatEventByFileNameCmd.Flags().StringSliceVar(&statEventByFileNameParams.Domain, "domain", nil, "域名")
 	StatEventByFileNameCmd.Flags().StringSliceVar(&statEventByFileNameParams.FileName, "file-name", nil, "文件名")
 	StatEventByFileNameCmd.Flags().StringSliceVar(&statEventByFileNameParams.FilePath, "file-path", nil, "文件路径")

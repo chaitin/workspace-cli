@@ -4,6 +4,7 @@ package port_scan
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var generateFirewallRuleParams GenerateFirewallRuleParams
+var GenerateFirewallRuleCustomAttrJSON string
+var GenerateFirewallRuleSelectJSON string
 
 var GenerateFirewallRuleCmd = &cobra.Command{
 	Use:   "generate_firewall_rule",
 	Short: "阻断源 IP",
 	Long:  `阻断源 IP`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GenerateFirewallRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GenerateFirewallRuleCustomAttrJSON), &generateFirewallRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GenerateFirewallRuleSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GenerateFirewallRuleSelectJSON), &generateFirewallRuleParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PortScanService.GenerateFirewallRule", generateFirewallRuleParams, &result)
@@ -32,8 +47,7 @@ func init() {
 	GenerateFirewallRuleCmd.Flags().Float64Var(&generateFirewallRuleParams.BlockDurations, "block-durations", 0, "阻断时间，单位：分钟")
 	GenerateFirewallRuleCmd.Flags().StringSliceVar(&generateFirewallRuleParams.Comment, "comment", nil, "comment")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GenerateFirewallRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GenerateFirewallRuleCmd.Flags().StringVar(&GenerateFirewallRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GenerateFirewallRuleCmd.Flags().StringSliceVar(&generateFirewallRuleParams.FinishedAt, "finished-at", nil, "finished_at")
 	GenerateFirewallRuleCmd.Flags().Float64SliceVar(&generateFirewallRuleParams.Gids, "gids", nil, "业务组 ID")
 	GenerateFirewallRuleCmd.Flags().StringSliceVar(&generateFirewallRuleParams.HostComment, "host-comment", nil, "主机备注")
@@ -48,8 +62,7 @@ func init() {
 	GenerateFirewallRuleCmd.Flags().Float64SliceVar(&generateFirewallRuleParams.Port, "port", nil, "port")
 	GenerateFirewallRuleCmd.Flags().StringSliceVar(&generateFirewallRuleParams.RuleId, "rule-id", nil, "规则ID")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GenerateFirewallRuleCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 162, \"id\": 154, \"source_ip\": \"127.0.0.1\"}])")
+	GenerateFirewallRuleCmd.Flags().StringVar(&GenerateFirewallRuleSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 162, \"id\": 154, \"source_ip\": \"127.0.0.1\"}])")
 	GenerateFirewallRuleCmd.Flags().BoolVar(&generateFirewallRuleParams.SelectAll, "select-all", false, "是否全选")
 	GenerateFirewallRuleCmd.Flags().StringSliceVar(&generateFirewallRuleParams.SourceIp, "source-ip", nil, "source_ip")
 	GenerateFirewallRuleCmd.Flags().StringSliceVar(&generateFirewallRuleParams.StartedAt, "started-at", nil, "started_at")

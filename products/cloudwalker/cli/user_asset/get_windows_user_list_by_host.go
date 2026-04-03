@@ -4,6 +4,7 @@ package user_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getWindowsUserListByHostParams GetWindowsUserListByHostParams
+var GetWindowsUserListByHostCustomAttrJSON string
+var GetWindowsUserListByHostFilterJSON string
+var GetWindowsUserListByHostOrderByJSON string
 
 var GetWindowsUserListByHostCmd = &cobra.Command{
 	Use:   "get_windows_user_list_by_host",
 	Short: "获取 windows 用户列表，按主机聚合",
 	Long:  `获取 windows 用户列表，按主机聚合`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetWindowsUserListByHostCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetWindowsUserListByHostCustomAttrJSON), &getWindowsUserListByHostParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetWindowsUserListByHostFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetWindowsUserListByHostFilterJSON), &getWindowsUserListByHostParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetWindowsUserListByHostOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetWindowsUserListByHostOrderByJSON), &getWindowsUserListByHostParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "UserAssetService.GetWindowsUserListByHost", getWindowsUserListByHostParams, &result)
@@ -31,12 +53,10 @@ var GetWindowsUserListByHostCmd = &cobra.Command{
 func init() {
 	GetWindowsUserListByHostCmd.Flags().IntVar(&getWindowsUserListByHostParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetWindowsUserListByHostCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetWindowsUserListByHostCmd.Flags().StringVar(&GetWindowsUserListByHostCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetWindowsUserListByHostCmd.Flags().BoolSliceVar(&getWindowsUserListByHostParams.Enabled, "enabled", nil, "是否启用，true代表启用，false代表禁用")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetWindowsUserListByHostCmd.Flags().StringVar(&filterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"host_id\": 1, \"id\": 123, \"username\": \"test222\"}])")
+	GetWindowsUserListByHostCmd.Flags().StringVar(&GetWindowsUserListByHostFilterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"host_id\": 1, \"id\": 123, \"username\": \"test222\"}])")
 	GetWindowsUserListByHostCmd.Flags().Float64SliceVar(&getWindowsUserListByHostParams.Gids, "gids", nil, "业务组")
 	GetWindowsUserListByHostCmd.Flags().StringSliceVar(&getWindowsUserListByHostParams.HostComment, "host-comment", nil, "主机备注")
 	GetWindowsUserListByHostCmd.Flags().Float64SliceVar(&getWindowsUserListByHostParams.HostId, "host-id", nil, "主机ID, 用于主机详情页面")
@@ -49,8 +69,7 @@ func init() {
 	GetWindowsUserListByHostCmd.Flags().IntVar(&getWindowsUserListByHostParams.Offset, "offset", 0, "偏移量")
 	GetWindowsUserListByHostCmd.Flags().Float64SliceVar(&getWindowsUserListByHostParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetWindowsUserListByHostCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetWindowsUserListByHostCmd.Flags().StringVar(&GetWindowsUserListByHostOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetWindowsUserListByHostCmd.Flags().StringSliceVar(&getWindowsUserListByHostParams.PasswordModify, "password-modify", nil, "上次修改密码时间")
 	GetWindowsUserListByHostCmd.Flags().BoolVar(&getWindowsUserListByHostParams.SelectAll, "select-all", false, "是否选中所有")
 	GetWindowsUserListByHostCmd.Flags().Float64SliceVar(&getWindowsUserListByHostParams.Sid, "sid", nil, "SID")

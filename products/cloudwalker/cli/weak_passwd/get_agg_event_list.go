@@ -4,6 +4,7 @@ package weak_passwd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getAggEventListParams GetAggEventListParams
+var GetAggEventListCustomAttrJSON string
+var GetAggEventListFilterJSON string
+var GetAggEventListOrderByJSON string
 
 var GetAggEventListCmd = &cobra.Command{
 	Use:   "get_agg_event_list",
 	Short: "获取数据分组后弱口令事件列表",
 	Long:  `获取数据分组后弱口令事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetAggEventListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetAggEventListCustomAttrJSON), &getAggEventListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetAggEventListFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetAggEventListFilterJSON), &getAggEventListParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetAggEventListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetAggEventListOrderByJSON), &getAggEventListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.GetAggEventList", getAggEventListParams, &result)
@@ -35,12 +57,10 @@ func init() {
 	GetAggEventListCmd.Flags().IntVar(&getAggEventListParams.Count, "count", 20, "数量")
 	GetAggEventListCmd.Flags().StringSliceVar(&getAggEventListParams.CreatedAt, "created-at", nil, "创建事件")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetAggEventListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetAggEventListCmd.Flags().StringVar(&GetAggEventListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetAggEventListCmd.Flags().StringSliceVar(&getAggEventListParams.Field, "field", nil, "分组列表字段")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetAggEventListCmd.Flags().StringVar(&filterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 3643, \"id\": 3643, \"password\": \"123456\", \"service\": \"ssh\", \"username\": \"test\"}])")
+	GetAggEventListCmd.Flags().StringVar(&GetAggEventListFilterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 3643, \"id\": 3643, \"password\": \"123456\", \"service\": \"ssh\", \"username\": \"test\"}])")
 	GetAggEventListCmd.Flags().Float64SliceVar(&getAggEventListParams.Gids, "gids", nil, "业务组 ID 列表")
 	GetAggEventListCmd.Flags().StringSliceVar(&getAggEventListParams.HostComment, "host-comment", nil, "主机备注")
 	GetAggEventListCmd.Flags().Float64SliceVar(&getAggEventListParams.HostId, "host-id", nil, "主机 ID")
@@ -53,8 +73,7 @@ func init() {
 	GetAggEventListCmd.Flags().IntVar(&getAggEventListParams.Offset, "offset", 0, "偏移量")
 	GetAggEventListCmd.Flags().Float64SliceVar(&getAggEventListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetAggEventListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetAggEventListCmd.Flags().StringVar(&GetAggEventListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetAggEventListCmd.Flags().StringSliceVar(&getAggEventListParams.Password, "password", nil, "密码")
 	GetAggEventListCmd.Flags().BoolVar(&getAggEventListParams.SelectAll, "select-all", false, "是否全选")
 	GetAggEventListCmd.Flags().StringSliceVar(&getAggEventListParams.Service, "service", nil, "服务")

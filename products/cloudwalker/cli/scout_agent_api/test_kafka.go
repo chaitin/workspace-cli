@@ -17,6 +17,7 @@ var TestKafkaCmd = &cobra.Command{
 	Short: "测试 kafka",
 	Long:  `测试 kafka`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ScoutAgentApiService.TestKafka", testKafkaParams, &result)

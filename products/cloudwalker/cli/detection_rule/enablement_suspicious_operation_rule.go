@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enablementSuspiciousOperationRuleParams EnablementSuspiciousOperationRuleParams
+var EnablementSuspiciousOperationRuleFilterJSON string
 
 var EnablementSuspiciousOperationRuleCmd = &cobra.Command{
 	Use:   "enablement_suspicious_operation_rule",
 	Short: "启禁用可疑命令检测规则",
 	Long:  `启禁用可疑命令检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnablementSuspiciousOperationRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EnablementSuspiciousOperationRuleFilterJSON), &enablementSuspiciousOperationRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.EnablementSuspiciousOperationRule", enablementSuspiciousOperationRuleParams, &result)
@@ -31,8 +39,7 @@ var EnablementSuspiciousOperationRuleCmd = &cobra.Command{
 func init() {
 	EnablementSuspiciousOperationRuleCmd.Flags().BoolVar(&enablementSuspiciousOperationRuleParams.Enable, "enable", false, "是否启用")
 	// filter is object type, use JSON string
-	var filterJSON string
-	EnablementSuspiciousOperationRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": true, \"host_comment\": [\"主机备注\"], \"...\": \"...\"})")
+	EnablementSuspiciousOperationRuleCmd.Flags().StringVar(&EnablementSuspiciousOperationRuleFilterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": true, \"host_comment\": [\"主机备注\"], \"...\": \"...\"})")
 }
 
 // EnablementSuspiciousOperationRuleParams 请求参数

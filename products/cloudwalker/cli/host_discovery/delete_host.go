@@ -4,6 +4,7 @@ package host_discovery
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteHostParams DeleteHostParams
+var DeleteHostFilterJSON string
 
 var DeleteHostCmd = &cobra.Command{
 	Use:   "delete_host",
 	Short: "删除未知主机资产",
 	Long:  `删除未知主机资产`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteHostFilterJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteHostFilterJSON), &deleteHostParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostDiscoveryService.DeleteHost", deleteHostParams, &result)
@@ -31,8 +39,7 @@ var DeleteHostCmd = &cobra.Command{
 func init() {
 	DeleteHostCmd.Flags().BoolSliceVar(&deleteHostParams.AgentInstalled, "agent-installed", nil, "探针安装情况")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	DeleteHostCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. [{\"id\": 100}])")
+	DeleteHostCmd.Flags().StringVar(&DeleteHostFilterJSON, "filter", "", "filter (JSON, e.g. [{\"id\": 100}])")
 	DeleteHostCmd.Flags().StringSliceVar(&deleteHostParams.Ip, "ip", nil, "IP 地址")
 	DeleteHostCmd.Flags().StringSliceVar(&deleteHostParams.LatestScanTime, "latest-scan-time", nil, "最近扫描时间")
 	DeleteHostCmd.Flags().StringSliceVar(&deleteHostParams.Mac, "mac", nil, "mac 地址")

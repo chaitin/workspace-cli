@@ -4,6 +4,7 @@ package emergency_vuln_v1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteVulnParams DeleteVulnParams
+var DeleteVulnSelectJSON string
 
 var DeleteVulnCmd = &cobra.Command{
 	Use:   "delete_vuln",
 	Short: "根据筛选条件删除应急漏洞事件",
 	Long:  `根据筛选条件删除应急漏洞事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteVulnSelectJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteVulnSelectJSON), &deleteVulnParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EmergencyVulnV1Service.DeleteVuln", deleteVulnParams, &result)
@@ -30,8 +38,7 @@ var DeleteVulnCmd = &cobra.Command{
 
 func init() {
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	DeleteVulnCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"event_id\": 120, \"host_id\": 111, \"vuln_id\": 111}])")
+	DeleteVulnCmd.Flags().StringVar(&DeleteVulnSelectJSON, "select", "", "select (JSON, e.g. [{\"event_id\": 120, \"host_id\": 111, \"vuln_id\": 111}])")
 	DeleteVulnCmd.Flags().BoolVar(&deleteVulnParams.SelectAll, "select-all", false, "select_all")
 }
 

@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var createSensitiveFileRuleParams CreateSensitiveFileRuleParams
+var CreateSensitiveFileRuleExcludeRuleJSON string
 
 var CreateSensitiveFileRuleCmd = &cobra.Command{
 	Use:   "create_sensitive_file_rule",
 	Short: "创建敏感文件检测规则",
 	Long:  `创建敏感文件检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateSensitiveFileRuleExcludeRuleJSON != "" {
+			if err := json.Unmarshal([]byte(CreateSensitiveFileRuleExcludeRuleJSON), &createSensitiveFileRuleParams.ExcludeRule); err != nil {
+				cmd.PrintErrln("Error parsing exclude-rule:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.CreateSensitiveFileRule", createSensitiveFileRuleParams, &result)
@@ -34,8 +42,7 @@ func init() {
 	CreateSensitiveFileRuleCmd.Flags().Float64SliceVar(&createSensitiveFileRuleParams.BusinessGroupRange, "business-group-range", nil, "业务组范围")
 	CreateSensitiveFileRuleCmd.Flags().BoolVar(&createSensitiveFileRuleParams.Enable, "enable", false, "是否启用")
 	// exclude_rule is complex type []map[string]interface{}, use JSON string
-	var excludeRuleJSON string
-	CreateSensitiveFileRuleCmd.Flags().StringVar(&excludeRuleJSON, "exclude-rule", "", "排除规则 (JSON, e.g. [{\"method\": \"prefix\", \"rule\": \"/etc/passwd\"}])")
+	CreateSensitiveFileRuleCmd.Flags().StringVar(&CreateSensitiveFileRuleExcludeRuleJSON, "exclude-rule", "", "排除规则 (JSON, e.g. [{\"method\": \"prefix\", \"rule\": \"/etc/passwd\"}])")
 	CreateSensitiveFileRuleCmd.Flags().BoolVar(&createSensitiveFileRuleParams.Global, "global", false, "是否绑定全局探针")
 	CreateSensitiveFileRuleCmd.Flags().IntVar(&createSensitiveFileRuleParams.Level, "level", 0, "事件级别")
 	CreateSensitiveFileRuleCmd.Flags().StringVar(&createSensitiveFileRuleParams.Method, "method", "", "监控方式")

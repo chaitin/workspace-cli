@@ -17,6 +17,7 @@ var GetSetCmd = &cobra.Command{
 	Short: "获取策略信息",
 	Long:  `获取策略信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.GetSet", getSetParams, &result)

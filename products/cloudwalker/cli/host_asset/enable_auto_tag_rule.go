@@ -17,6 +17,7 @@ var EnableAutoTagRuleCmd = &cobra.Command{
 	Short: "启禁用自动打标签规则",
 	Long:  `启禁用自动打标签规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.EnableAutoTagRule", enableAutoTagRuleParams, &result)

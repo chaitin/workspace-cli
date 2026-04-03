@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var deleteTaskParams DeleteTaskParams
+var DeleteTaskCustomAttrJSON string
+var DeleteTaskSelectJSON string
 
 var DeleteTaskCmd = &cobra.Command{
 	Use:   "delete_task",
 	Short: "删除核查任务，将会连带删除子任务",
 	Long:  `删除核查任务，将会连带删除子任务`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteTaskCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteTaskCustomAttrJSON), &deleteTaskParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if DeleteTaskSelectJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteTaskSelectJSON), &deleteTaskParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.DeleteTask", deleteTaskParams, &result)
@@ -31,8 +46,7 @@ var DeleteTaskCmd = &cobra.Command{
 func init() {
 	DeleteTaskCmd.Flags().StringSliceVar(&deleteTaskParams.CreatedAt, "created-at", nil, "任务创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteTaskCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteTaskCmd.Flags().StringVar(&DeleteTaskCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteTaskCmd.Flags().BoolVar(&deleteTaskParams.Enable, "enable", false, "是否启用")
 	DeleteTaskCmd.Flags().StringSliceVar(&deleteTaskParams.FinishedAt, "finished-at", nil, "任务结束时间")
 	DeleteTaskCmd.Flags().Float64SliceVar(&deleteTaskParams.Gids, "gids", nil, "业务组 ID")
@@ -44,8 +58,7 @@ func init() {
 	DeleteTaskCmd.Flags().StringSliceVar(&deleteTaskParams.HostTags, "host-tags", nil, "主机标签")
 	DeleteTaskCmd.Flags().StringSliceVar(&deleteTaskParams.ItemName, "item-name", nil, "核查项名称")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	DeleteTaskCmd.Flags().StringVar(&selectJSON, "select", "", "选择内容 (JSON, e.g. [{\"id\": 1}])")
+	DeleteTaskCmd.Flags().StringVar(&DeleteTaskSelectJSON, "select", "", "选择内容 (JSON, e.g. [{\"id\": 1}])")
 	DeleteTaskCmd.Flags().BoolVar(&deleteTaskParams.SelectAll, "select-all", false, "选择所有")
 	DeleteTaskCmd.Flags().StringSliceVar(&deleteTaskParams.SetName, "set-name", nil, "核查策略名称")
 	DeleteTaskCmd.Flags().StringSliceVar(&deleteTaskParams.StartedAt, "started-at", nil, "任务运行时间")

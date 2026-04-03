@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var createLogicParams CreateLogicParams
+var CreateLogicCheckJSON string
+var CreateLogicRequireJSON string
 
 var CreateLogicCmd = &cobra.Command{
 	Use:   "create_logic",
 	Short: "快速新增核查逻辑",
 	Long:  `快速新增核查逻辑`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateLogicCheckJSON != "" {
+			if err := json.Unmarshal([]byte(CreateLogicCheckJSON), &createLogicParams.Check); err != nil {
+				cmd.PrintErrln("Error parsing check:", err)
+				return
+			}
+		}
+		if CreateLogicRequireJSON != "" {
+			if err := json.Unmarshal([]byte(CreateLogicRequireJSON), &createLogicParams.Require); err != nil {
+				cmd.PrintErrln("Error parsing require:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.CreateLogic", createLogicParams, &result)
@@ -31,16 +46,14 @@ var CreateLogicCmd = &cobra.Command{
 func init() {
 	CreateLogicCmd.Flags().StringVar(&createLogicParams.Audit, "audit", "", "核查原理")
 	// check is object type, use JSON string
-	var checkJSON string
-	CreateLogicCmd.Flags().StringVar(&checkJSON, "check", "", "check (JSON, e.g. {\"check_schema\": \"\", \"items\": [{\"check\": {\"action\": \"...\", \"args\": \"...\"}, \"read_text\": {\"action\": \"...\", \"args\": \"...\"}}]})")
+	CreateLogicCmd.Flags().StringVar(&CreateLogicCheckJSON, "check", "", "check (JSON, e.g. {\"check_schema\": \"\", \"items\": [{\"check\": {\"action\": \"...\", \"args\": \"...\"}, \"read_text\": {\"action\": \"...\", \"args\": \"...\"}}]})")
 	CreateLogicCmd.Flags().StringVar(&createLogicParams.Description, "description", "", "核查项描述")
 	CreateLogicCmd.Flags().StringVar(&createLogicParams.Extra, "extra", "", "其他说明")
 	CreateLogicCmd.Flags().IntVar(&createLogicParams.Level, "level", 0, "严重程度")
 	CreateLogicCmd.Flags().StringVar(&createLogicParams.Name, "name", "", "逻辑名称")
 	CreateLogicCmd.Flags().StringVar(&createLogicParams.Remediation, "remediation", "", "解决方案")
 	// require is complex type []map[string]interface{}, use JSON string
-	var requireJSON string
-	CreateLogicCmd.Flags().StringVar(&requireJSON, "require", "", "此核查逻辑要求的主机主机类型， 比如只能在 Linux-Ubuntu-20.04 上执行 (JSON, e.g. [{\"all\": true, \"enum\": [\"x86_64\", \"arm32\"], \"pattern\": \"\", \"type\": \"os_type\"}])")
+	CreateLogicCmd.Flags().StringVar(&CreateLogicRequireJSON, "require", "", "此核查逻辑要求的主机主机类型， 比如只能在 Linux-Ubuntu-20.04 上执行 (JSON, e.g. [{\"all\": true, \"enum\": [\"x86_64\", \"arm32\"], \"pattern\": \"\", \"type\": \"os_type\"}])")
 	CreateLogicCmd.Flags().StringVar(&createLogicParams.Risk, "risk", "", "风险描述")
 	CreateLogicCmd.Flags().StringSliceVar(&createLogicParams.Tags, "tags", nil, "TAG")
 }

@@ -15,6 +15,7 @@ var GetOverviewCmd = &cobra.Command{
 	Short: "获取 Webshell 概述信息",
 	Long:  `获取 Webshell 概述信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.GetOverview", nil, &result)

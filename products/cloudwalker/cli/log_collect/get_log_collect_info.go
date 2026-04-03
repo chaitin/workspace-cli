@@ -17,6 +17,7 @@ var GetLogCollectInfoCmd = &cobra.Command{
 	Short: "获取日志采集信息",
 	Long:  `获取日志采集信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "LogCollectService.GetLogCollectInfo", getLogCollectInfoParams, &result)

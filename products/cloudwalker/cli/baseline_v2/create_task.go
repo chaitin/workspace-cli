@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var createTaskParams CreateTaskParams
+var CreateTaskCronJSON string
 
 var CreateTaskCmd = &cobra.Command{
 	Use:   "create_task",
 	Short: "新建核查任务",
 	Long:  `新建核查任务`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateTaskCronJSON != "" {
+			if err := json.Unmarshal([]byte(CreateTaskCronJSON), &createTaskParams.Cron); err != nil {
+				cmd.PrintErrln("Error parsing cron:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.CreateTask", createTaskParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	CreateTaskCmd.Flags().Float64SliceVar(&createTaskParams.BusinessGroupRange, "business-group-range", nil, "业务组范围")
 	CreateTaskCmd.Flags().StringVar(&createTaskParams.Comment, "comment", "", "备注")
 	// cron is object type, use JSON string
-	var cronJSON string
-	CreateTaskCmd.Flags().StringVar(&cronJSON, "cron", "", "定时器, null 意为一次性任务 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
+	CreateTaskCmd.Flags().StringVar(&CreateTaskCronJSON, "cron", "", "定时器, null 意为一次性任务 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
 	CreateTaskCmd.Flags().StringSliceVar(&createTaskParams.HostTagRange, "host-tag-range", nil, "主机标签范围")
 	CreateTaskCmd.Flags().StringVar(&createTaskParams.Name, "name", "", "任务名称")
 	CreateTaskCmd.Flags().StringSliceVar(&createTaskParams.SetId, "set-id", nil, "策略 ID")

@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var startHostParams StartHostParams
+var StartHostCustomAttrJSON string
+var StartHostSelectJSON string
 
 var StartHostCmd = &cobra.Command{
 	Use:   "start_host",
 	Short: "重启探针",
 	Long:  `重启探针`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StartHostCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StartHostCustomAttrJSON), &startHostParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if StartHostSelectJSON != "" {
+			if err := json.Unmarshal([]byte(StartHostSelectJSON), &startHostParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.StartHost", startHostParams, &result)
@@ -40,8 +55,7 @@ func init() {
 	StartHostCmd.Flags().StringSliceVar(&startHostParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	StartHostCmd.Flags().StringSliceVar(&startHostParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StartHostCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StartHostCmd.Flags().StringVar(&StartHostCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StartHostCmd.Flags().BoolVar(&startHostParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	StartHostCmd.Flags().BoolVar(&startHostParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	StartHostCmd.Flags().StringSliceVar(&startHostParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")
@@ -76,8 +90,7 @@ func init() {
 	StartHostCmd.Flags().StringSliceVar(&startHostParams.ResLimitMemory, "res-limit-memory", nil, "内存资源限制")
 	StartHostCmd.Flags().StringSliceVar(&startHostParams.ResLimitNetwork, "res-limit-network", nil, "网络资源限制")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	StartHostCmd.Flags().StringVar(&selectJSON, "select", "", "选择项目 (JSON, e.g. [{\"id\": 196}])")
+	StartHostCmd.Flags().StringVar(&StartHostSelectJSON, "select", "", "选择项目 (JSON, e.g. [{\"id\": 196}])")
 	StartHostCmd.Flags().BoolVar(&startHostParams.SelectAll, "select-all", false, "是否选取所有")
 	StartHostCmd.Flags().StringSliceVar(&startHostParams.ServerAddresses, "server-addresses", nil, "探针连接的服务端的地址（若该字段不是真正的服务端地址，说明存在反向代理）")
 	StartHostCmd.Flags().StringSliceVar(&startHostParams.Tags, "tags", nil, "特征")

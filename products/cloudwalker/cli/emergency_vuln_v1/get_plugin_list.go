@@ -4,6 +4,7 @@ package emergency_vuln_v1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getPluginListParams GetPluginListParams
+var GetPluginListOrderByJSON string
 
 var GetPluginListCmd = &cobra.Command{
 	Use:   "get_plugin_list",
 	Short: "根据漏洞聚合返回应急漏洞事件列表",
 	Long:  `根据漏洞聚合返回应急漏洞事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetPluginListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetPluginListOrderByJSON), &getPluginListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EmergencyVulnV1Service.GetPluginList", getPluginListParams, &result)
@@ -37,8 +45,7 @@ func init() {
 	GetPluginListCmd.Flags().Float64SliceVar(&getPluginListParams.Id, "id", nil, "ID")
 	GetPluginListCmd.Flags().IntVar(&getPluginListParams.Offset, "offset", 0, "偏移量")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetPluginListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetPluginListCmd.Flags().StringVar(&GetPluginListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetPluginListCmd.Flags().StringSliceVar(&getPluginListParams.PluginId, "plugin-id", nil, "插件ID")
 	GetPluginListCmd.Flags().StringSliceVar(&getPluginListParams.PluginName, "plugin-name", nil, "插件名称")
 	GetPluginListCmd.Flags().StringSliceVar(&getPluginListParams.Tags, "tags", nil, "漏洞标签")

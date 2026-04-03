@@ -4,6 +4,7 @@ package webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getWhitelistParams GetWhitelistParams
+var GetWhitelistCustomAttrJSON string
+var GetWhitelistSelectJSON string
 
 var GetWhitelistCmd = &cobra.Command{
 	Use:   "get_whitelist",
 	Short: "获取白名单规则",
 	Long:  `获取白名单规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetWhitelistCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetWhitelistCustomAttrJSON), &getWhitelistParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetWhitelistSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetWhitelistSelectJSON), &getWhitelistParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.GetWhitelist", getWhitelistParams, &result)
@@ -32,8 +47,7 @@ func init() {
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.Comment, "comment", nil, "用户自定义备注")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetWhitelistCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetWhitelistCmd.Flags().StringVar(&GetWhitelistCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.Domain, "domain", nil, "域名")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.FileName, "file-name", nil, "文件名")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.FilePath, "file-path", nil, "文件路径")
@@ -51,8 +65,7 @@ func init() {
 	GetWhitelistCmd.Flags().Float64SliceVar(&getWhitelistParams.Oid, "oid", nil, "机构 ID")
 	GetWhitelistCmd.Flags().Float64SliceVar(&getWhitelistParams.PlanId, "plan-id", nil, "任务 id")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetWhitelistCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
+	GetWhitelistCmd.Flags().StringVar(&GetWhitelistSelectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
 	GetWhitelistCmd.Flags().BoolVar(&getWhitelistParams.SelectAll, "select-all", false, "是否全选")
 	GetWhitelistCmd.Flags().Float64SliceVar(&getWhitelistParams.StatEventId, "stat-event-id", nil, "统计事件 ID")
 	GetWhitelistCmd.Flags().IntSliceVar(&getWhitelistParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

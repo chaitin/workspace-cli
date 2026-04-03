@@ -15,6 +15,7 @@ var ApplyConfigCmd = &cobra.Command{
 	Short: "应用配置变更响应",
 	Long:  `应用配置变更响应`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EndpointService.ApplyConfig", nil, &result)

@@ -4,6 +4,7 @@ package emergency_vuln_v1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getVulnByHostListParams GetVulnByHostListParams
+var GetVulnByHostListCustomAttrJSON string
+var GetVulnByHostListOrderByJSON string
 
 var GetVulnByHostListCmd = &cobra.Command{
 	Use:   "get_vuln_by_host_list",
 	Short: "根据主机聚合返回应急漏洞事件列表",
 	Long:  `根据主机聚合返回应急漏洞事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetVulnByHostListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetVulnByHostListCustomAttrJSON), &getVulnByHostListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetVulnByHostListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetVulnByHostListOrderByJSON), &getVulnByHostListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EmergencyVulnV1Service.GetVulnByHostList", getVulnByHostListParams, &result)
@@ -38,8 +53,7 @@ func init() {
 	GetVulnByHostListCmd.Flags().StringSliceVar(&getVulnByHostListParams.CreatedAt, "created-at", nil, "创建时间")
 	GetVulnByHostListCmd.Flags().StringSliceVar(&getVulnByHostListParams.CtId, "ct-id", nil, "长亭ID")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetVulnByHostListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetVulnByHostListCmd.Flags().StringVar(&GetVulnByHostListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetVulnByHostListCmd.Flags().StringSliceVar(&getVulnByHostListParams.Cve, "cve", nil, "CVE编号")
 	GetVulnByHostListCmd.Flags().Float64SliceVar(&getVulnByHostListParams.Gid, "gid", nil, "业务组ID")
 	GetVulnByHostListCmd.Flags().StringSliceVar(&getVulnByHostListParams.GroupName, "group-name", nil, "业务组名")
@@ -54,8 +68,7 @@ func init() {
 	GetVulnByHostListCmd.Flags().IntVar(&getVulnByHostListParams.Offset, "offset", 0, "偏移量")
 	GetVulnByHostListCmd.Flags().Float64SliceVar(&getVulnByHostListParams.Oid, "oid", nil, "机构ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetVulnByHostListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetVulnByHostListCmd.Flags().StringVar(&GetVulnByHostListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetVulnByHostListCmd.Flags().Float64SliceVar(&getVulnByHostListParams.PlanId, "plan-id", nil, "任务 id")
 	GetVulnByHostListCmd.Flags().StringSliceVar(&getVulnByHostListParams.PluginId, "plugin-id", nil, "插件ID")
 	GetVulnByHostListCmd.Flags().StringSliceVar(&getVulnByHostListParams.RiskPoint, "risk-point", nil, "风险点")

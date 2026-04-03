@@ -15,6 +15,7 @@ var GetWebConfigCmd = &cobra.Command{
 	Short: "获取web管理配置参数",
 	Long:  `获取web管理配置参数`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EndpointService.GetWebConfig", nil, &result)

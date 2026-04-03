@@ -17,6 +17,7 @@ var RemoteInstallCancelCmd = &cobra.Command{
 	Short: "取消远程安装操作",
 	Long:  `取消远程安装操作`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.RemoteInstallCancel", remoteInstallCancelParams, &result)

@@ -17,6 +17,7 @@ var EnableHostListCmd = &cobra.Command{
 	Short: "开启多个主机的文件防篡改功能",
 	Long:  `开启多个主机的文件防篡改功能`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.EnableHostList", enableHostListParams, &result)

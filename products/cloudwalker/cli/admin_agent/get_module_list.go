@@ -4,6 +4,7 @@ package admin_agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getModuleListParams GetModuleListParams
+var GetModuleListFilterJSON string
+var GetModuleListPageJSON string
 
 var GetModuleListCmd = &cobra.Command{
 	Use:   "get_module_list",
 	Short: "获取探针模块列表",
 	Long:  `获取探针模块列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetModuleListFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetModuleListFilterJSON), &getModuleListParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetModuleListPageJSON != "" {
+			if err := json.Unmarshal([]byte(GetModuleListPageJSON), &getModuleListParams.Page); err != nil {
+				cmd.PrintErrln("Error parsing page:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AdminAgentService.GetModuleList", getModuleListParams, &result)
@@ -30,11 +45,9 @@ var GetModuleListCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	GetModuleListCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"applied\": [\"true\"], \"arch\": [\"amd64\"], \"distributor_os_release\": [\"Ubuntu linux 22.04\"], \"...\": \"...\"})")
+	GetModuleListCmd.Flags().StringVar(&GetModuleListFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"applied\": [\"true\"], \"arch\": [\"amd64\"], \"distributor_os_release\": [\"Ubuntu linux 22.04\"], \"...\": \"...\"})")
 	// page is object type, use JSON string
-	var pageJSON string
-	GetModuleListCmd.Flags().StringVar(&pageJSON, "page", "", "分页器 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
+	GetModuleListCmd.Flags().StringVar(&GetModuleListPageJSON, "page", "", "分页器 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
 }
 
 // GetModuleListParams 请求参数

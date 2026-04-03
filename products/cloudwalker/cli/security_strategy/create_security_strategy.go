@@ -4,6 +4,7 @@ package security_strategy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var createSecurityStrategyParams CreateSecurityStrategyParams
+var CreateSecurityStrategyContentJSON string
 
 var CreateSecurityStrategyCmd = &cobra.Command{
 	Use:   "create_security_strategy",
 	Short: "添加安全策略",
 	Long:  `添加安全策略`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateSecurityStrategyContentJSON != "" {
+			if err := json.Unmarshal([]byte(CreateSecurityStrategyContentJSON), &createSecurityStrategyParams.Content); err != nil {
+				cmd.PrintErrln("Error parsing content:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SecurityStrategyService.CreateSecurityStrategy", createSecurityStrategyParams, &result)
@@ -31,8 +39,7 @@ var CreateSecurityStrategyCmd = &cobra.Command{
 func init() {
 	CreateSecurityStrategyCmd.Flags().IntSliceVar(&createSecurityStrategyParams.BusinessGroupRange, "business-group-range", nil, "业务组范围")
 	// content is object type, use JSON string
-	var contentJSON string
-	CreateSecurityStrategyCmd.Flags().StringVar(&contentJSON, "content", "", "安全策略内容 (JSON, e.g. {\"abnormal_login\": {\"ap_dur_critical\": 100, \"ap_dur_high\": 100, \"ap_dur_low\": 100, \"ap_dur_medium\": 100, \"ap_enable\": true, \"enable\": true, \"protect_time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"protect_time_strategy\": \"\"}, \"bruteforce\": {\"ap_dur_critical\": 100, \"ap_dur_high\": 100, \"ap_dur_low\": 100, \"ap_dur_medium\": 100, \"ap_enable\": true, \"enable\": true, \"ftp_enable\": true, \"protect_time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"protect_time_strategy\": \"\", \"rdp_enable\": true, \"smb_enable\": true, \"ssh_enable\": true, \"winrm_enable\": true}, \"elevation_process\": {\"enable\": true, \"process_kill_enable\": false, \"process_kill_event_level\": [\"\"], \"protect_time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"protect_time_strategy\": \"\"}, \"...\": \"...\"})")
+	CreateSecurityStrategyCmd.Flags().StringVar(&CreateSecurityStrategyContentJSON, "content", "", "安全策略内容 (JSON, e.g. {\"abnormal_login\": {\"ap_dur_critical\": 100, \"ap_dur_high\": 100, \"ap_dur_low\": 100, \"ap_dur_medium\": 100, \"ap_enable\": true, \"enable\": true, \"protect_time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"protect_time_strategy\": \"\"}, \"bruteforce\": {\"ap_dur_critical\": 100, \"ap_dur_high\": 100, \"ap_dur_low\": 100, \"ap_dur_medium\": 100, \"ap_enable\": true, \"enable\": true, \"ftp_enable\": true, \"protect_time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"protect_time_strategy\": \"\", \"rdp_enable\": true, \"smb_enable\": true, \"ssh_enable\": true, \"winrm_enable\": true}, \"elevation_process\": {\"enable\": true, \"process_kill_enable\": false, \"process_kill_event_level\": [\"\"], \"protect_time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"protect_time_strategy\": \"\"}, \"...\": \"...\"})")
 	CreateSecurityStrategyCmd.Flags().StringVar(&createSecurityStrategyParams.Name, "name", "", "安全策略名称")
 	CreateSecurityStrategyCmd.Flags().StringVar(&createSecurityStrategyParams.Remark, "remark", "", "安全策略备注")
 	CreateSecurityStrategyCmd.Flags().StringVar(&createSecurityStrategyParams.SourceId, "source-id", "", "来源策略ID")

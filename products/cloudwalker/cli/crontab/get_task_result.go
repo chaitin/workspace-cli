@@ -4,6 +4,7 @@ package crontab
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getTaskResultParams GetTaskResultParams
+var GetTaskResultOrderByJSON string
 
 var GetTaskResultCmd = &cobra.Command{
 	Use:   "get_task_result",
 	Short: "获取任务计划结果",
 	Long:  `获取任务计划结果`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetTaskResultOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetTaskResultOrderByJSON), &getTaskResultParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.GetTaskResult", getTaskResultParams, &result)
@@ -42,8 +50,7 @@ func init() {
 	GetTaskResultCmd.Flags().IntVar(&getTaskResultParams.Offset, "offset", 0, "每种任务的结果展示偏移; 对于已经聚合的任务结果不起作用")
 	GetTaskResultCmd.Flags().Float64SliceVar(&getTaskResultParams.Oid, "oid", nil, "机构ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetTaskResultCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序， 这里的排序只支持部分 asset_host_view 的字段 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetTaskResultCmd.Flags().StringVar(&GetTaskResultOrderByJSON, "order-by", "", "排序， 这里的排序只支持部分 asset_host_view 的字段 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetTaskResultCmd.Flags().IntVar(&getTaskResultParams.PlanId, "plan-id", 0, "计划Id")
 	GetTaskResultCmd.Flags().StringSliceVar(&getTaskResultParams.TaskType, "task-type", nil, "任务类型")
 }

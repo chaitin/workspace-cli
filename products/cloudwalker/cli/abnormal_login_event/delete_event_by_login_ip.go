@@ -4,6 +4,7 @@ package abnormal_login_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteEventByLoginIpParams DeleteEventByLoginIpParams
+var DeleteEventByLoginIpCustomAttrJSON string
 
 var DeleteEventByLoginIpCmd = &cobra.Command{
 	Use:   "delete_event_by_login_ip",
 	Short: "删除所选登陆 IP 的事件",
 	Long:  `删除所选登陆 IP 的事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteEventByLoginIpCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteEventByLoginIpCustomAttrJSON), &deleteEventByLoginIpParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AbnormalLoginEventService.DeleteEventByLoginIP", deleteEventByLoginIpParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	DeleteEventByLoginIpCmd.Flags().StringSliceVar(&deleteEventByLoginIpParams.Comment, "comment", nil, "用户自定义备注")
 	DeleteEventByLoginIpCmd.Flags().StringSliceVar(&deleteEventByLoginIpParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteEventByLoginIpCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteEventByLoginIpCmd.Flags().StringVar(&DeleteEventByLoginIpCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteEventByLoginIpCmd.Flags().Float64SliceVar(&deleteEventByLoginIpParams.Gids, "gids", nil, "业务组 ID")
 	DeleteEventByLoginIpCmd.Flags().StringSliceVar(&deleteEventByLoginIpParams.HostComment, "host-comment", nil, "主机备注")
 	DeleteEventByLoginIpCmd.Flags().Float64SliceVar(&deleteEventByLoginIpParams.HostId, "host-id", nil, "主机 ID")

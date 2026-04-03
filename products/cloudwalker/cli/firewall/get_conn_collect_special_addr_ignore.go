@@ -15,6 +15,7 @@ var GetConnCollectSpecialAddrIgnoreCmd = &cobra.Command{
 	Short: "获取连接采集忽略特殊地址配置",
 	Long:  `获取连接采集忽略特殊地址配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.GetConnCollectSpecialAddrIgnore", nil, &result)

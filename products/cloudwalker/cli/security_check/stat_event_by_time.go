@@ -4,6 +4,7 @@ package security_check
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statEventByTimeParams StatEventByTimeParams
+var StatEventByTimeCustomAttrJSON string
 
 var StatEventByTimeCmd = &cobra.Command{
 	Use:   "stat_event_by_time",
 	Short: "风险发生趋势",
 	Long:  `风险发生趋势`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatEventByTimeCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByTimeCustomAttrJSON), &statEventByTimeParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SecurityCheckService.StatEventByTime", statEventByTimeParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	StatEventByTimeCmd.Flags().StringSliceVar(&statEventByTimeParams.Comment, "comment", nil, "用户自定义备注")
 	StatEventByTimeCmd.Flags().StringSliceVar(&statEventByTimeParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatEventByTimeCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatEventByTimeCmd.Flags().StringVar(&StatEventByTimeCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatEventByTimeCmd.Flags().Float64SliceVar(&statEventByTimeParams.Gids, "gids", nil, "业务组 ID 列表")
 	StatEventByTimeCmd.Flags().StringSliceVar(&statEventByTimeParams.Hint, "hint", nil, "脆弱点")
 	StatEventByTimeCmd.Flags().StringSliceVar(&statEventByTimeParams.HostComment, "host-comment", nil, "主机备注")

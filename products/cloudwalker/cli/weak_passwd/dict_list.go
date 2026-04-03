@@ -17,6 +17,7 @@ var DictListCmd = &cobra.Command{
 	Short: "弱口令字典列表",
 	Long:  `弱口令字典列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.DictList", dictListParams, &result)

@@ -4,6 +4,7 @@ package patch_info_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var createWhitelistParams CreateWhitelistParams
+var CreateWhitelistWhitelistJSON string
 
 var CreateWhitelistCmd = &cobra.Command{
 	Use:   "create_whitelist",
 	Short: "创建事件加白规则",
 	Long:  `创建事件加白规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateWhitelistWhitelistJSON != "" {
+			if err := json.Unmarshal([]byte(CreateWhitelistWhitelistJSON), &createWhitelistParams.Whitelist); err != nil {
+				cmd.PrintErrln("Error parsing whitelist:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PatchInfoEventService.CreateWhitelist", createWhitelistParams, &result)
@@ -31,8 +39,7 @@ var CreateWhitelistCmd = &cobra.Command{
 func init() {
 	CreateWhitelistCmd.Flags().Float64Var(&createWhitelistParams.EventId, "event-id", 0, "根据哪个风险事件 ID 加白的")
 	// whitelist is object type, use JSON string
-	var whitelistJSON string
-	CreateWhitelistCmd.Flags().StringVar(&whitelistJSON, "whitelist", "", "whitelist (JSON, e.g. {\"agent_range\": [1, 2, 3], \"builtin_id\": \"1\", \"business_group_range\": [1, 2, 3], \"...\": \"...\"})")
+	CreateWhitelistCmd.Flags().StringVar(&CreateWhitelistWhitelistJSON, "whitelist", "", "whitelist (JSON, e.g. {\"agent_range\": [1, 2, 3], \"builtin_id\": \"1\", \"business_group_range\": [1, 2, 3], \"...\": \"...\"})")
 }
 
 // CreateWhitelistParams 请求参数

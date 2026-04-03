@@ -4,6 +4,7 @@ package agent_module
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var operateVeinmindAgentParams OperateVeinmindAgentParams
+var OperateVeinmindAgentFilterJSON string
+var OperateVeinmindAgentOperationDataJSON string
+var OperateVeinmindAgentSelectFilterJSON string
 
 var OperateVeinmindAgentCmd = &cobra.Command{
 	Use:   "operate_veinmind_agent",
 	Short: "操作探针模块",
 	Long:  `操作探针模块`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if OperateVeinmindAgentFilterJSON != "" {
+			if err := json.Unmarshal([]byte(OperateVeinmindAgentFilterJSON), &operateVeinmindAgentParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if OperateVeinmindAgentOperationDataJSON != "" {
+			if err := json.Unmarshal([]byte(OperateVeinmindAgentOperationDataJSON), &operateVeinmindAgentParams.OperationData); err != nil {
+				cmd.PrintErrln("Error parsing operation-data:", err)
+				return
+			}
+		}
+		if OperateVeinmindAgentSelectFilterJSON != "" {
+			if err := json.Unmarshal([]byte(OperateVeinmindAgentSelectFilterJSON), &operateVeinmindAgentParams.SelectFilter); err != nil {
+				cmd.PrintErrln("Error parsing select-filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentModuleService.OperateVeinmindAgent", operateVeinmindAgentParams, &result)
@@ -30,14 +52,11 @@ var OperateVeinmindAgentCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	OperateVeinmindAgentCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
+	OperateVeinmindAgentCmd.Flags().StringVar(&OperateVeinmindAgentFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
 	// operation_data is object type, use JSON string
-	var operationDataJSON string
-	OperateVeinmindAgentCmd.Flags().StringVar(&operationDataJSON, "operation-data", "", "更新||卸载||安装探针指定模块 (JSON, e.g. {\"agent_type\": \"vm_protect_agent\", \"operation\": \"install\"})")
+	OperateVeinmindAgentCmd.Flags().StringVar(&OperateVeinmindAgentOperationDataJSON, "operation-data", "", "更新||卸载||安装探针指定模块 (JSON, e.g. {\"agent_type\": \"vm_protect_agent\", \"operation\": \"install\"})")
 	// select_filter is object type, use JSON string
-	var selectFilterJSON string
-	OperateVeinmindAgentCmd.Flags().StringVar(&selectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
+	OperateVeinmindAgentCmd.Flags().StringVar(&OperateVeinmindAgentSelectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
 }
 
 // OperateVeinmindAgentParams 请求参数

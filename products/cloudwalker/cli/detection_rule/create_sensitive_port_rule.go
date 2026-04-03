@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var createSensitivePortRuleParams CreateSensitivePortRuleParams
+var CreateSensitivePortRuleItemsJSON string
 
 var CreateSensitivePortRuleCmd = &cobra.Command{
 	Use:   "create_sensitive_port_rule",
 	Short: "创建高危端口检测规则",
 	Long:  `创建高危端口检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateSensitivePortRuleItemsJSON != "" {
+			if err := json.Unmarshal([]byte(CreateSensitivePortRuleItemsJSON), &createSensitivePortRuleParams.Items); err != nil {
+				cmd.PrintErrln("Error parsing items:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.CreateSensitivePortRule", createSensitivePortRuleParams, &result)
@@ -35,8 +43,7 @@ func init() {
 	CreateSensitivePortRuleCmd.Flags().BoolVar(&createSensitivePortRuleParams.Global, "global", false, "是否绑定全局探针")
 	CreateSensitivePortRuleCmd.Flags().BoolVar(&createSensitivePortRuleParams.IgnoreOnlyLocal, "ignore-only-local", false, "忽略仅监听本地的端口")
 	// items is complex type []map[string]interface{}, use JSON string
-	var itemsJSON string
-	CreateSensitivePortRuleCmd.Flags().StringVar(&itemsJSON, "items", "", "规则项 (JSON, e.g. [{\"cmdline_arg\": [\"-l\"], \"exe_file\": [\"/usr/bin/ls\"], \"port\": [80]}])")
+	CreateSensitivePortRuleCmd.Flags().StringVar(&CreateSensitivePortRuleItemsJSON, "items", "", "规则项 (JSON, e.g. [{\"cmdline_arg\": [\"-l\"], \"exe_file\": [\"/usr/bin/ls\"], \"port\": [80]}])")
 	CreateSensitivePortRuleCmd.Flags().IntVar(&createSensitivePortRuleParams.Level, "level", 0, "风险等级")
 	CreateSensitivePortRuleCmd.Flags().BoolVar(&createSensitivePortRuleParams.OnlyGlobalNetwork, "only-global-network", false, "仅上报监听全局网络的端口")
 	CreateSensitivePortRuleCmd.Flags().StringVar(&createSensitivePortRuleParams.RuleName, "rule-name", "", "规则名称")

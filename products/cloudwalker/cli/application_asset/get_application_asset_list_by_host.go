@@ -4,6 +4,7 @@ package application_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getApplicationAssetListByHostParams GetApplicationAssetListByHostParams
+var GetApplicationAssetListByHostCustomAttrJSON string
+var GetApplicationAssetListByHostFilterJSON string
+var GetApplicationAssetListByHostOrderByJSON string
 
 var GetApplicationAssetListByHostCmd = &cobra.Command{
 	Use:   "get_application_asset_list_by_host",
 	Short: "主机分组，根据指定条件获取软件资产的列表",
 	Long:  `主机分组，根据指定条件获取软件资产的列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetApplicationAssetListByHostCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetApplicationAssetListByHostCustomAttrJSON), &getApplicationAssetListByHostParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetApplicationAssetListByHostFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetApplicationAssetListByHostFilterJSON), &getApplicationAssetListByHostParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetApplicationAssetListByHostOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetApplicationAssetListByHostOrderByJSON), &getApplicationAssetListByHostParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ApplicationAssetService.GetApplicationAssetListByHost", getApplicationAssetListByHostParams, &result)
@@ -33,11 +55,9 @@ func init() {
 	GetApplicationAssetListByHostCmd.Flags().StringSliceVar(&getApplicationAssetListByHostParams.Category, "category", nil, "分类")
 	GetApplicationAssetListByHostCmd.Flags().IntVar(&getApplicationAssetListByHostParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetApplicationAssetListByHostCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetApplicationAssetListByHostCmd.Flags().StringVar(&GetApplicationAssetListByHostCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetApplicationAssetListByHostCmd.Flags().StringVar(&filterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"app\": \"windows_nt\", \"category\": \"系统库\", \"host_id\": 196, \"id\": 190823, \"version\": \"10.0.14393.447\"}])")
+	GetApplicationAssetListByHostCmd.Flags().StringVar(&GetApplicationAssetListByHostFilterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"app\": \"windows_nt\", \"category\": \"系统库\", \"host_id\": 196, \"id\": 190823, \"version\": \"10.0.14393.447\"}])")
 	GetApplicationAssetListByHostCmd.Flags().Float64SliceVar(&getApplicationAssetListByHostParams.Gids, "gids", nil, "业务组 ID 列表")
 	GetApplicationAssetListByHostCmd.Flags().StringSliceVar(&getApplicationAssetListByHostParams.HostComment, "host-comment", nil, "主机备注")
 	GetApplicationAssetListByHostCmd.Flags().Float64SliceVar(&getApplicationAssetListByHostParams.HostId, "host-id", nil, "主机 ID")
@@ -48,8 +68,7 @@ func init() {
 	GetApplicationAssetListByHostCmd.Flags().IntVar(&getApplicationAssetListByHostParams.Offset, "offset", 0, "偏移量")
 	GetApplicationAssetListByHostCmd.Flags().Float64SliceVar(&getApplicationAssetListByHostParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetApplicationAssetListByHostCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetApplicationAssetListByHostCmd.Flags().StringVar(&GetApplicationAssetListByHostOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetApplicationAssetListByHostCmd.Flags().StringSliceVar(&getApplicationAssetListByHostParams.Path, "path", nil, "路径")
 	GetApplicationAssetListByHostCmd.Flags().BoolSliceVar(&getApplicationAssetListByHostParams.Running, "running", nil, "是否正在运行")
 	GetApplicationAssetListByHostCmd.Flags().BoolVar(&getApplicationAssetListByHostParams.SelectAll, "select-all", false, "是否选中所有")

@@ -4,6 +4,7 @@ package network_audit_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getEventListByProcessNameParams GetEventListByProcessNameParams
+var GetEventListByProcessNameCustomAttrJSON string
+var GetEventListByProcessNameOrderByJSON string
+var GetEventListByProcessNameSelectJSON string
 
 var GetEventListByProcessNameCmd = &cobra.Command{
 	Use:   "get_event_list_by_process_name",
 	Short: "获取按进程名聚合的事件列表",
 	Long:  `获取按进程名聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListByProcessNameCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByProcessNameCustomAttrJSON), &getEventListByProcessNameParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListByProcessNameOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByProcessNameOrderByJSON), &getEventListByProcessNameParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetEventListByProcessNameSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByProcessNameSelectJSON), &getEventListByProcessNameParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NetworkAuditEventService.GetEventListByProcessName", getEventListByProcessNameParams, &result)
@@ -35,8 +57,7 @@ func init() {
 	GetEventListByProcessNameCmd.Flags().IntVar(&getEventListByProcessNameParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetEventListByProcessNameCmd.Flags().StringSliceVar(&getEventListByProcessNameParams.CreatedAt, "created-at", nil, "发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListByProcessNameCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListByProcessNameCmd.Flags().StringVar(&GetEventListByProcessNameCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListByProcessNameCmd.Flags().Float64SliceVar(&getEventListByProcessNameParams.Gids, "gids", nil, "业务组 ID")
 	GetEventListByProcessNameCmd.Flags().StringSliceVar(&getEventListByProcessNameParams.GroupName, "group-name", nil, "业务组名")
 	GetEventListByProcessNameCmd.Flags().StringSliceVar(&getEventListByProcessNameParams.HostComment, "host-comment", nil, "主机备注")
@@ -49,13 +70,11 @@ func init() {
 	GetEventListByProcessNameCmd.Flags().IntVar(&getEventListByProcessNameParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventListByProcessNameCmd.Flags().Float64SliceVar(&getEventListByProcessNameParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListByProcessNameCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListByProcessNameCmd.Flags().StringVar(&GetEventListByProcessNameOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListByProcessNameCmd.Flags().StringSliceVar(&getEventListByProcessNameParams.ProcessName, "process-name", nil, "进程名")
 	GetEventListByProcessNameCmd.Flags().StringSliceVar(&getEventListByProcessNameParams.RemoteAddrType, "remote-addr-type", nil, "远程IP类型，intranet(内网)、internet(外网)")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetEventListByProcessNameCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 151, \"id\": 151, \"process_name\": \"AliSecureCheckAdvanced.exe\", \"target\": \"119.96.137.252\"}])")
+	GetEventListByProcessNameCmd.Flags().StringVar(&GetEventListByProcessNameSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 151, \"id\": 151, \"process_name\": \"AliSecureCheckAdvanced.exe\", \"target\": \"119.96.137.252\"}])")
 	GetEventListByProcessNameCmd.Flags().BoolVar(&getEventListByProcessNameParams.SelectAll, "select-all", false, "选择所有事件")
 	GetEventListByProcessNameCmd.Flags().Float64SliceVar(&getEventListByProcessNameParams.StatEventId, "stat-event-id", nil, "事件统计 ID")
 	GetEventListByProcessNameCmd.Flags().IntSliceVar(&getEventListByProcessNameParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

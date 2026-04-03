@@ -15,6 +15,7 @@ var ListAssetCollectConfigCmd = &cobra.Command{
 	Short: "获取资产采集设置",
 	Long:  `获取资产采集设置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AssetConfigService.ListAssetCollectConfig", nil, &result)

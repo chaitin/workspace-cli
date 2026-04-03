@@ -17,6 +17,7 @@ var UpdateConnectionCollectRuleCmd = &cobra.Command{
 	Short: "更新连接采集规则",
 	Long:  `更新连接采集规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.UpdateConnectionCollectRule", updateConnectionCollectRuleParams, &result)

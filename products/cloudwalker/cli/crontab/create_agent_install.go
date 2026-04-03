@@ -4,6 +4,7 @@ package crontab
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var createAgentInstallParams CreateAgentInstallParams
+var CreateAgentInstallCronJSON string
+var CreateAgentInstallTasksJSON string
 
 var CreateAgentInstallCmd = &cobra.Command{
 	Use:   "create_agent_install",
 	Short: "创建探针升级任务",
 	Long:  `创建探针升级任务`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateAgentInstallCronJSON != "" {
+			if err := json.Unmarshal([]byte(CreateAgentInstallCronJSON), &createAgentInstallParams.Cron); err != nil {
+				cmd.PrintErrln("Error parsing cron:", err)
+				return
+			}
+		}
+		if CreateAgentInstallTasksJSON != "" {
+			if err := json.Unmarshal([]byte(CreateAgentInstallTasksJSON), &createAgentInstallParams.Tasks); err != nil {
+				cmd.PrintErrln("Error parsing tasks:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.CreateAgentInstall", createAgentInstallParams, &result)
@@ -33,14 +48,12 @@ func init() {
 	CreateAgentInstallCmd.Flags().Float64SliceVar(&createAgentInstallParams.BusinessGroupRange, "business-group-range", nil, "业务组范围")
 	CreateAgentInstallCmd.Flags().StringVar(&createAgentInstallParams.Comment, "comment", "", "计划备注")
 	// cron is object type, use JSON string
-	var cronJSON string
-	CreateAgentInstallCmd.Flags().StringVar(&cronJSON, "cron", "", "定时器, null 意为一次性任务 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
+	CreateAgentInstallCmd.Flags().StringVar(&CreateAgentInstallCronJSON, "cron", "", "定时器, null 意为一次性任务 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
 	CreateAgentInstallCmd.Flags().StringSliceVar(&createAgentInstallParams.HostTagRange, "host-tag-range", nil, "主机标签范围")
 	CreateAgentInstallCmd.Flags().StringVar(&createAgentInstallParams.Name, "name", "", "计划名称")
 	CreateAgentInstallCmd.Flags().StringVar(&createAgentInstallParams.PlanType, "plan-type", "", "计划任务类型，security_tool")
 	// tasks is complex type []map[string]interface{}, use JSON string
-	var tasksJSON string
-	CreateAgentInstallCmd.Flags().StringVar(&tasksJSON, "tasks", "", "计划关联的任务 (JSON, e.g. [{\"args\": \"\", \"task_type\": \"malware_Scan\"}])")
+	CreateAgentInstallCmd.Flags().StringVar(&CreateAgentInstallTasksJSON, "tasks", "", "计划关联的任务 (JSON, e.g. [{\"args\": \"\", \"task_type\": \"malware_Scan\"}])")
 	CreateAgentInstallCmd.Flags().IntVar(&createAgentInstallParams.Timeout, "timeout", 0, "最大运行时间(秒)")
 }
 

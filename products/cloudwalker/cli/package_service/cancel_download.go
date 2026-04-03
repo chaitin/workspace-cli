@@ -17,6 +17,7 @@ var CancelDownloadCmd = &cobra.Command{
 	Short: "取消下载",
 	Long:  `取消下载`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PackageService.CancelDownload", cancelDownloadParams, &result)

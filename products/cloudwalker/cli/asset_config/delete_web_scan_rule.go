@@ -4,6 +4,7 @@ package asset_config
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteWebScanRuleParams DeleteWebScanRuleParams
+var DeleteWebScanRuleCustomAttrJSON string
 
 var DeleteWebScanRuleCmd = &cobra.Command{
 	Use:   "delete_web_scan_rule",
 	Short: "删除 Web 自定义路径",
 	Long:  `删除 Web 自定义路径`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteWebScanRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteWebScanRuleCustomAttrJSON), &deleteWebScanRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AssetConfigService.DeleteWebScanRule", deleteWebScanRuleParams, &result)
@@ -30,8 +38,7 @@ var DeleteWebScanRuleCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteWebScanRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteWebScanRuleCmd.Flags().StringVar(&DeleteWebScanRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteWebScanRuleCmd.Flags().BoolVar(&deleteWebScanRuleParams.Enable, "enable", false, "是否启用")
 	DeleteWebScanRuleCmd.Flags().StringSliceVar(&deleteWebScanRuleParams.HostComment, "host-comment", nil, "主机备注")
 	DeleteWebScanRuleCmd.Flags().Float64SliceVar(&deleteWebScanRuleParams.HostId, "host-id", nil, "主机ID")

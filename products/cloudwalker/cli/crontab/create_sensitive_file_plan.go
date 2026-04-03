@@ -4,6 +4,7 @@ package crontab
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var createSensitiveFilePlanParams CreateSensitiveFilePlanParams
+var CreateSensitiveFilePlanCronJSON string
+var CreateSensitiveFilePlanTaskJSON string
 
 var CreateSensitiveFilePlanCmd = &cobra.Command{
 	Use:   "create_sensitive_file_plan",
 	Short: "创建文件完整性扫描任务计划",
 	Long:  `创建文件完整性扫描任务计划`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateSensitiveFilePlanCronJSON != "" {
+			if err := json.Unmarshal([]byte(CreateSensitiveFilePlanCronJSON), &createSensitiveFilePlanParams.Cron); err != nil {
+				cmd.PrintErrln("Error parsing cron:", err)
+				return
+			}
+		}
+		if CreateSensitiveFilePlanTaskJSON != "" {
+			if err := json.Unmarshal([]byte(CreateSensitiveFilePlanTaskJSON), &createSensitiveFilePlanParams.Task); err != nil {
+				cmd.PrintErrln("Error parsing task:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.CreateSensitiveFilePlan", createSensitiveFilePlanParams, &result)
@@ -33,13 +48,11 @@ func init() {
 	CreateSensitiveFilePlanCmd.Flags().Float64SliceVar(&createSensitiveFilePlanParams.BusinessGroupRange, "business-group-range", nil, "业务组范围")
 	CreateSensitiveFilePlanCmd.Flags().StringVar(&createSensitiveFilePlanParams.Comment, "comment", "", "计划备注")
 	// cron is object type, use JSON string
-	var cronJSON string
-	CreateSensitiveFilePlanCmd.Flags().StringVar(&cronJSON, "cron", "", "定时器, null 意为一次性任务 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
+	CreateSensitiveFilePlanCmd.Flags().StringVar(&CreateSensitiveFilePlanCronJSON, "cron", "", "定时器, null 意为一次性任务 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
 	CreateSensitiveFilePlanCmd.Flags().StringSliceVar(&createSensitiveFilePlanParams.HostTagRange, "host-tag-range", nil, "主机标签范围")
 	CreateSensitiveFilePlanCmd.Flags().StringVar(&createSensitiveFilePlanParams.Name, "name", "", "计划名称")
 	// task is object type, use JSON string
-	var taskJSON string
-	CreateSensitiveFilePlanCmd.Flags().StringVar(&taskJSON, "task", "", "文件完整性任务信息 (JSON, e.g. {\"args\": {\"plan_id\": 0.0, \"rule_ids\": [\"\"], \"select_all\": false, \"snapshot_mode\": \"\"}, \"timeout\": 3600})")
+	CreateSensitiveFilePlanCmd.Flags().StringVar(&CreateSensitiveFilePlanTaskJSON, "task", "", "文件完整性任务信息 (JSON, e.g. {\"args\": {\"plan_id\": 0.0, \"rule_ids\": [\"\"], \"select_all\": false, \"snapshot_mode\": \"\"}, \"timeout\": 3600})")
 }
 
 // CreateSensitiveFilePlanParams 请求参数

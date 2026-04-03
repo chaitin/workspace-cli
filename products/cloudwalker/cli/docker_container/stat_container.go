@@ -4,6 +4,7 @@ package docker_container
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statContainerParams StatContainerParams
+var StatContainerCustomAttrJSON string
 
 var StatContainerCmd = &cobra.Command{
 	Use:   "stat_container",
 	Short: "获取Docker容器统计结果",
 	Long:  `获取Docker容器统计结果`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatContainerCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatContainerCustomAttrJSON), &statContainerParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DockerContainerService.StatContainer", statContainerParams, &result)
@@ -34,8 +42,7 @@ func init() {
 	StatContainerCmd.Flags().StringSliceVar(&statContainerParams.ContainerState, "container-state", nil, "容器状态")
 	StatContainerCmd.Flags().StringSliceVar(&statContainerParams.CreatedAt, "created-at", nil, "容器创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatContainerCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatContainerCmd.Flags().StringVar(&StatContainerCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatContainerCmd.Flags().StringSliceVar(&statContainerParams.FinishedAt, "finished-at", nil, "容器结束时间")
 	StatContainerCmd.Flags().Float64SliceVar(&statContainerParams.Gids, "gids", nil, "业务组 ID 列表")
 	StatContainerCmd.Flags().StringSliceVar(&statContainerParams.HostComment, "host-comment", nil, "主机备注")

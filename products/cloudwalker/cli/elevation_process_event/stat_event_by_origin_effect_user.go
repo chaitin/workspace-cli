@@ -4,6 +4,7 @@ package elevation_process_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statEventByOriginEffectUserParams StatEventByOriginEffectUserParams
+var StatEventByOriginEffectUserCustomAttrJSON string
 
 var StatEventByOriginEffectUserCmd = &cobra.Command{
 	Use:   "stat_event_by_origin_effect_user",
 	Short: "获取按提权原有效用户聚合的统计结果",
 	Long:  `获取按提权原有效用户聚合的统计结果`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatEventByOriginEffectUserCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByOriginEffectUserCustomAttrJSON), &statEventByOriginEffectUserParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ElevationProcessEventService.StatEventByOriginEffectUser", statEventByOriginEffectUserParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	StatEventByOriginEffectUserCmd.Flags().StringSliceVar(&statEventByOriginEffectUserParams.Comment, "comment", nil, "用户自定义备注")
 	StatEventByOriginEffectUserCmd.Flags().StringSliceVar(&statEventByOriginEffectUserParams.CreatedAt, "created-at", nil, "首次发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatEventByOriginEffectUserCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatEventByOriginEffectUserCmd.Flags().StringVar(&StatEventByOriginEffectUserCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatEventByOriginEffectUserCmd.Flags().StringSliceVar(&statEventByOriginEffectUserParams.Exename, "exename", nil, "进程名")
 	StatEventByOriginEffectUserCmd.Flags().Float64SliceVar(&statEventByOriginEffectUserParams.Gids, "gids", nil, "业务组 ID")
 	StatEventByOriginEffectUserCmd.Flags().StringSliceVar(&statEventByOriginEffectUserParams.HostComment, "host-comment", nil, "主机备注")

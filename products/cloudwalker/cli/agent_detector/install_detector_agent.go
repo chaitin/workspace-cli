@@ -4,6 +4,7 @@ package agent_detector
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var installDetectorAgentParams InstallDetectorAgentParams
+var InstallDetectorAgentCustomAttrJSON string
 
 var InstallDetectorAgentCmd = &cobra.Command{
 	Use:   "install_detector_agent",
 	Short: "安装检测探针",
 	Long:  `安装检测探针`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if InstallDetectorAgentCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(InstallDetectorAgentCustomAttrJSON), &installDetectorAgentParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentDetectorService.InstallDetectorAgent", installDetectorAgentParams, &result)
@@ -30,8 +38,7 @@ var InstallDetectorAgentCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	InstallDetectorAgentCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	InstallDetectorAgentCmd.Flags().StringVar(&InstallDetectorAgentCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	InstallDetectorAgentCmd.Flags().Float64SliceVar(&installDetectorAgentParams.GroupId, "group-id", nil, "业务组 ID")
 	InstallDetectorAgentCmd.Flags().StringSliceVar(&installDetectorAgentParams.HostComment, "host-comment", nil, "主机备注")
 	InstallDetectorAgentCmd.Flags().Float64SliceVar(&installDetectorAgentParams.HostId, "host-id", nil, "主机 ID")

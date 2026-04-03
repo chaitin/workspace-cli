@@ -17,6 +17,7 @@ var DeleteReportHistoryCmd = &cobra.Command{
 	Short: "删除历史报告",
 	Long:  `删除历史报告`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ReportService.DeleteReportHistory", deleteReportHistoryParams, &result)

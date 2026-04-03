@@ -17,6 +17,7 @@ var EditAgentPortCmd = &cobra.Command{
 	Short: "修改探针端口配置参数",
 	Long:  `修改探针端口配置参数`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EndpointService.EditAgentPort", editAgentPortParams, &result)

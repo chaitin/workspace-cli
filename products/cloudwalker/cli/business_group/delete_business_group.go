@@ -17,6 +17,7 @@ var DeleteBusinessGroupCmd = &cobra.Command{
 	Short: "删除业务组",
 	Long:  `删除业务组`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BusinessGroupService.DeleteBusinessGroup", deleteBusinessGroupParams, &result)

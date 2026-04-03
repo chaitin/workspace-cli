@@ -17,6 +17,7 @@ var RefreshCmd = &cobra.Command{
 	Short: "更新进程资产",
 	Long:  `更新进程资产`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ProcessAssetService.Refresh", refreshParams, &result)

@@ -4,6 +4,7 @@ package docker_network
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statNetworkParams StatNetworkParams
+var StatNetworkCustomAttrJSON string
 
 var StatNetworkCmd = &cobra.Command{
 	Use:   "stat_network",
 	Short: "获取Docker网络资产列表",
 	Long:  `获取Docker网络资产列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatNetworkCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatNetworkCustomAttrJSON), &statNetworkParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DockerNetworkService.StatNetwork", statNetworkParams, &result)
@@ -30,8 +38,7 @@ var StatNetworkCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatNetworkCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatNetworkCmd.Flags().StringVar(&StatNetworkCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatNetworkCmd.Flags().Float64SliceVar(&statNetworkParams.Gids, "gids", nil, "gids")
 	StatNetworkCmd.Flags().StringSliceVar(&statNetworkParams.HostComment, "host-comment", nil, "主机备注")
 	StatNetworkCmd.Flags().Float64SliceVar(&statNetworkParams.HostId, "host-id", nil, "主机 ID")

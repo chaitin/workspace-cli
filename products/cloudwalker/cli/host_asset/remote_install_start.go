@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var remoteInstallStartParams RemoteInstallStartParams
+var RemoteInstallStartHostsJSON string
+var RemoteInstallStartProxyConfigJSON string
 
 var RemoteInstallStartCmd = &cobra.Command{
 	Use:   "remote_install_start",
 	Short: "开始远程安装任务",
 	Long:  `开始远程安装任务`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if RemoteInstallStartHostsJSON != "" {
+			if err := json.Unmarshal([]byte(RemoteInstallStartHostsJSON), &remoteInstallStartParams.Hosts); err != nil {
+				cmd.PrintErrln("Error parsing hosts:", err)
+				return
+			}
+		}
+		if RemoteInstallStartProxyConfigJSON != "" {
+			if err := json.Unmarshal([]byte(RemoteInstallStartProxyConfigJSON), &remoteInstallStartParams.ProxyConfig); err != nil {
+				cmd.PrintErrln("Error parsing proxy-config:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.RemoteInstallStart", remoteInstallStartParams, &result)
@@ -31,14 +46,12 @@ var RemoteInstallStartCmd = &cobra.Command{
 func init() {
 	RemoteInstallStartCmd.Flags().BoolVar(&remoteInstallStartParams.DisableAgentAfterInstall, "disable-agent-after-install", false, "安装后是否禁用探针")
 	// hosts is complex type []map[string]interface{}, use JSON string
-	var hostsJSON string
-	RemoteInstallStartCmd.Flags().StringVar(&hostsJSON, "hosts", "", "主机信息, 请直接传入 RemoteInstallUploadCSV 接口返回的 result.data 内容 (JSON, e.g. [{\"connection\": \"wmi\", \"gid\": 132, \"host\": \"10.10.3.155\", \"password\": \"!=:加密后的登陆密码:=\", \"username\": \"monster\"}])")
+	RemoteInstallStartCmd.Flags().StringVar(&RemoteInstallStartHostsJSON, "hosts", "", "主机信息, 请直接传入 RemoteInstallUploadCSV 接口返回的 result.data 内容 (JSON, e.g. [{\"connection\": \"wmi\", \"gid\": 132, \"host\": \"10.10.3.155\", \"password\": \"!=:加密后的登陆密码:=\", \"username\": \"monster\"}])")
 	RemoteInstallStartCmd.Flags().StringVar(&remoteInstallStartParams.InstallDir, "install-dir", "", "安装路径")
 	RemoteInstallStartCmd.Flags().StringVar(&remoteInstallStartParams.InstallOption, "install-option", "", "重装选项")
 	RemoteInstallStartCmd.Flags().StringVar(&remoteInstallStartParams.InstallUsername, "install-username", "", "探针运行用户")
 	// proxy_config is object type, use JSON string
-	var proxyConfigJSON string
-	RemoteInstallStartCmd.Flags().StringVar(&proxyConfigJSON, "proxy-config", "", "代理配置 (JSON, e.g. {\"host\": \"127.0.0.1\", \"password\": \"123456\", \"port\": 3306, \"type\": \"none\", \"username\": \"root\"})")
+	RemoteInstallStartCmd.Flags().StringVar(&RemoteInstallStartProxyConfigJSON, "proxy-config", "", "代理配置 (JSON, e.g. {\"host\": \"127.0.0.1\", \"password\": \"123456\", \"port\": 3306, \"type\": \"none\", \"username\": \"root\"})")
 	RemoteInstallStartCmd.Flags().StringVar(&remoteInstallStartParams.RemoteHost, "remote-host", "", "服务端地址")
 }
 

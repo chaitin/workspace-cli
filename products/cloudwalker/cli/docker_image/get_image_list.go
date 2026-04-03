@@ -4,6 +4,7 @@ package docker_image
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getImageListParams GetImageListParams
+var GetImageListCustomAttrJSON string
+var GetImageListOrderByJSON string
 
 var GetImageListCmd = &cobra.Command{
 	Use:   "get_image_list",
 	Short: "获取Docker镜像资产列表",
 	Long:  `获取Docker镜像资产列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetImageListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetImageListCustomAttrJSON), &getImageListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetImageListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetImageListOrderByJSON), &getImageListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DockerImageService.GetImageList", getImageListParams, &result)
@@ -31,8 +46,7 @@ var GetImageListCmd = &cobra.Command{
 func init() {
 	GetImageListCmd.Flags().IntVar(&getImageListParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetImageListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetImageListCmd.Flags().StringVar(&GetImageListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetImageListCmd.Flags().Float64SliceVar(&getImageListParams.Gids, "gids", nil, "gids")
 	GetImageListCmd.Flags().StringSliceVar(&getImageListParams.HostComment, "host-comment", nil, "主机备注")
 	GetImageListCmd.Flags().Float64SliceVar(&getImageListParams.HostId, "host-id", nil, "主机 ID")
@@ -47,8 +61,7 @@ func init() {
 	GetImageListCmd.Flags().IntVar(&getImageListParams.Offset, "offset", 0, "偏移量")
 	GetImageListCmd.Flags().Float64SliceVar(&getImageListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetImageListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetImageListCmd.Flags().StringVar(&GetImageListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 }
 
 // GetImageListParams 请求参数

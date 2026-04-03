@@ -4,6 +4,7 @@ package honeypot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var markAsReadParams MarkAsReadParams
+var MarkAsReadCustomAttrJSON string
 
 var MarkAsReadCmd = &cobra.Command{
 	Use:   "mark_as_read",
 	Short: "标记事件为已读",
 	Long:  `标记事件为已读`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if MarkAsReadCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(MarkAsReadCustomAttrJSON), &markAsReadParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HoneypotService.MarkAsRead", markAsReadParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.Comment, "comment", nil, "用户自定义备注")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.CreatedAt, "created-at", nil, "事件创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	MarkAsReadCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	MarkAsReadCmd.Flags().StringVar(&MarkAsReadCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.EndTime, "end-time", nil, "攻击结束时间")
 	MarkAsReadCmd.Flags().Float64SliceVar(&markAsReadParams.Gids, "gids", nil, "业务组 ID")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.Honeypot, "honeypot", nil, "蜜罐名")

@@ -4,6 +4,7 @@ package report
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listTemplateParams ListTemplateParams
+var ListTemplateOrderByJSON string
 
 var ListTemplateCmd = &cobra.Command{
 	Use:   "list_template",
 	Short: "获取模板列表",
 	Long:  `获取模板列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListTemplateOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(ListTemplateOrderByJSON), &listTemplateParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ReportService.ListTemplate", listTemplateParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	ListTemplateCmd.Flags().StringSliceVar(&listTemplateParams.Name, "name", nil, "模板名称")
 	ListTemplateCmd.Flags().IntVar(&listTemplateParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	ListTemplateCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	ListTemplateCmd.Flags().StringVar(&ListTemplateOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	ListTemplateCmd.Flags().StringSliceVar(&listTemplateParams.Type, "type", nil, "模板类型")
 }
 

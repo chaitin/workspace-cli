@@ -17,6 +17,7 @@ var CopyReportCmd = &cobra.Command{
 	Short: "复制报告",
 	Long:  `复制报告`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ReportService.CopyReport", copyReportParams, &result)

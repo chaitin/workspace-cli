@@ -4,6 +4,7 @@ package sensitive_port
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editEventCommentParams EditEventCommentParams
+var EditEventCommentCustomAttrJSON string
+var EditEventCommentSelectJSON string
 
 var EditEventCommentCmd = &cobra.Command{
 	Use:   "edit_event_comment",
 	Short: "改变所选事件备注",
 	Long:  `改变所选事件备注`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditEventCommentCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventCommentCustomAttrJSON), &editEventCommentParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if EditEventCommentSelectJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventCommentSelectJSON), &editEventCommentParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitivePortService.EditEventComment", editEventCommentParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.Comment, "comment", nil, "用户自定义备注")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditEventCommentCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditEventCommentCmd.Flags().StringVar(&EditEventCommentCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.Exepath, "exepath", nil, "可执行文件路径")
 	EditEventCommentCmd.Flags().Float64SliceVar(&editEventCommentParams.Gids, "gids", nil, "业务组 ID 列表")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.HostComment, "host-comment", nil, "主机备注")
@@ -53,8 +67,7 @@ func init() {
 	EditEventCommentCmd.Flags().Float64SliceVar(&editEventCommentParams.PortState, "port-state", nil, "端口状态")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.Protocol, "protocol", nil, "协议")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	EditEventCommentCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 165, \"id\": 192, \"pname\": \"unknown\", \"port\": 22, \"protocol\": \"tcp\"}])")
+	EditEventCommentCmd.Flags().StringVar(&EditEventCommentSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 165, \"id\": 192, \"pname\": \"unknown\", \"port\": 22, \"protocol\": \"tcp\"}])")
 	EditEventCommentCmd.Flags().BoolVar(&editEventCommentParams.SelectAll, "select-all", false, "是否全选")
 	EditEventCommentCmd.Flags().IntSliceVar(&editEventCommentParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.UpdatedAt, "updated-at", nil, "事件更新时间")

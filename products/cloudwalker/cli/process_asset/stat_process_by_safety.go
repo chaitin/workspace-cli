@@ -4,6 +4,7 @@ package process_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statProcessBySafetyParams StatProcessBySafetyParams
+var StatProcessBySafetyCustomAttrJSON string
 
 var StatProcessBySafetyCmd = &cobra.Command{
 	Use:   "stat_process_by_safety",
 	Short: "进程安全性数据分组下，按照指定条件返回进程资产列表",
 	Long:  `进程安全性数据分组下，按照指定条件返回进程资产列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatProcessBySafetyCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatProcessBySafetyCustomAttrJSON), &statProcessBySafetyParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ProcessAssetService.StatProcessBySafety", statProcessBySafetyParams, &result)
@@ -35,8 +43,7 @@ func init() {
 	StatProcessBySafetyCmd.Flags().StringSliceVar(&statProcessBySafetyParams.Container, "container", nil, "相关容器ID")
 	StatProcessBySafetyCmd.Flags().IntVar(&statProcessBySafetyParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatProcessBySafetyCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatProcessBySafetyCmd.Flags().StringVar(&StatProcessBySafetyCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatProcessBySafetyCmd.Flags().StringSliceVar(&statProcessBySafetyParams.EffectiveGroup, "effective-group", nil, "进程所属有效用户组")
 	StatProcessBySafetyCmd.Flags().StringSliceVar(&statProcessBySafetyParams.EffectiveUser, "effective-user", nil, "进程所属有效用户")
 	StatProcessBySafetyCmd.Flags().Float64SliceVar(&statProcessBySafetyParams.Egid, "egid", nil, "进程所属有效用户组id")

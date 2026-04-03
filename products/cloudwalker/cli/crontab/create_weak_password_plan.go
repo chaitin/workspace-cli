@@ -4,6 +4,7 @@ package crontab
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var createWeakPasswordPlanParams CreateWeakPasswordPlanParams
+var CreateWeakPasswordPlanCronJSON string
+var CreateWeakPasswordPlanTaskJSON string
 
 var CreateWeakPasswordPlanCmd = &cobra.Command{
 	Use:   "create_weak_password_plan",
 	Short: "创建弱口令任务计划",
 	Long:  `创建弱口令任务计划`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateWeakPasswordPlanCronJSON != "" {
+			if err := json.Unmarshal([]byte(CreateWeakPasswordPlanCronJSON), &createWeakPasswordPlanParams.Cron); err != nil {
+				cmd.PrintErrln("Error parsing cron:", err)
+				return
+			}
+		}
+		if CreateWeakPasswordPlanTaskJSON != "" {
+			if err := json.Unmarshal([]byte(CreateWeakPasswordPlanTaskJSON), &createWeakPasswordPlanParams.Task); err != nil {
+				cmd.PrintErrln("Error parsing task:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.CreateWeakPasswordPlan", createWeakPasswordPlanParams, &result)
@@ -33,13 +48,11 @@ func init() {
 	CreateWeakPasswordPlanCmd.Flags().Float64SliceVar(&createWeakPasswordPlanParams.BusinessGroupRange, "business-group-range", nil, "业务组范围")
 	CreateWeakPasswordPlanCmd.Flags().StringVar(&createWeakPasswordPlanParams.Comment, "comment", "", "计划备注")
 	// cron is object type, use JSON string
-	var cronJSON string
-	CreateWeakPasswordPlanCmd.Flags().StringVar(&cronJSON, "cron", "", "定时器, null 意为一次性任务 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
+	CreateWeakPasswordPlanCmd.Flags().StringVar(&CreateWeakPasswordPlanCronJSON, "cron", "", "定时器, null 意为一次性任务 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
 	CreateWeakPasswordPlanCmd.Flags().StringSliceVar(&createWeakPasswordPlanParams.HostTagRange, "host-tag-range", nil, "主机标签范围")
 	CreateWeakPasswordPlanCmd.Flags().StringVar(&createWeakPasswordPlanParams.Name, "name", "", "计划名称")
 	// task is object type, use JSON string
-	var taskJSON string
-	CreateWeakPasswordPlanCmd.Flags().StringVar(&taskJSON, "task", "", "弱口令任务信息 (JSON, e.g. {\"args\": {\"auto_tag\": true, \"check_container\": true, \"check_disabled_user\": false, \"check_empty_password\": true, \"service_configs\": [{\"service\": \"ssh\"}]}, \"timeout\": 3600})")
+	CreateWeakPasswordPlanCmd.Flags().StringVar(&CreateWeakPasswordPlanTaskJSON, "task", "", "弱口令任务信息 (JSON, e.g. {\"args\": {\"auto_tag\": true, \"check_container\": true, \"check_disabled_user\": false, \"check_empty_password\": true, \"service_configs\": [{\"service\": \"ssh\"}]}, \"timeout\": 3600})")
 }
 
 // CreateWeakPasswordPlanParams 请求参数

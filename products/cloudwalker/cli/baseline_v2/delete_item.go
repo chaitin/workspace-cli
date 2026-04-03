@@ -17,6 +17,7 @@ var DeleteItemCmd = &cobra.Command{
 	Short: "删除导入的核查项",
 	Long:  `删除导入的核查项`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.DeleteItem", deleteItemParams, &result)

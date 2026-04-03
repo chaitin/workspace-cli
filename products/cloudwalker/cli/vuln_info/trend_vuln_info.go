@@ -17,6 +17,7 @@ var TrendVulnInfoCmd = &cobra.Command{
 	Short: "漏洞公布时间趋势",
 	Long:  `漏洞公布时间趋势`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "VulnInfoService.TrendVulnInfo", trendVulnInfoParams, &result)

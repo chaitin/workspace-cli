@@ -17,6 +17,7 @@ var GetHostInfoDetailCmd = &cobra.Command{
 	Short: "获取主机资产的详情信息, 包含软件信息，硬件信息",
 	Long:  `获取主机资产的详情信息, 包含软件信息，硬件信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetHostInfoDetail", getHostInfoDetailParams, &result)

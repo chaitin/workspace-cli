@@ -4,6 +4,7 @@ package user_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getWindowsUserListParams GetWindowsUserListParams
+var GetWindowsUserListCustomAttrJSON string
+var GetWindowsUserListFilterJSON string
+var GetWindowsUserListOrderByJSON string
 
 var GetWindowsUserListCmd = &cobra.Command{
 	Use:   "get_windows_user_list",
 	Short: "获取 windows 用户列表",
 	Long:  `获取 windows 用户列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetWindowsUserListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetWindowsUserListCustomAttrJSON), &getWindowsUserListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetWindowsUserListFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetWindowsUserListFilterJSON), &getWindowsUserListParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetWindowsUserListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetWindowsUserListOrderByJSON), &getWindowsUserListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "UserAssetService.GetWindowsUserList", getWindowsUserListParams, &result)
@@ -31,12 +53,10 @@ var GetWindowsUserListCmd = &cobra.Command{
 func init() {
 	GetWindowsUserListCmd.Flags().IntVar(&getWindowsUserListParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetWindowsUserListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetWindowsUserListCmd.Flags().StringVar(&GetWindowsUserListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetWindowsUserListCmd.Flags().BoolSliceVar(&getWindowsUserListParams.Enabled, "enabled", nil, "是否启用，true代表启用，false代表禁用")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetWindowsUserListCmd.Flags().StringVar(&filterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"host_id\": 1, \"id\": 123, \"username\": \"test222\"}])")
+	GetWindowsUserListCmd.Flags().StringVar(&GetWindowsUserListFilterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"host_id\": 1, \"id\": 123, \"username\": \"test222\"}])")
 	GetWindowsUserListCmd.Flags().Float64SliceVar(&getWindowsUserListParams.Gids, "gids", nil, "业务组")
 	GetWindowsUserListCmd.Flags().StringSliceVar(&getWindowsUserListParams.HostComment, "host-comment", nil, "主机备注")
 	GetWindowsUserListCmd.Flags().Float64SliceVar(&getWindowsUserListParams.HostId, "host-id", nil, "主机ID, 用于主机详情页面")
@@ -49,8 +69,7 @@ func init() {
 	GetWindowsUserListCmd.Flags().IntVar(&getWindowsUserListParams.Offset, "offset", 0, "偏移量")
 	GetWindowsUserListCmd.Flags().Float64SliceVar(&getWindowsUserListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetWindowsUserListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetWindowsUserListCmd.Flags().StringVar(&GetWindowsUserListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetWindowsUserListCmd.Flags().StringSliceVar(&getWindowsUserListParams.PasswordModify, "password-modify", nil, "上次修改密码时间")
 	GetWindowsUserListCmd.Flags().BoolVar(&getWindowsUserListParams.SelectAll, "select-all", false, "是否选中所有")
 	GetWindowsUserListCmd.Flags().Float64SliceVar(&getWindowsUserListParams.Sid, "sid", nil, "SID")

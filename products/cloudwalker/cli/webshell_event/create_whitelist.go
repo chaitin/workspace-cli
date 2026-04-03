@@ -4,6 +4,7 @@ package webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var createWhitelistParams CreateWhitelistParams
+var CreateWhitelistCustomAttrJSON string
+var CreateWhitelistSelectJSON string
+var CreateWhitelistWhitelistJSON string
 
 var CreateWhitelistCmd = &cobra.Command{
 	Use:   "create_whitelist",
 	Short: "生成白名单规则",
 	Long:  `生成白名单规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateWhitelistCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(CreateWhitelistCustomAttrJSON), &createWhitelistParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if CreateWhitelistSelectJSON != "" {
+			if err := json.Unmarshal([]byte(CreateWhitelistSelectJSON), &createWhitelistParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
+		if CreateWhitelistWhitelistJSON != "" {
+			if err := json.Unmarshal([]byte(CreateWhitelistWhitelistJSON), &createWhitelistParams.Whitelist); err != nil {
+				cmd.PrintErrln("Error parsing whitelist:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.CreateWhitelist", createWhitelistParams, &result)
@@ -32,8 +54,7 @@ func init() {
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.Comment, "comment", nil, "用户自定义备注")
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	CreateWhitelistCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	CreateWhitelistCmd.Flags().StringVar(&CreateWhitelistCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.Domain, "domain", nil, "域名")
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.FileName, "file-name", nil, "文件名")
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.FilePath, "file-path", nil, "文件路径")
@@ -51,8 +72,7 @@ func init() {
 	CreateWhitelistCmd.Flags().Float64SliceVar(&createWhitelistParams.Oid, "oid", nil, "机构 ID")
 	CreateWhitelistCmd.Flags().Float64SliceVar(&createWhitelistParams.PlanId, "plan-id", nil, "任务 id")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	CreateWhitelistCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
+	CreateWhitelistCmd.Flags().StringVar(&CreateWhitelistSelectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
 	CreateWhitelistCmd.Flags().BoolVar(&createWhitelistParams.SelectAll, "select-all", false, "是否全选")
 	CreateWhitelistCmd.Flags().Float64SliceVar(&createWhitelistParams.StatEventId, "stat-event-id", nil, "统计事件 ID")
 	CreateWhitelistCmd.Flags().IntSliceVar(&createWhitelistParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")
@@ -60,8 +80,7 @@ func init() {
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.WebshellType, "webshell-type", nil, "Webshell 类型")
 	CreateWhitelistCmd.Flags().StringSliceVar(&createWhitelistParams.WhiteRuleId, "white-rule-id", nil, "白名单规则 ID")
 	// whitelist is object type, use JSON string
-	var whitelistJSON string
-	CreateWhitelistCmd.Flags().StringVar(&whitelistJSON, "whitelist", "", "whitelist (JSON, e.g. {\"agent_range\": [1, 2, 3], \"builtin_id\": \"1\", \"business_group_range\": [1, 2, 3], \"...\": \"...\"})")
+	CreateWhitelistCmd.Flags().StringVar(&CreateWhitelistWhitelistJSON, "whitelist", "", "whitelist (JSON, e.g. {\"agent_range\": [1, 2, 3], \"builtin_id\": \"1\", \"business_group_range\": [1, 2, 3], \"...\": \"...\"})")
 }
 
 // CreateWhitelistParams 请求参数

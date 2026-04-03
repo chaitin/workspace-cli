@@ -17,6 +17,7 @@ var GetProcessedEventInfoCmd = &cobra.Command{
 	Short: "事件处置情况",
 	Long:  `事件处置情况`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ThreatOverviewService.GetProcessedEventInfo", getProcessedEventInfoParams, &result)

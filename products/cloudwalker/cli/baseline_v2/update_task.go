@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var updateTaskParams UpdateTaskParams
+var UpdateTaskCronJSON string
 
 var UpdateTaskCmd = &cobra.Command{
 	Use:   "update_task",
 	Short: "修改任务绑定的核查策略或者任务绑定的探针",
 	Long:  `修改任务绑定的核查策略或者任务绑定的探针`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if UpdateTaskCronJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateTaskCronJSON), &updateTaskParams.Cron); err != nil {
+				cmd.PrintErrln("Error parsing cron:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.UpdateTask", updateTaskParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	UpdateTaskCmd.Flags().Float64SliceVar(&updateTaskParams.BusinessGroupRange, "business-group-range", nil, "业务组范围, null 为不修改, 留空为置空")
 	UpdateTaskCmd.Flags().StringVar(&updateTaskParams.Comment, "comment", "", "备注, null 为不修改")
 	// cron is object type, use JSON string
-	var cronJSON string
-	UpdateTaskCmd.Flags().StringVar(&cronJSON, "cron", "", "计划定时器, null 为不修改 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
+	UpdateTaskCmd.Flags().StringVar(&UpdateTaskCronJSON, "cron", "", "计划定时器, null 为不修改 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
 	UpdateTaskCmd.Flags().StringSliceVar(&updateTaskParams.HostTagRange, "host-tag-range", nil, "主机标签范围")
 	UpdateTaskCmd.Flags().IntVar(&updateTaskParams.Id, "id", 0, "任务 ID")
 	UpdateTaskCmd.Flags().StringVar(&updateTaskParams.Name, "name", "", "任务名称, null 为不修改")

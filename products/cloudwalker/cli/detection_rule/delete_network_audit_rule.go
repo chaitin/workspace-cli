@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteNetworkAuditRuleParams DeleteNetworkAuditRuleParams
+var DeleteNetworkAuditRuleCustomAttrJSON string
 
 var DeleteNetworkAuditRuleCmd = &cobra.Command{
 	Use:   "delete_network_audit_rule",
 	Short: "删除网络异常检测规则",
 	Long:  `删除网络异常检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteNetworkAuditRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteNetworkAuditRuleCustomAttrJSON), &deleteNetworkAuditRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.DeleteNetworkAuditRule", deleteNetworkAuditRuleParams, &result)
@@ -30,8 +38,7 @@ var DeleteNetworkAuditRuleCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteNetworkAuditRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteNetworkAuditRuleCmd.Flags().StringVar(&DeleteNetworkAuditRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteNetworkAuditRuleCmd.Flags().BoolVar(&deleteNetworkAuditRuleParams.Enable, "enable", false, "是否启用")
 	DeleteNetworkAuditRuleCmd.Flags().StringSliceVar(&deleteNetworkAuditRuleParams.HostComment, "host-comment", nil, "主机备注")
 	DeleteNetworkAuditRuleCmd.Flags().Float64SliceVar(&deleteNetworkAuditRuleParams.HostId, "host-id", nil, "主机ID")

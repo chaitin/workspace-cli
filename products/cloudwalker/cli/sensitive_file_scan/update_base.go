@@ -17,6 +17,7 @@ var UpdateBaseCmd = &cobra.Command{
 	Short: "更新基准",
 	Long:  `更新基准`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitiveFileScanService.UpdateBase", updateBaseParams, &result)

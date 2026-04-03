@@ -4,6 +4,7 @@ package process_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getProcessListParams GetProcessListParams
+var GetProcessListCustomAttrJSON string
+var GetProcessListFilterJSON string
+var GetProcessListOrderByJSON string
 
 var GetProcessListCmd = &cobra.Command{
 	Use:   "get_process_list",
 	Short: "获取主机上进程资产列表",
 	Long:  `获取主机上进程资产列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetProcessListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetProcessListCustomAttrJSON), &getProcessListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetProcessListFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetProcessListFilterJSON), &getProcessListParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetProcessListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetProcessListOrderByJSON), &getProcessListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ProcessAssetService.GetProcessList", getProcessListParams, &result)
@@ -35,8 +57,7 @@ func init() {
 	GetProcessListCmd.Flags().StringSliceVar(&getProcessListParams.Container, "container", nil, "相关容器ID")
 	GetProcessListCmd.Flags().IntVar(&getProcessListParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetProcessListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetProcessListCmd.Flags().StringVar(&GetProcessListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetProcessListCmd.Flags().StringSliceVar(&getProcessListParams.EffectiveGroup, "effective-group", nil, "进程所属有效用户组")
 	GetProcessListCmd.Flags().StringSliceVar(&getProcessListParams.EffectiveUser, "effective-user", nil, "进程所属有效用户")
 	GetProcessListCmd.Flags().Float64SliceVar(&getProcessListParams.Egid, "egid", nil, "进程所属有效用户组id")
@@ -46,8 +67,7 @@ func init() {
 	GetProcessListCmd.Flags().StringSliceVar(&getProcessListParams.FileChangeTime, "file-change-time", nil, "文件属性修改时间")
 	GetProcessListCmd.Flags().StringSliceVar(&getProcessListParams.FileModifyTime, "file-modify-time", nil, "文件内容修改时间")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetProcessListCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. [{\"effective_user\": \"System\", \"host_id\": 196, \"id\": 85521, \"name\": \"winlogon.exe\", \"path\": \"C:\\Windows\\System32\\winlogon.exe\"}])")
+	GetProcessListCmd.Flags().StringVar(&GetProcessListFilterJSON, "filter", "", "filter (JSON, e.g. [{\"effective_user\": \"System\", \"host_id\": 196, \"id\": 85521, \"name\": \"winlogon.exe\", \"path\": \"C:\\Windows\\System32\\winlogon.exe\"}])")
 	GetProcessListCmd.Flags().Float64SliceVar(&getProcessListParams.Gid, "gid", nil, "进程所属组id")
 	GetProcessListCmd.Flags().Float64SliceVar(&getProcessListParams.Gids, "gids", nil, "业务组 ID 列表")
 	GetProcessListCmd.Flags().StringSliceVar(&getProcessListParams.Group, "group", nil, "进程所属组")
@@ -63,8 +83,7 @@ func init() {
 	GetProcessListCmd.Flags().IntVar(&getProcessListParams.Offset, "offset", 0, "偏移量")
 	GetProcessListCmd.Flags().Float64SliceVar(&getProcessListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetProcessListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetProcessListCmd.Flags().StringVar(&GetProcessListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetProcessListCmd.Flags().StringSliceVar(&getProcessListParams.Path, "path", nil, "可执行文件路径")
 	GetProcessListCmd.Flags().Float64SliceVar(&getProcessListParams.Pid, "pid", nil, "进程pid")
 	GetProcessListCmd.Flags().StringSliceVar(&getProcessListParams.PortNum, "port-num", nil, "端口数量范围")

@@ -15,6 +15,7 @@ var GetLoginControlStrategyCmd = &cobra.Command{
 	Short: "获取登陆控制策略",
 	Long:  `获取登陆控制策略`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AdminStrategyService.GetLoginControlStrategy", nil, &result)

@@ -15,6 +15,7 @@ var TestMimicryTokenCmd = &cobra.Command{
 	Short: "测试拟态防御服务平台token,如果是401说明token不正确,500说明token正确",
 	Long:  `测试拟态防御服务平台token,如果是401说明token不正确,500说明token正确`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.TestMimicryToken", nil, &result)

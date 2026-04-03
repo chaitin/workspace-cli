@@ -17,6 +17,7 @@ var GetScoreCmd = &cobra.Command{
 	Short: "获取主机分数",
 	Long:  `获取主机分数`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetScore", getScoreParams, &result)

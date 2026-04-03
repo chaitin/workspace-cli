@@ -17,6 +17,7 @@ var GetRefreshDateTimeCmd = &cobra.Command{
 	Short: "获取资产的更新时间",
 	Long:  `获取资产的更新时间`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AssetCrontabService.GetRefreshDateTime", getRefreshDateTimeParams, &result)

@@ -4,6 +4,7 @@ package crontab
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editPlanParams EditPlanParams
+var EditPlanCronJSON string
+var EditPlanTasksJSON string
 
 var EditPlanCmd = &cobra.Command{
 	Use:   "edit_plan",
 	Short: "修改任务计划",
 	Long:  `修改任务计划`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditPlanCronJSON != "" {
+			if err := json.Unmarshal([]byte(EditPlanCronJSON), &editPlanParams.Cron); err != nil {
+				cmd.PrintErrln("Error parsing cron:", err)
+				return
+			}
+		}
+		if EditPlanTasksJSON != "" {
+			if err := json.Unmarshal([]byte(EditPlanTasksJSON), &editPlanParams.Tasks); err != nil {
+				cmd.PrintErrln("Error parsing tasks:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.EditPlan", editPlanParams, &result)
@@ -33,15 +48,13 @@ func init() {
 	EditPlanCmd.Flags().Float64SliceVar(&editPlanParams.BusinessGroupRange, "business-group-range", nil, "业务组范围, 如果 null 证明不修改，如果是个空 [] 则清空本项")
 	EditPlanCmd.Flags().StringVar(&editPlanParams.Comment, "comment", "", "计划备注")
 	// cron is object type, use JSON string
-	var cronJSON string
-	EditPlanCmd.Flags().StringVar(&cronJSON, "cron", "", "计划定时器 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
+	EditPlanCmd.Flags().StringVar(&EditPlanCronJSON, "cron", "", "计划定时器 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
 	EditPlanCmd.Flags().StringSliceVar(&editPlanParams.HostTagRange, "host-tag-range", nil, "主机标签范围")
 	EditPlanCmd.Flags().StringVar(&editPlanParams.Name, "name", "", "计划名称")
 	EditPlanCmd.Flags().IntVar(&editPlanParams.PlanId, "plan-id", 0, "计划 ID")
 	EditPlanCmd.Flags().StringVar(&editPlanParams.PlanType, "plan-type", "", "任务计划类型")
 	// tasks is complex type []map[string]interface{}, use JSON string
-	var tasksJSON string
-	EditPlanCmd.Flags().StringVar(&tasksJSON, "tasks", "", "计划关联的任务 (JSON, e.g. [{\"args\": \"\", \"task_type\": \"malware_Scan\"}])")
+	EditPlanCmd.Flags().StringVar(&EditPlanTasksJSON, "tasks", "", "计划关联的任务 (JSON, e.g. [{\"args\": \"\", \"task_type\": \"malware_Scan\"}])")
 	EditPlanCmd.Flags().IntVar(&editPlanParams.Timeout, "timeout", 0, "最大运行时间(秒)")
 }
 

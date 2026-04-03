@@ -17,6 +17,7 @@ var EnableDictCmd = &cobra.Command{
 	Short: "启用弱口令字典",
 	Long:  `启用弱口令字典`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.EnableDict", enableDictParams, &result)

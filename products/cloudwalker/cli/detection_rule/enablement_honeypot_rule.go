@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enablementHoneypotRuleParams EnablementHoneypotRuleParams
+var EnablementHoneypotRuleFilterJSON string
 
 var EnablementHoneypotRuleCmd = &cobra.Command{
 	Use:   "enablement_honeypot_rule",
 	Short: "启禁用蜜罐诱捕检测规则",
 	Long:  `启禁用蜜罐诱捕检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnablementHoneypotRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EnablementHoneypotRuleFilterJSON), &enablementHoneypotRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.EnablementHoneypotRule", enablementHoneypotRuleParams, &result)
@@ -31,8 +39,7 @@ var EnablementHoneypotRuleCmd = &cobra.Command{
 func init() {
 	EnablementHoneypotRuleCmd.Flags().BoolVar(&enablementHoneypotRuleParams.Enable, "enable", false, "是否启用")
 	// filter is object type, use JSON string
-	var filterJSON string
-	EnablementHoneypotRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": true, \"honeypot_name\": [\"蜜罐名称\"], \"...\": \"...\"})")
+	EnablementHoneypotRuleCmd.Flags().StringVar(&EnablementHoneypotRuleFilterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": true, \"honeypot_name\": [\"蜜罐名称\"], \"...\": \"...\"})")
 }
 
 // EnablementHoneypotRuleParams 请求参数

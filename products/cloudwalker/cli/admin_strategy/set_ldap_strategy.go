@@ -17,6 +17,7 @@ var SetLdapStrategyCmd = &cobra.Command{
 	Short: "设置LDAP",
 	Long:  `设置LDAP`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AdminStrategyService.SetLdapStrategy", setLdapStrategyParams, &result)

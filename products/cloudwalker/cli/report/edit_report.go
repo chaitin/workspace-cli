@@ -4,6 +4,7 @@ package report
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editReportParams EditReportParams
+var EditReportFilterJSON string
+var EditReportMailJSON string
 
 var EditReportCmd = &cobra.Command{
 	Use:   "edit_report",
 	Short: "编辑报告",
 	Long:  `编辑报告`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditReportFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EditReportFilterJSON), &editReportParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if EditReportMailJSON != "" {
+			if err := json.Unmarshal([]byte(EditReportMailJSON), &editReportParams.Mail); err != nil {
+				cmd.PrintErrln("Error parsing mail:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ReportService.EditReport", editReportParams, &result)
@@ -32,13 +47,11 @@ func init() {
 	EditReportCmd.Flags().IntVar(&editReportParams.BaselineTaskId, "baseline-task-id", 0, "baseline_task_id")
 	EditReportCmd.Flags().StringVar(&editReportParams.DataScope, "data-scope", "", "data_scope")
 	// filter is object type, use JSON string
-	var filterJSON string
-	EditReportCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. {\"host_ip\": [\"10.2.28.217\", \"10.3.29.218\"], \"host_name\": [\"centos7.2-x64\", \"ubuntu20.04\"]})")
+	EditReportCmd.Flags().StringVar(&EditReportFilterJSON, "filter", "", "filter (JSON, e.g. {\"host_ip\": [\"10.2.28.217\", \"10.3.29.218\"], \"host_name\": [\"centos7.2-x64\", \"ubuntu20.04\"]})")
 	EditReportCmd.Flags().Float64SliceVar(&editReportParams.GroupId, "group-id", nil, "(主机资产)分析范围")
 	EditReportCmd.Flags().IntVar(&editReportParams.Id, "id", 0, "ID")
 	// mail is object type, use JSON string
-	var mailJSON string
-	EditReportCmd.Flags().StringVar(&mailJSON, "mail", "", "邮件信息 (JSON, e.g. {\"body\": \"\", \"subject\": \"\", \"to\": [\"\"]})")
+	EditReportCmd.Flags().StringVar(&EditReportMailJSON, "mail", "", "邮件信息 (JSON, e.g. {\"body\": \"\", \"subject\": \"\", \"to\": [\"\"]})")
 	EditReportCmd.Flags().StringVar(&editReportParams.Name, "name", "", "报告名称")
 	EditReportCmd.Flags().IntVar(&editReportParams.TemplateId, "template-id", 0, "template_id")
 }

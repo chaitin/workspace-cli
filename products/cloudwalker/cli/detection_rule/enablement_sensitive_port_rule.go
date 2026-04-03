@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enablementSensitivePortRuleParams EnablementSensitivePortRuleParams
+var EnablementSensitivePortRuleFilterJSON string
 
 var EnablementSensitivePortRuleCmd = &cobra.Command{
 	Use:   "enablement_sensitive_port_rule",
 	Short: "启禁用高危端口检测规则",
 	Long:  `启禁用高危端口检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnablementSensitivePortRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EnablementSensitivePortRuleFilterJSON), &enablementSensitivePortRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.EnablementSensitivePortRule", enablementSensitivePortRuleParams, &result)
@@ -31,8 +39,7 @@ var EnablementSensitivePortRuleCmd = &cobra.Command{
 func init() {
 	EnablementSensitivePortRuleCmd.Flags().BoolVar(&enablementSensitivePortRuleParams.Enable, "enable", false, "是否启用")
 	// filter is object type, use JSON string
-	var filterJSON string
-	EnablementSensitivePortRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": true, \"host_comment\": [\"主机备注\"], \"...\": \"...\"})")
+	EnablementSensitivePortRuleCmd.Flags().StringVar(&EnablementSensitivePortRuleFilterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": true, \"host_comment\": [\"主机备注\"], \"...\": \"...\"})")
 }
 
 // EnablementSensitivePortRuleParams 请求参数

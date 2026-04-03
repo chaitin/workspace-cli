@@ -4,6 +4,7 @@ package brute_force
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteEventParams DeleteEventParams
+var DeleteEventCustomAttrJSON string
 
 var DeleteEventCmd = &cobra.Command{
 	Use:   "delete_event",
 	Short: "删除所选的事件",
 	Long:  `删除所选的事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteEventCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteEventCustomAttrJSON), &deleteEventParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BruteForceService.DeleteEvent", deleteEventParams, &result)
@@ -34,8 +42,7 @@ func init() {
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.Comment, "comment", nil, "comment")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.CreatedAt, "created-at", nil, "爆破开始时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteEventCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteEventCmd.Flags().StringVar(&DeleteEventCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.Description, "description", nil, "爆破描述")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.FailureCount, "failure-count", nil, "failure_count")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.FinishedAt, "finished-at", nil, "finished_at")

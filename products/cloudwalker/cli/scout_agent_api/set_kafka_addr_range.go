@@ -4,6 +4,7 @@ package scout_agent_api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var setKafkaAddrRangeParams SetKafkaAddrRangeParams
+var SetKafkaAddrRangeFilterJSON string
+var SetKafkaAddrRangeSelectFilterJSON string
 
 var SetKafkaAddrRangeCmd = &cobra.Command{
 	Use:   "set_kafka_addr_range",
 	Short: "设置 kafka 地址",
 	Long:  `设置 kafka 地址`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SetKafkaAddrRangeFilterJSON != "" {
+			if err := json.Unmarshal([]byte(SetKafkaAddrRangeFilterJSON), &setKafkaAddrRangeParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if SetKafkaAddrRangeSelectFilterJSON != "" {
+			if err := json.Unmarshal([]byte(SetKafkaAddrRangeSelectFilterJSON), &setKafkaAddrRangeParams.SelectFilter); err != nil {
+				cmd.PrintErrln("Error parsing select-filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ScoutAgentApiService.SetKafkaAddrRange", setKafkaAddrRangeParams, &result)
@@ -30,12 +45,10 @@ var SetKafkaAddrRangeCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	SetKafkaAddrRangeCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_memory_rate\": [\"0.03298633\"], \"cpu\": [\"0.007942708\"], \"created_at\": [\"1664273285.232421\"], \"...\": \"...\"})")
+	SetKafkaAddrRangeCmd.Flags().StringVar(&SetKafkaAddrRangeFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_memory_rate\": [\"0.03298633\"], \"cpu\": [\"0.007942708\"], \"created_at\": [\"1664273285.232421\"], \"...\": \"...\"})")
 	SetKafkaAddrRangeCmd.Flags().StringVar(&setKafkaAddrRangeParams.KafkaAddr, "kafka-addr", "", "kafka 地址")
 	// select_filter is object type, use JSON string
-	var selectFilterJSON string
-	SetKafkaAddrRangeCmd.Flags().StringVar(&selectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
+	SetKafkaAddrRangeCmd.Flags().StringVar(&SetKafkaAddrRangeSelectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
 }
 
 // SetKafkaAddrRangeParams 请求参数

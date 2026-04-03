@@ -4,6 +4,7 @@ package asset_config
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var updateSoftwareIdentRuleParams UpdateSoftwareIdentRuleParams
+var UpdateSoftwareIdentRuleFilePatternJSON string
+var UpdateSoftwareIdentRuleProcessPatternJSON string
+var UpdateSoftwareIdentRuleVersionPatternJSON string
 
 var UpdateSoftwareIdentRuleCmd = &cobra.Command{
 	Use:   "update_software_ident_rule",
 	Short: "更新软件识别规则",
 	Long:  `更新软件识别规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if UpdateSoftwareIdentRuleFilePatternJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateSoftwareIdentRuleFilePatternJSON), &updateSoftwareIdentRuleParams.FilePattern); err != nil {
+				cmd.PrintErrln("Error parsing file-pattern:", err)
+				return
+			}
+		}
+		if UpdateSoftwareIdentRuleProcessPatternJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateSoftwareIdentRuleProcessPatternJSON), &updateSoftwareIdentRuleParams.ProcessPattern); err != nil {
+				cmd.PrintErrln("Error parsing process-pattern:", err)
+				return
+			}
+		}
+		if UpdateSoftwareIdentRuleVersionPatternJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateSoftwareIdentRuleVersionPatternJSON), &updateSoftwareIdentRuleParams.VersionPattern); err != nil {
+				cmd.PrintErrln("Error parsing version-pattern:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AssetConfigService.UpdateSoftwareIdentRule", updateSoftwareIdentRuleParams, &result)
@@ -35,20 +57,17 @@ func init() {
 	UpdateSoftwareIdentRuleCmd.Flags().StringVar(&updateSoftwareIdentRuleParams.Description, "description", "", "软件描述")
 	UpdateSoftwareIdentRuleCmd.Flags().IntVar(&updateSoftwareIdentRuleParams.DetectType, "detect-type", 0, "检测类型 1:采集进程匹配 2:读取文件匹配")
 	// file_pattern is object type, use JSON string
-	var filePatternJSON string
-	UpdateSoftwareIdentRuleCmd.Flags().StringVar(&filePatternJSON, "file-pattern", "", "file_pattern (JSON, e.g. {\"path\": [\"\"], \"regex\": \"\"})")
+	UpdateSoftwareIdentRuleCmd.Flags().StringVar(&UpdateSoftwareIdentRuleFilePatternJSON, "file-pattern", "", "file_pattern (JSON, e.g. {\"path\": [\"\"], \"regex\": \"\"})")
 	UpdateSoftwareIdentRuleCmd.Flags().BoolVar(&updateSoftwareIdentRuleParams.Global, "global", false, "是否绑定全局探针")
 	UpdateSoftwareIdentRuleCmd.Flags().StringVar(&updateSoftwareIdentRuleParams.Id, "id", "", "软件资产识别 ID")
 	UpdateSoftwareIdentRuleCmd.Flags().IntVar(&updateSoftwareIdentRuleParams.Platform, "platform", 0, "适用平台 1:windows 2:linux 5:all")
 	// process_pattern is object type, use JSON string
-	var processPatternJSON string
-	UpdateSoftwareIdentRuleCmd.Flags().StringVar(&processPatternJSON, "process-pattern", "", "process_pattern (JSON, e.g. {\"parent_process_cmd\": {\"operate\": 0, \"value\": [\"\"]}, \"parent_process_name\": {\"operate\": 0, \"value\": [\"\"]}, \"process_cmd\": {\"operate\": 0, \"value\": [\"\"]}, \"process_name\": {\"operate\": 0, \"value\": [\"\"]}})")
+	UpdateSoftwareIdentRuleCmd.Flags().StringVar(&UpdateSoftwareIdentRuleProcessPatternJSON, "process-pattern", "", "process_pattern (JSON, e.g. {\"parent_process_cmd\": {\"operate\": 0, \"value\": [\"\"]}, \"parent_process_name\": {\"operate\": 0, \"value\": [\"\"]}, \"process_cmd\": {\"operate\": 0, \"value\": [\"\"]}, \"process_name\": {\"operate\": 0, \"value\": [\"\"]}})")
 	UpdateSoftwareIdentRuleCmd.Flags().StringVar(&updateSoftwareIdentRuleParams.Provider, "provider", "", "提供厂商")
 	UpdateSoftwareIdentRuleCmd.Flags().StringVar(&updateSoftwareIdentRuleParams.RuleName, "rule-name", "", "规则名称")
 	UpdateSoftwareIdentRuleCmd.Flags().StringVar(&updateSoftwareIdentRuleParams.SoftwareName, "software-name", "", "软件名称")
 	// version_pattern is object type, use JSON string
-	var versionPatternJSON string
-	UpdateSoftwareIdentRuleCmd.Flags().StringVar(&versionPatternJSON, "version-pattern", "", "version_pattern (JSON, e.g. {\"path\": [\"\"], \"regex\": \"\"})")
+	UpdateSoftwareIdentRuleCmd.Flags().StringVar(&UpdateSoftwareIdentRuleVersionPatternJSON, "version-pattern", "", "version_pattern (JSON, e.g. {\"path\": [\"\"], \"regex\": \"\"})")
 }
 
 // UpdateSoftwareIdentRuleParams 请求参数

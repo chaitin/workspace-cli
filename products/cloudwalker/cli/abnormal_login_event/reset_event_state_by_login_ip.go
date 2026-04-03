@@ -4,6 +4,7 @@ package abnormal_login_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var resetEventStateByLoginIpParams ResetEventStateByLoginIpParams
+var ResetEventStateByLoginIpCustomAttrJSON string
 
 var ResetEventStateByLoginIpCmd = &cobra.Command{
 	Use:   "reset_event_state_by_login_ip",
 	Short: "改变所选主机 ID 事件的处置状态",
 	Long:  `改变所选主机 ID 事件的处置状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ResetEventStateByLoginIpCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ResetEventStateByLoginIpCustomAttrJSON), &resetEventStateByLoginIpParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AbnormalLoginEventService.ResetEventStateByLoginIP", resetEventStateByLoginIpParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	ResetEventStateByLoginIpCmd.Flags().StringSliceVar(&resetEventStateByLoginIpParams.Comment, "comment", nil, "用户自定义备注")
 	ResetEventStateByLoginIpCmd.Flags().StringSliceVar(&resetEventStateByLoginIpParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ResetEventStateByLoginIpCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ResetEventStateByLoginIpCmd.Flags().StringVar(&ResetEventStateByLoginIpCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ResetEventStateByLoginIpCmd.Flags().Float64SliceVar(&resetEventStateByLoginIpParams.Gids, "gids", nil, "业务组 ID")
 	ResetEventStateByLoginIpCmd.Flags().StringSliceVar(&resetEventStateByLoginIpParams.HostComment, "host-comment", nil, "主机备注")
 	ResetEventStateByLoginIpCmd.Flags().Float64SliceVar(&resetEventStateByLoginIpParams.HostId, "host-id", nil, "主机 ID")

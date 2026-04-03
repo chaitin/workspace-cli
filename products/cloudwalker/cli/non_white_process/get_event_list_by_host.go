@@ -4,6 +4,7 @@ package non_white_process
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getEventListByHostParams GetEventListByHostParams
+var GetEventListByHostCustomAttrJSON string
+var GetEventListByHostOrderByJSON string
 
 var GetEventListByHostCmd = &cobra.Command{
 	Use:   "get_event_list_by_host",
 	Short: "获取按主机聚合的事件列表",
 	Long:  `获取按主机聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListByHostCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByHostCustomAttrJSON), &getEventListByHostParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListByHostOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByHostOrderByJSON), &getEventListByHostParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NonWhiteProcessService.GetEventListByHost", getEventListByHostParams, &result)
@@ -36,8 +51,7 @@ func init() {
 	GetEventListByHostCmd.Flags().IntVar(&getEventListByHostParams.Count, "count", 20, "数量")
 	GetEventListByHostCmd.Flags().StringSliceVar(&getEventListByHostParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListByHostCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListByHostCmd.Flags().StringVar(&GetEventListByHostCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListByHostCmd.Flags().StringSliceVar(&getEventListByHostParams.Cwd, "cwd", nil, "执行目录")
 	GetEventListByHostCmd.Flags().Float64SliceVar(&getEventListByHostParams.Egid, "egid", nil, "有效用户组ID")
 	GetEventListByHostCmd.Flags().StringSliceVar(&getEventListByHostParams.Egname, "egname", nil, "有效用户组名")
@@ -60,8 +74,7 @@ func init() {
 	GetEventListByHostCmd.Flags().IntVar(&getEventListByHostParams.Offset, "offset", 0, "偏移量")
 	GetEventListByHostCmd.Flags().Float64SliceVar(&getEventListByHostParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListByHostCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListByHostCmd.Flags().StringVar(&GetEventListByHostOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListByHostCmd.Flags().StringSliceVar(&getEventListByHostParams.Path, "path", nil, "可执行文件路径")
 	GetEventListByHostCmd.Flags().Float64SliceVar(&getEventListByHostParams.Pid, "pid", nil, "pid")
 	GetEventListByHostCmd.Flags().StringSliceVar(&getEventListByHostParams.Sid, "sid", nil, "sessionID")

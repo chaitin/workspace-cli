@@ -4,6 +4,7 @@ package application_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getApplicationAssetListByAppVersionParams GetApplicationAssetListByAppVersionParams
+var GetApplicationAssetListByAppVersionCustomAttrJSON string
+var GetApplicationAssetListByAppVersionFilterJSON string
+var GetApplicationAssetListByAppVersionOrderByJSON string
 
 var GetApplicationAssetListByAppVersionCmd = &cobra.Command{
 	Use:   "get_application_asset_list_by_app_version",
 	Short: "软件版本号数据分组，根据指定条件获取软件资产的列表",
 	Long:  `软件版本号数据分组，根据指定条件获取软件资产的列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetApplicationAssetListByAppVersionCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetApplicationAssetListByAppVersionCustomAttrJSON), &getApplicationAssetListByAppVersionParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetApplicationAssetListByAppVersionFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetApplicationAssetListByAppVersionFilterJSON), &getApplicationAssetListByAppVersionParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetApplicationAssetListByAppVersionOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetApplicationAssetListByAppVersionOrderByJSON), &getApplicationAssetListByAppVersionParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ApplicationAssetService.GetApplicationAssetListByAppVersion", getApplicationAssetListByAppVersionParams, &result)
@@ -33,11 +55,9 @@ func init() {
 	GetApplicationAssetListByAppVersionCmd.Flags().StringSliceVar(&getApplicationAssetListByAppVersionParams.Category, "category", nil, "分类")
 	GetApplicationAssetListByAppVersionCmd.Flags().IntVar(&getApplicationAssetListByAppVersionParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetApplicationAssetListByAppVersionCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetApplicationAssetListByAppVersionCmd.Flags().StringVar(&GetApplicationAssetListByAppVersionCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetApplicationAssetListByAppVersionCmd.Flags().StringVar(&filterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"app\": \"windows_nt\", \"category\": \"系统库\", \"host_id\": 196, \"id\": 190823, \"version\": \"10.0.14393.447\"}])")
+	GetApplicationAssetListByAppVersionCmd.Flags().StringVar(&GetApplicationAssetListByAppVersionFilterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"app\": \"windows_nt\", \"category\": \"系统库\", \"host_id\": 196, \"id\": 190823, \"version\": \"10.0.14393.447\"}])")
 	GetApplicationAssetListByAppVersionCmd.Flags().Float64SliceVar(&getApplicationAssetListByAppVersionParams.Gids, "gids", nil, "业务组 ID 列表")
 	GetApplicationAssetListByAppVersionCmd.Flags().StringSliceVar(&getApplicationAssetListByAppVersionParams.HostComment, "host-comment", nil, "主机备注")
 	GetApplicationAssetListByAppVersionCmd.Flags().Float64SliceVar(&getApplicationAssetListByAppVersionParams.HostId, "host-id", nil, "主机 ID")
@@ -48,8 +68,7 @@ func init() {
 	GetApplicationAssetListByAppVersionCmd.Flags().IntVar(&getApplicationAssetListByAppVersionParams.Offset, "offset", 0, "偏移量")
 	GetApplicationAssetListByAppVersionCmd.Flags().Float64SliceVar(&getApplicationAssetListByAppVersionParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetApplicationAssetListByAppVersionCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetApplicationAssetListByAppVersionCmd.Flags().StringVar(&GetApplicationAssetListByAppVersionOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetApplicationAssetListByAppVersionCmd.Flags().StringSliceVar(&getApplicationAssetListByAppVersionParams.Path, "path", nil, "路径")
 	GetApplicationAssetListByAppVersionCmd.Flags().BoolSliceVar(&getApplicationAssetListByAppVersionParams.Running, "running", nil, "是否正在运行")
 	GetApplicationAssetListByAppVersionCmd.Flags().BoolVar(&getApplicationAssetListByAppVersionParams.SelectAll, "select-all", false, "是否选中所有")

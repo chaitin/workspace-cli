@@ -17,6 +17,7 @@ var EditAgentConfigCmd = &cobra.Command{
 	Short: "修改探针连接配置",
 	Long:  `修改探针连接配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EndpointService.EditAgentConfig", editAgentConfigParams, &result)

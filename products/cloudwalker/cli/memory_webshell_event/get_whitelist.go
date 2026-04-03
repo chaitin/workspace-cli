@@ -4,6 +4,7 @@ package memory_webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getWhitelistParams GetWhitelistParams
+var GetWhitelistCustomAttrJSON string
+var GetWhitelistSelectJSON string
 
 var GetWhitelistCmd = &cobra.Command{
 	Use:   "get_whitelist",
 	Short: "获取白名单规则",
 	Long:  `获取白名单规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetWhitelistCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetWhitelistCustomAttrJSON), &getWhitelistParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetWhitelistSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetWhitelistSelectJSON), &getWhitelistParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "MemoryWebshellEventService.GetWhitelist", getWhitelistParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.Comment, "comment", nil, "用户自定义备注")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetWhitelistCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetWhitelistCmd.Flags().StringVar(&GetWhitelistCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetWhitelistCmd.Flags().Float64SliceVar(&getWhitelistParams.Gids, "gids", nil, "业务组 ID")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.HostComment, "host-comment", nil, "主机备注")
 	GetWhitelistCmd.Flags().Float64SliceVar(&getWhitelistParams.HostId, "host-id", nil, "主机 ID")
@@ -49,8 +63,7 @@ func init() {
 	GetWhitelistCmd.Flags().Float64SliceVar(&getWhitelistParams.PlanId, "plan-id", nil, "任务 id")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.ProcessName, "process-name", nil, "进程名称")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetWhitelistCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"class_name\": \".class\", \"host_id\": 162, \"id\": 154, \"server_name\": \"tomcat\"}])")
+	GetWhitelistCmd.Flags().StringVar(&GetWhitelistSelectJSON, "select", "", "select (JSON, e.g. [{\"class_name\": \".class\", \"host_id\": 162, \"id\": 154, \"server_name\": \"tomcat\"}])")
 	GetWhitelistCmd.Flags().BoolVar(&getWhitelistParams.SelectAll, "select-all", false, "是否全选")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.ServerName, "server-name", nil, "服务名称")
 	GetWhitelistCmd.Flags().Float64SliceVar(&getWhitelistParams.StatEventId, "stat-event-id", nil, "事件统计 ID")

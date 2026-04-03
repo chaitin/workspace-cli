@@ -4,6 +4,7 @@ package full_command
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getListBySshClientIpParams GetListBySshClientIpParams
+var GetListBySshClientIpCustomAttrJSON string
+var GetListBySshClientIpOrderByJSON string
 
 var GetListBySshClientIpCmd = &cobra.Command{
 	Use:   "get_list_by_ssh_client_ip",
 	Short: "获取按SSH登录聚合的事件列表",
 	Long:  `获取按SSH登录聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetListBySshClientIpCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetListBySshClientIpCustomAttrJSON), &getListBySshClientIpParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetListBySshClientIpOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetListBySshClientIpOrderByJSON), &getListBySshClientIpParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FullCommandService.GetListBySSHClientIP", getListBySshClientIpParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	GetListBySshClientIpCmd.Flags().StringSliceVar(&getListBySshClientIpParams.Comment, "comment", nil, "用户自定义备注")
 	GetListBySshClientIpCmd.Flags().IntVar(&getListBySshClientIpParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetListBySshClientIpCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetListBySshClientIpCmd.Flags().StringVar(&GetListBySshClientIpCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetListBySshClientIpCmd.Flags().Float64SliceVar(&getListBySshClientIpParams.Gids, "gids", nil, "业务组 ID")
 	GetListBySshClientIpCmd.Flags().StringSliceVar(&getListBySshClientIpParams.HostComment, "host-comment", nil, "主机备注")
 	GetListBySshClientIpCmd.Flags().Float64SliceVar(&getListBySshClientIpParams.HostId, "host-id", nil, "主机ID, 用于主机详情页面")
@@ -46,8 +60,7 @@ func init() {
 	GetListBySshClientIpCmd.Flags().IntVar(&getListBySshClientIpParams.Offset, "offset", 0, "偏移量")
 	GetListBySshClientIpCmd.Flags().Float64SliceVar(&getListBySshClientIpParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetListBySshClientIpCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetListBySshClientIpCmd.Flags().StringVar(&GetListBySshClientIpOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetListBySshClientIpCmd.Flags().StringSliceVar(&getListBySshClientIpParams.SessionId, "session-id", nil, "会话id")
 	GetListBySshClientIpCmd.Flags().StringSliceVar(&getListBySshClientIpParams.ShellDuration, "shell-duration", nil, "会话持续时间")
 	GetListBySshClientIpCmd.Flags().StringSliceVar(&getListBySshClientIpParams.ShellStartedAt, "shell-started-at", nil, "会话启动时间")

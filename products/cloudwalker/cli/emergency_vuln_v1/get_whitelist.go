@@ -4,6 +4,7 @@ package emergency_vuln_v1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getWhitelistParams GetWhitelistParams
+var GetWhitelistCustomAttrJSON string
+var GetWhitelistSelectJSON string
 
 var GetWhitelistCmd = &cobra.Command{
 	Use:   "get_whitelist",
 	Short: "获取应急漏洞白名单规则",
 	Long:  `获取应急漏洞白名单规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetWhitelistCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetWhitelistCustomAttrJSON), &getWhitelistParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetWhitelistSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetWhitelistSelectJSON), &getWhitelistParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EmergencyVulnV1Service.GetWhitelist", getWhitelistParams, &result)
@@ -37,8 +52,7 @@ func init() {
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.CreatedAt, "created-at", nil, "创建时间")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.CtId, "ct-id", nil, "长亭ID")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetWhitelistCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetWhitelistCmd.Flags().StringVar(&GetWhitelistCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.Cve, "cve", nil, "CVE编号")
 	GetWhitelistCmd.Flags().Float64SliceVar(&getWhitelistParams.Gid, "gid", nil, "业务组ID")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.GroupName, "group-name", nil, "业务组名")
@@ -55,8 +69,7 @@ func init() {
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.PluginId, "plugin-id", nil, "插件ID")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.RiskPoint, "risk-point", nil, "风险点")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetWhitelistCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"event_id\": 120, \"host_id\": 111, \"vuln_id\": 111}])")
+	GetWhitelistCmd.Flags().StringVar(&GetWhitelistSelectJSON, "select", "", "select (JSON, e.g. [{\"event_id\": 120, \"host_id\": 111, \"vuln_id\": 111}])")
 	GetWhitelistCmd.Flags().BoolVar(&getWhitelistParams.SelectAll, "select-all", false, "select_all")
 	GetWhitelistCmd.Flags().IntSliceVar(&getWhitelistParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.Tags, "tags", nil, "漏洞标签")

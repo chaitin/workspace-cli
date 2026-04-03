@@ -4,6 +4,7 @@ package asset_config
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var updateAssetCollectConfigParams UpdateAssetCollectConfigParams
+var UpdateAssetCollectConfigConfigsJSON string
 
 var UpdateAssetCollectConfigCmd = &cobra.Command{
 	Use:   "update_asset_collect_config",
 	Short: "更新资产采集设置",
 	Long:  `更新资产采集设置`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if UpdateAssetCollectConfigConfigsJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateAssetCollectConfigConfigsJSON), &updateAssetCollectConfigParams.Configs); err != nil {
+				cmd.PrintErrln("Error parsing configs:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AssetConfigService.UpdateAssetCollectConfig", updateAssetCollectConfigParams, &result)
@@ -30,8 +38,7 @@ var UpdateAssetCollectConfigCmd = &cobra.Command{
 
 func init() {
 	// configs is complex type []map[string]interface{}, use JSON string
-	var configsJSON string
-	UpdateAssetCollectConfigCmd.Flags().StringVar(&configsJSON, "configs", "", "configs (JSON, e.g. [{\"enable\": true, \"id\": \"\", \"interval\": 60, \"time_unit\": \"hour\"}])")
+	UpdateAssetCollectConfigCmd.Flags().StringVar(&UpdateAssetCollectConfigConfigsJSON, "configs", "", "configs (JSON, e.g. [{\"enable\": true, \"id\": \"\", \"interval\": 60, \"time_unit\": \"hour\"}])")
 }
 
 // UpdateAssetCollectConfigParams 请求参数

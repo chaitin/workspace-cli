@@ -15,6 +15,7 @@ var GetServerAddressCmd = &cobra.Command{
 	Short: "获取服务端地址（当前仅用于判断连接方式）",
 	Long:  `获取服务端地址（当前仅用于判断连接方式）`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EndpointService.GetServerAddress", nil, &result)

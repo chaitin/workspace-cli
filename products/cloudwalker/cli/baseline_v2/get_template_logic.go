@@ -17,6 +17,7 @@ var GetTemplateLogicCmd = &cobra.Command{
 	Short: "获取快速自定义核查逻辑详细信息，用于编辑快速自定义之前查询信息",
 	Long:  `获取快速自定义核查逻辑详细信息，用于编辑快速自定义之前查询信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.GetTemplateLogic", getTemplateLogicParams, &result)

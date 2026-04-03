@@ -4,6 +4,7 @@ package whitelist
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var createWhitelistParams CreateWhitelistParams
+var CreateWhitelistRuleJSON string
 
 var CreateWhitelistCmd = &cobra.Command{
 	Use:   "create_whitelist",
 	Short: "创建事件加白规则",
 	Long:  `创建事件加白规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateWhitelistRuleJSON != "" {
+			if err := json.Unmarshal([]byte(CreateWhitelistRuleJSON), &createWhitelistParams.Rule); err != nil {
+				cmd.PrintErrln("Error parsing rule:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WhitelistService.CreateWhitelist", createWhitelistParams, &result)
@@ -38,8 +46,7 @@ func init() {
 	CreateWhitelistCmd.Flags().BoolVar(&createWhitelistParams.NeedDealHistory, "need-deal-history", false, "是否处理历史事件")
 	CreateWhitelistCmd.Flags().StringVar(&createWhitelistParams.Remark, "remark", "", "备注")
 	// rule is object type, use JSON string
-	var ruleJSON string
-	CreateWhitelistCmd.Flags().StringVar(&ruleJSON, "rule", "", "加白规则 (JSON, e.g. {\"abnormal_login\": {\"auth_type\": [\"password\"], \"ip\": [\"10.10.10.10\"], \"location\": [{\"city\": \"...\", \"country\": \"...\", \"province\": \"...\"}], \"time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"username\": [\"root\"], \"username_regex\": [\"root\"]}, \"baseline_v2\": {\"baseline_logic_name\": [\"some baseline logic\"], \"baseline_logic_tags\": [\"1\"], \"baseline_set_id\": [\"1\"]}, \"bruteforce\": {\"service\": [\"ssh\"], \"source_ip\": [\"10.10.10.10\"], \"time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"username\": [\"root\"], \"username_regex\": [\"root\"]}, \"...\": \"...\"})")
+	CreateWhitelistCmd.Flags().StringVar(&CreateWhitelistRuleJSON, "rule", "", "加白规则 (JSON, e.g. {\"abnormal_login\": {\"auth_type\": [\"password\"], \"ip\": [\"10.10.10.10\"], \"location\": [{\"city\": \"...\", \"country\": \"...\", \"province\": \"...\"}], \"time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"username\": [\"root\"], \"username_regex\": [\"root\"]}, \"baseline_v2\": {\"baseline_logic_name\": [\"some baseline logic\"], \"baseline_logic_tags\": [\"1\"], \"baseline_set_id\": [\"1\"]}, \"bruteforce\": {\"service\": [\"ssh\"], \"source_ip\": [\"10.10.10.10\"], \"time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"username\": [\"root\"], \"username_regex\": [\"root\"]}, \"...\": \"...\"})")
 	CreateWhitelistCmd.Flags().StringVar(&createWhitelistParams.RuleName, "rule-name", "", "规则名称")
 	CreateWhitelistCmd.Flags().StringVar(&createWhitelistParams.Type, "type", "", "事件类型")
 }

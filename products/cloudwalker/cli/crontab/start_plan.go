@@ -17,6 +17,7 @@ var StartPlanCmd = &cobra.Command{
 	Short: "手动开始任务计划",
 	Long:  `手动开始任务计划`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.StartPlan", startPlanParams, &result)

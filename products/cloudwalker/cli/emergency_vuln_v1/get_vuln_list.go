@@ -4,6 +4,7 @@ package emergency_vuln_v1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getVulnListParams GetVulnListParams
+var GetVulnListCustomAttrJSON string
+var GetVulnListOrderByJSON string
+var GetVulnListSelectJSON string
 
 var GetVulnListCmd = &cobra.Command{
 	Use:   "get_vuln_list",
 	Short: "获取应急漏洞事件列表",
 	Long:  `获取应急漏洞事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetVulnListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetVulnListCustomAttrJSON), &getVulnListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetVulnListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetVulnListOrderByJSON), &getVulnListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetVulnListSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetVulnListSelectJSON), &getVulnListParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EmergencyVulnV1Service.GetVulnList", getVulnListParams, &result)
@@ -38,8 +60,7 @@ func init() {
 	GetVulnListCmd.Flags().StringSliceVar(&getVulnListParams.CreatedAt, "created-at", nil, "创建时间")
 	GetVulnListCmd.Flags().StringSliceVar(&getVulnListParams.CtId, "ct-id", nil, "长亭ID")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetVulnListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetVulnListCmd.Flags().StringVar(&GetVulnListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetVulnListCmd.Flags().StringSliceVar(&getVulnListParams.Cve, "cve", nil, "CVE编号")
 	GetVulnListCmd.Flags().Float64SliceVar(&getVulnListParams.Gid, "gid", nil, "业务组ID")
 	GetVulnListCmd.Flags().StringSliceVar(&getVulnListParams.GroupName, "group-name", nil, "业务组名")
@@ -54,14 +75,12 @@ func init() {
 	GetVulnListCmd.Flags().IntVar(&getVulnListParams.Offset, "offset", 0, "偏移量")
 	GetVulnListCmd.Flags().Float64SliceVar(&getVulnListParams.Oid, "oid", nil, "机构ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetVulnListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetVulnListCmd.Flags().StringVar(&GetVulnListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetVulnListCmd.Flags().Float64SliceVar(&getVulnListParams.PlanId, "plan-id", nil, "任务 id")
 	GetVulnListCmd.Flags().StringSliceVar(&getVulnListParams.PluginId, "plugin-id", nil, "插件ID")
 	GetVulnListCmd.Flags().StringSliceVar(&getVulnListParams.RiskPoint, "risk-point", nil, "风险点")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetVulnListCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"event_id\": 120, \"host_id\": 111, \"vuln_id\": 111}])")
+	GetVulnListCmd.Flags().StringVar(&GetVulnListSelectJSON, "select", "", "select (JSON, e.g. [{\"event_id\": 120, \"host_id\": 111, \"vuln_id\": 111}])")
 	GetVulnListCmd.Flags().BoolVar(&getVulnListParams.SelectAll, "select-all", false, "select_all")
 	GetVulnListCmd.Flags().IntSliceVar(&getVulnListParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")
 	GetVulnListCmd.Flags().StringSliceVar(&getVulnListParams.Tags, "tags", nil, "漏洞标签")

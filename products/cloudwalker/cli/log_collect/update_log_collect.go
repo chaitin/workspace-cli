@@ -4,6 +4,7 @@ package log_collect
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,61 @@ import (
 )
 
 var updateLogCollectParams UpdateLogCollectParams
+var UpdateLogCollectAccountChangeLogJSON string
+var UpdateLogCollectDnsRequestLogJSON string
+var UpdateLogCollectFileChangeLogJSON string
+var UpdateLogCollectPortListenLogJSON string
+var UpdateLogCollectProcessStartLogJSON string
+var UpdateLogCollectSystemLoginLogJSON string
+var UpdateLogCollectTcpDialLogJSON string
 
 var UpdateLogCollectCmd = &cobra.Command{
 	Use:   "update_log_collect",
 	Short: "更新日志采集",
 	Long:  `更新日志采集`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if UpdateLogCollectAccountChangeLogJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateLogCollectAccountChangeLogJSON), &updateLogCollectParams.AccountChangeLog); err != nil {
+				cmd.PrintErrln("Error parsing account-change-log:", err)
+				return
+			}
+		}
+		if UpdateLogCollectDnsRequestLogJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateLogCollectDnsRequestLogJSON), &updateLogCollectParams.DnsRequestLog); err != nil {
+				cmd.PrintErrln("Error parsing dns-request-log:", err)
+				return
+			}
+		}
+		if UpdateLogCollectFileChangeLogJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateLogCollectFileChangeLogJSON), &updateLogCollectParams.FileChangeLog); err != nil {
+				cmd.PrintErrln("Error parsing file-change-log:", err)
+				return
+			}
+		}
+		if UpdateLogCollectPortListenLogJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateLogCollectPortListenLogJSON), &updateLogCollectParams.PortListenLog); err != nil {
+				cmd.PrintErrln("Error parsing port-listen-log:", err)
+				return
+			}
+		}
+		if UpdateLogCollectProcessStartLogJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateLogCollectProcessStartLogJSON), &updateLogCollectParams.ProcessStartLog); err != nil {
+				cmd.PrintErrln("Error parsing process-start-log:", err)
+				return
+			}
+		}
+		if UpdateLogCollectSystemLoginLogJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateLogCollectSystemLoginLogJSON), &updateLogCollectParams.SystemLoginLog); err != nil {
+				cmd.PrintErrln("Error parsing system-login-log:", err)
+				return
+			}
+		}
+		if UpdateLogCollectTcpDialLogJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateLogCollectTcpDialLogJSON), &updateLogCollectParams.TcpDialLog); err != nil {
+				cmd.PrintErrln("Error parsing tcp-dial-log:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "LogCollectService.UpdateLogCollect", updateLogCollectParams, &result)
@@ -30,36 +80,29 @@ var UpdateLogCollectCmd = &cobra.Command{
 
 func init() {
 	// account_change_log is object type, use JSON string
-	var accountChangeLogJSON string
-	UpdateLogCollectCmd.Flags().StringVar(&accountChangeLogJSON, "account-change-log", "", "账号变更日志 (JSON, e.g. {\"enable\": false, \"exclude_rules\": [{\"method\": \"\", \"name\": \"\", \"username\": [\"...\"]}]})")
+	UpdateLogCollectCmd.Flags().StringVar(&UpdateLogCollectAccountChangeLogJSON, "account-change-log", "", "账号变更日志 (JSON, e.g. {\"enable\": false, \"exclude_rules\": [{\"method\": \"\", \"name\": \"\", \"username\": [\"...\"]}]})")
 	UpdateLogCollectCmd.Flags().StringVar(&updateLogCollectParams.Addr, "addr", "", "地址")
 	UpdateLogCollectCmd.Flags().Float64SliceVar(&updateLogCollectParams.AgentRange, "agent-range", nil, "主机范围")
 	UpdateLogCollectCmd.Flags().Float64SliceVar(&updateLogCollectParams.BusinessGroupRange, "business-group-range", nil, "业务组范围")
 	// dns_request_log is object type, use JSON string
-	var dnsRequestLogJSON string
-	UpdateLogCollectCmd.Flags().StringVar(&dnsRequestLogJSON, "dns-request-log", "", "DNS 请求日志 (JSON, e.g. {\"enable\": false, \"exclude_rules\": [{\"keyword\": [\"...\"], \"method\": \"\", \"name\": \"\", \"suffix_domain\": [\"...\"]}]})")
+	UpdateLogCollectCmd.Flags().StringVar(&UpdateLogCollectDnsRequestLogJSON, "dns-request-log", "", "DNS 请求日志 (JSON, e.g. {\"enable\": false, \"exclude_rules\": [{\"keyword\": [\"...\"], \"method\": \"\", \"name\": \"\", \"suffix_domain\": [\"...\"]}]})")
 	UpdateLogCollectCmd.Flags().BoolVar(&updateLogCollectParams.Enable, "enable", false, "是否启用")
 	// file_change_log is object type, use JSON string
-	var fileChangeLogJSON string
-	UpdateLogCollectCmd.Flags().StringVar(&fileChangeLogJSON, "file-change-log", "", "文件变更日志 (JSON, e.g. {\"enable\": false, \"rules\": [{\"enable\": false, \"exclude_keyword\": [\"...\"], \"name\": \"\", \"path\": \"\"}]})")
+	UpdateLogCollectCmd.Flags().StringVar(&UpdateLogCollectFileChangeLogJSON, "file-change-log", "", "文件变更日志 (JSON, e.g. {\"enable\": false, \"rules\": [{\"enable\": false, \"exclude_keyword\": [\"...\"], \"name\": \"\", \"path\": \"\"}]})")
 	UpdateLogCollectCmd.Flags().BoolVar(&updateLogCollectParams.Global, "global", false, "是否绑定全局探针")
 	UpdateLogCollectCmd.Flags().StringVar(&updateLogCollectParams.Id, "id", "", "日志采集 ID")
 	UpdateLogCollectCmd.Flags().StringVar(&updateLogCollectParams.MsgFormat, "msg-format", "", "消息格式")
 	UpdateLogCollectCmd.Flags().IntVar(&updateLogCollectParams.Port, "port", 0, "端口")
 	// port_listen_log is object type, use JSON string
-	var portListenLogJSON string
-	UpdateLogCollectCmd.Flags().StringVar(&portListenLogJSON, "port-listen-log", "", "端口监听日志 (JSON, e.g. {\"enable\": false, \"exclude_rules\": [{\"method\": \"\", \"name\": \"\", \"path\": [\"...\"], \"port_range\": [\"...\"]}]})")
+	UpdateLogCollectCmd.Flags().StringVar(&UpdateLogCollectPortListenLogJSON, "port-listen-log", "", "端口监听日志 (JSON, e.g. {\"enable\": false, \"exclude_rules\": [{\"method\": \"\", \"name\": \"\", \"path\": [\"...\"], \"port_range\": [\"...\"]}]})")
 	// process_start_log is object type, use JSON string
-	var processStartLogJSON string
-	UpdateLogCollectCmd.Flags().StringVar(&processStartLogJSON, "process-start-log", "", "进程启动日志 (JSON, e.g. {\"enable\": false, \"exclude_rules\": [{\"method\": \"\", \"name\": \"\", \"path\": [\"...\"]}]})")
+	UpdateLogCollectCmd.Flags().StringVar(&UpdateLogCollectProcessStartLogJSON, "process-start-log", "", "进程启动日志 (JSON, e.g. {\"enable\": false, \"exclude_rules\": [{\"method\": \"\", \"name\": \"\", \"path\": [\"...\"]}]})")
 	UpdateLogCollectCmd.Flags().StringVar(&updateLogCollectParams.Protocol, "protocol", "", "协议")
 	UpdateLogCollectCmd.Flags().StringVar(&updateLogCollectParams.Remark, "remark", "", "备注")
 	// system_login_log is object type, use JSON string
-	var systemLoginLogJSON string
-	UpdateLogCollectCmd.Flags().StringVar(&systemLoginLogJSON, "system-login-log", "", "系统登陆日志 (JSON, e.g. {\"enable\": false, \"exclude_rules\": [{\"auth_method\": \"\", \"method\": \"\", \"name\": \"\", \"source_ip\": [\"...\"], \"username\": [\"...\"]}]})")
+	UpdateLogCollectCmd.Flags().StringVar(&UpdateLogCollectSystemLoginLogJSON, "system-login-log", "", "系统登陆日志 (JSON, e.g. {\"enable\": false, \"exclude_rules\": [{\"auth_method\": \"\", \"method\": \"\", \"name\": \"\", \"source_ip\": [\"...\"], \"username\": [\"...\"]}]})")
 	// tcp_dial_log is object type, use JSON string
-	var tcpDialLogJSON string
-	UpdateLogCollectCmd.Flags().StringVar(&tcpDialLogJSON, "tcp-dial-log", "", "TCP 连接日志 (JSON, e.g. {\"enable\": false, \"exclude_rules\": [{\"method\": \"\", \"name\": \"\", \"target_cidr\": [\"...\"], \"target_port_range\": [\"...\"]}]})")
+	UpdateLogCollectCmd.Flags().StringVar(&UpdateLogCollectTcpDialLogJSON, "tcp-dial-log", "", "TCP 连接日志 (JSON, e.g. {\"enable\": false, \"exclude_rules\": [{\"method\": \"\", \"name\": \"\", \"target_cidr\": [\"...\"], \"target_port_range\": [\"...\"]}]})")
 }
 
 // UpdateLogCollectParams 请求参数

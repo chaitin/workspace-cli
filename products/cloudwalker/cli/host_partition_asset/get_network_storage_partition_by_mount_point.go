@@ -4,6 +4,7 @@ package host_partition_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getNetworkStoragePartitionByMountPointParams GetNetworkStoragePartitionByMountPointParams
+var GetNetworkStoragePartitionByMountPointCustomAttrJSON string
+var GetNetworkStoragePartitionByMountPointFilterJSON string
+var GetNetworkStoragePartitionByMountPointOrderByJSON string
 
 var GetNetworkStoragePartitionByMountPointCmd = &cobra.Command{
 	Use:   "get_network_storage_partition_by_mount_point",
 	Short: "获取主机网络存储分区信息，通过挂载点聚合",
 	Long:  `获取主机网络存储分区信息，通过挂载点聚合`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetNetworkStoragePartitionByMountPointCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetNetworkStoragePartitionByMountPointCustomAttrJSON), &getNetworkStoragePartitionByMountPointParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetNetworkStoragePartitionByMountPointFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetNetworkStoragePartitionByMountPointFilterJSON), &getNetworkStoragePartitionByMountPointParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetNetworkStoragePartitionByMountPointOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetNetworkStoragePartitionByMountPointOrderByJSON), &getNetworkStoragePartitionByMountPointParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostPartitionAssetService.GetNetworkStoragePartitionByMountPoint", getNetworkStoragePartitionByMountPointParams, &result)
@@ -31,13 +53,11 @@ var GetNetworkStoragePartitionByMountPointCmd = &cobra.Command{
 func init() {
 	GetNetworkStoragePartitionByMountPointCmd.Flags().IntVar(&getNetworkStoragePartitionByMountPointParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetNetworkStoragePartitionByMountPointCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetNetworkStoragePartitionByMountPointCmd.Flags().StringVar(&GetNetworkStoragePartitionByMountPointCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetNetworkStoragePartitionByMountPointCmd.Flags().BoolSliceVar(&getNetworkStoragePartitionByMountPointParams.Enable, "enable", nil, "是否启用")
 	GetNetworkStoragePartitionByMountPointCmd.Flags().StringSliceVar(&getNetworkStoragePartitionByMountPointParams.FileSystem, "file-system", nil, "文件系统")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetNetworkStoragePartitionByMountPointCmd.Flags().StringVar(&filterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"file_system\": \"tmpfs\", \"host_id\": 3643, \"id\": 3643, \"mount_point\": \"/var/lib/kubelet/pods/fa6a6416-b931-41f9-8d3b-9ddf87480a12/volumes/kubernetes.io~secret/webhook-cert\"}])")
+	GetNetworkStoragePartitionByMountPointCmd.Flags().StringVar(&GetNetworkStoragePartitionByMountPointFilterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"file_system\": \"tmpfs\", \"host_id\": 3643, \"id\": 3643, \"mount_point\": \"/var/lib/kubelet/pods/fa6a6416-b931-41f9-8d3b-9ddf87480a12/volumes/kubernetes.io~secret/webhook-cert\"}])")
 	GetNetworkStoragePartitionByMountPointCmd.Flags().Float64SliceVar(&getNetworkStoragePartitionByMountPointParams.Gids, "gids", nil, "业务组 ID 列表")
 	GetNetworkStoragePartitionByMountPointCmd.Flags().StringSliceVar(&getNetworkStoragePartitionByMountPointParams.HostComment, "host-comment", nil, "主机备注")
 	GetNetworkStoragePartitionByMountPointCmd.Flags().Float64SliceVar(&getNetworkStoragePartitionByMountPointParams.HostId, "host-id", nil, "主机ID")
@@ -48,8 +68,7 @@ func init() {
 	GetNetworkStoragePartitionByMountPointCmd.Flags().IntVar(&getNetworkStoragePartitionByMountPointParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetNetworkStoragePartitionByMountPointCmd.Flags().Float64SliceVar(&getNetworkStoragePartitionByMountPointParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetNetworkStoragePartitionByMountPointCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetNetworkStoragePartitionByMountPointCmd.Flags().StringVar(&GetNetworkStoragePartitionByMountPointOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetNetworkStoragePartitionByMountPointCmd.Flags().BoolVar(&getNetworkStoragePartitionByMountPointParams.SelectAll, "select-all", false, "是否全选")
 	GetNetworkStoragePartitionByMountPointCmd.Flags().StringSliceVar(&getNetworkStoragePartitionByMountPointParams.Used, "used", nil, "已用")
 	GetNetworkStoragePartitionByMountPointCmd.Flags().StringSliceVar(&getNetworkStoragePartitionByMountPointParams.UsedRate, "used-rate", nil, "已使用（比率）")

@@ -4,6 +4,7 @@ package elevation_process_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getEventListByExenameParams GetEventListByExenameParams
+var GetEventListByExenameCustomAttrJSON string
+var GetEventListByExenameOrderByJSON string
 
 var GetEventListByExenameCmd = &cobra.Command{
 	Use:   "get_event_list_by_exename",
 	Short: "返回按进程聚合的事件列表",
 	Long:  `返回按进程聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListByExenameCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByExenameCustomAttrJSON), &getEventListByExenameParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListByExenameOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByExenameOrderByJSON), &getEventListByExenameParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ElevationProcessEventService.GetEventListByExename", getEventListByExenameParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	GetEventListByExenameCmd.Flags().IntVar(&getEventListByExenameParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetEventListByExenameCmd.Flags().StringSliceVar(&getEventListByExenameParams.CreatedAt, "created-at", nil, "首次发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListByExenameCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListByExenameCmd.Flags().StringVar(&GetEventListByExenameCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListByExenameCmd.Flags().StringSliceVar(&getEventListByExenameParams.Exename, "exename", nil, "进程名")
 	GetEventListByExenameCmd.Flags().Float64SliceVar(&getEventListByExenameParams.Gids, "gids", nil, "业务组 ID")
 	GetEventListByExenameCmd.Flags().StringSliceVar(&getEventListByExenameParams.HostComment, "host-comment", nil, "主机备注")
@@ -48,8 +62,7 @@ func init() {
 	GetEventListByExenameCmd.Flags().IntVar(&getEventListByExenameParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventListByExenameCmd.Flags().Float64SliceVar(&getEventListByExenameParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListByExenameCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListByExenameCmd.Flags().StringVar(&GetEventListByExenameOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListByExenameCmd.Flags().StringSliceVar(&getEventListByExenameParams.OriginUser, "origin-user", nil, "提权源用户")
 	GetEventListByExenameCmd.Flags().Float64SliceVar(&getEventListByExenameParams.StatEventId, "stat-event-id", nil, "事件统计 ID")
 	GetEventListByExenameCmd.Flags().IntSliceVar(&getEventListByExenameParams.State, "state", nil, "处置状态(1-有风险，2-已忽略，3-已处理)")

@@ -4,6 +4,7 @@ package suspicious_operation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var deleteEventParams DeleteEventParams
+var DeleteEventCustomAttrJSON string
+var DeleteEventFilterJSON string
 
 var DeleteEventCmd = &cobra.Command{
 	Use:   "delete_event",
 	Short: "删除事件",
 	Long:  `删除事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteEventCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteEventCustomAttrJSON), &deleteEventParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if DeleteEventFilterJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteEventFilterJSON), &deleteEventParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SuspiciousOperationService.DeleteEvent", deleteEventParams, &result)
@@ -32,15 +47,13 @@ func init() {
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.Comment, "comment", nil, "用户自定义备注")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.ContainerHashId, "container-hash-id", nil, "容器Id")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteEventCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteEventCmd.Flags().StringVar(&DeleteEventCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.Egid, "egid", nil, "有效用户组ID")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.Egname, "egname", nil, "有效用户组名")
 	DeleteEventCmd.Flags().Float64SliceVar(&deleteEventParams.Euid, "euid", nil, "有效用户ID")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.Euname, "euname", nil, "有效用户名")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	DeleteEventCmd.Flags().StringVar(&filterJSON, "filter", "", "过滤信息 (JSON, e.g. [{\"host_id\": 122, \"id\": 122, \"net_app\": \"weblogic\", \"rule_name\": \"使用黑客工具\", \"ssh_client_ip\": \"120.12.27.128\", \"ssh_user\": \"root\"}])")
+	DeleteEventCmd.Flags().StringVar(&DeleteEventFilterJSON, "filter", "", "过滤信息 (JSON, e.g. [{\"host_id\": 122, \"id\": 122, \"net_app\": \"weblogic\", \"rule_name\": \"使用黑客工具\", \"ssh_client_ip\": \"120.12.27.128\", \"ssh_user\": \"root\"}])")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.Gid, "gid", nil, "用户组ID")
 	DeleteEventCmd.Flags().Float64SliceVar(&deleteEventParams.Gids, "gids", nil, "业务组ID")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.Gname, "gname", nil, "用户组名")

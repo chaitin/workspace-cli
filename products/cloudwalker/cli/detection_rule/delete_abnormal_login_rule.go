@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteAbnormalLoginRuleParams DeleteAbnormalLoginRuleParams
+var DeleteAbnormalLoginRuleCustomAttrJSON string
 
 var DeleteAbnormalLoginRuleCmd = &cobra.Command{
 	Use:   "delete_abnormal_login_rule",
 	Short: "删除异常登陆检测规则",
 	Long:  `删除异常登陆检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteAbnormalLoginRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteAbnormalLoginRuleCustomAttrJSON), &deleteAbnormalLoginRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.DeleteAbnormalLoginRule", deleteAbnormalLoginRuleParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	DeleteAbnormalLoginRuleCmd.Flags().StringSliceVar(&deleteAbnormalLoginRuleParams.AuthType, "auth-type", nil, "认证类型")
 	DeleteAbnormalLoginRuleCmd.Flags().StringSliceVar(&deleteAbnormalLoginRuleParams.Category, "category", nil, "规则类型")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteAbnormalLoginRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteAbnormalLoginRuleCmd.Flags().StringVar(&DeleteAbnormalLoginRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteAbnormalLoginRuleCmd.Flags().BoolVar(&deleteAbnormalLoginRuleParams.Enable, "enable", false, "是否启用")
 	DeleteAbnormalLoginRuleCmd.Flags().StringSliceVar(&deleteAbnormalLoginRuleParams.HostComment, "host-comment", nil, "主机备注")
 	DeleteAbnormalLoginRuleCmd.Flags().Float64SliceVar(&deleteAbnormalLoginRuleParams.HostId, "host-id", nil, "主机ID")

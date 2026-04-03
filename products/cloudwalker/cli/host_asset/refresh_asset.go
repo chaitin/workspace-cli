@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var refreshAssetParams RefreshAssetParams
+var RefreshAssetCustomAttrJSON string
 
 var RefreshAssetCmd = &cobra.Command{
 	Use:   "refresh_asset",
 	Short: "刷新主机资产",
 	Long:  `刷新主机资产`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if RefreshAssetCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(RefreshAssetCustomAttrJSON), &refreshAssetParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.RefreshAsset", refreshAssetParams, &result)
@@ -41,8 +49,7 @@ func init() {
 	RefreshAssetCmd.Flags().StringSliceVar(&refreshAssetParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	RefreshAssetCmd.Flags().StringSliceVar(&refreshAssetParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	RefreshAssetCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	RefreshAssetCmd.Flags().StringVar(&RefreshAssetCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	RefreshAssetCmd.Flags().BoolVar(&refreshAssetParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	RefreshAssetCmd.Flags().BoolVar(&refreshAssetParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	RefreshAssetCmd.Flags().StringSliceVar(&refreshAssetParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")

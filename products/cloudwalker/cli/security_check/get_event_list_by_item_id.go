@@ -4,6 +4,7 @@ package security_check
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getEventListByItemIdParams GetEventListByItemIdParams
+var GetEventListByItemIdCustomAttrJSON string
+var GetEventListByItemIdFilterJSON string
+var GetEventListByItemIdOrderByJSON string
 
 var GetEventListByItemIdCmd = &cobra.Command{
 	Use:   "get_event_list_by_item_id",
 	Short: "根据风险筛选条件获取安全基线事件列表",
 	Long:  `根据风险筛选条件获取安全基线事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListByItemIdCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByItemIdCustomAttrJSON), &getEventListByItemIdParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListByItemIdFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByItemIdFilterJSON), &getEventListByItemIdParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetEventListByItemIdOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByItemIdOrderByJSON), &getEventListByItemIdParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SecurityCheckService.GetEventListByItemID", getEventListByItemIdParams, &result)
@@ -33,11 +55,9 @@ func init() {
 	GetEventListByItemIdCmd.Flags().IntVar(&getEventListByItemIdParams.Count, "count", 20, "数量")
 	GetEventListByItemIdCmd.Flags().StringSliceVar(&getEventListByItemIdParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListByItemIdCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListByItemIdCmd.Flags().StringVar(&GetEventListByItemIdCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetEventListByItemIdCmd.Flags().StringVar(&filterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 15, \"id\": 15, \"item_id\": \"15\"}])")
+	GetEventListByItemIdCmd.Flags().StringVar(&GetEventListByItemIdFilterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 15, \"id\": 15, \"item_id\": \"15\"}])")
 	GetEventListByItemIdCmd.Flags().Float64SliceVar(&getEventListByItemIdParams.Gids, "gids", nil, "业务组 ID 列表")
 	GetEventListByItemIdCmd.Flags().StringSliceVar(&getEventListByItemIdParams.Hint, "hint", nil, "脆弱点")
 	GetEventListByItemIdCmd.Flags().StringSliceVar(&getEventListByItemIdParams.HostComment, "host-comment", nil, "主机备注")
@@ -52,8 +72,7 @@ func init() {
 	GetEventListByItemIdCmd.Flags().IntVar(&getEventListByItemIdParams.Offset, "offset", 0, "偏移量")
 	GetEventListByItemIdCmd.Flags().Float64SliceVar(&getEventListByItemIdParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListByItemIdCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListByItemIdCmd.Flags().StringVar(&GetEventListByItemIdOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListByItemIdCmd.Flags().BoolVar(&getEventListByItemIdParams.SelectAll, "select-all", false, "是否全选")
 	GetEventListByItemIdCmd.Flags().IntSliceVar(&getEventListByItemIdParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")
 	GetEventListByItemIdCmd.Flags().StringSliceVar(&getEventListByItemIdParams.Tags, "tags", nil, "风险标签")

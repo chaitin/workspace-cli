@@ -17,6 +17,7 @@ var UpdateAgentDetectorCfgCmd = &cobra.Command{
 	Short: "更新恶意文件检测探针配置",
 	Long:  `更新恶意文件检测探针配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentDetectorService.UpdateAgentDetectorCfg", updateAgentDetectorCfgParams, &result)

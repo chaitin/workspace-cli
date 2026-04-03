@@ -4,6 +4,7 @@ package crontab
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getPlanListParams GetPlanListParams
+var GetPlanListOrderByJSON string
 
 var GetPlanListCmd = &cobra.Command{
 	Use:   "get_plan_list",
 	Short: "获取任务计划列表",
 	Long:  `获取任务计划列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetPlanListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetPlanListOrderByJSON), &getPlanListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.GetPlanList", getPlanListParams, &result)
@@ -37,8 +45,7 @@ func init() {
 	GetPlanListCmd.Flags().StringSliceVar(&getPlanListParams.Name, "name", nil, "计划名称：子串匹配")
 	GetPlanListCmd.Flags().IntVar(&getPlanListParams.Offset, "offset", 0, "偏移量")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetPlanListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetPlanListCmd.Flags().StringVar(&GetPlanListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetPlanListCmd.Flags().StringSliceVar(&getPlanListParams.PlanType, "plan-type", nil, "计划任务类型：多选")
 	GetPlanListCmd.Flags().StringSliceVar(&getPlanListParams.State, "state", nil, "上次执行状态：多选")
 	GetPlanListCmd.Flags().StringSliceVar(&getPlanListParams.TriggerMethod, "trigger-method", nil, "触发方式：多选")

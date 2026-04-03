@@ -4,6 +4,7 @@ package agent_module
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var operateModuleParams OperateModuleParams
+var OperateModuleFilterJSON string
+var OperateModuleOperationDataJSON string
+var OperateModuleSelectFilterJSON string
 
 var OperateModuleCmd = &cobra.Command{
 	Use:   "operate_module",
 	Short: "操作探针模块",
 	Long:  `操作探针模块`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if OperateModuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(OperateModuleFilterJSON), &operateModuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if OperateModuleOperationDataJSON != "" {
+			if err := json.Unmarshal([]byte(OperateModuleOperationDataJSON), &operateModuleParams.OperationData); err != nil {
+				cmd.PrintErrln("Error parsing operation-data:", err)
+				return
+			}
+		}
+		if OperateModuleSelectFilterJSON != "" {
+			if err := json.Unmarshal([]byte(OperateModuleSelectFilterJSON), &operateModuleParams.SelectFilter); err != nil {
+				cmd.PrintErrln("Error parsing select-filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentModuleService.OperateModule", operateModuleParams, &result)
@@ -30,14 +52,11 @@ var OperateModuleCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	OperateModuleCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
+	OperateModuleCmd.Flags().StringVar(&OperateModuleFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
 	// operation_data is object type, use JSON string
-	var operationDataJSON string
-	OperateModuleCmd.Flags().StringVar(&operationDataJSON, "operation-data", "", "更新||卸载||安装探针指定模块 (JSON, e.g. {\"module_type\": \"cw_enhancer\", \"operation\": \"install\"})")
+	OperateModuleCmd.Flags().StringVar(&OperateModuleOperationDataJSON, "operation-data", "", "更新||卸载||安装探针指定模块 (JSON, e.g. {\"module_type\": \"cw_enhancer\", \"operation\": \"install\"})")
 	// select_filter is object type, use JSON string
-	var selectFilterJSON string
-	OperateModuleCmd.Flags().StringVar(&selectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
+	OperateModuleCmd.Flags().StringVar(&OperateModuleSelectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
 }
 
 // OperateModuleParams 请求参数

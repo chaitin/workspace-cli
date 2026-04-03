@@ -17,6 +17,7 @@ var UpdateSuspiciousOperationRuleCmd = &cobra.Command{
 	Short: "更新可疑命令检测规则",
 	Long:  `更新可疑命令检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.UpdateSuspiciousOperationRule", updateSuspiciousOperationRuleParams, &result)

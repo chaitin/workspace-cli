@@ -4,6 +4,7 @@ package process_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var statProcessByEffectiveUserParams StatProcessByEffectiveUserParams
+var StatProcessByEffectiveUserCustomAttrJSON string
+var StatProcessByEffectiveUserFilterJSON string
 
 var StatProcessByEffectiveUserCmd = &cobra.Command{
 	Use:   "stat_process_by_effective_user",
 	Short: "有效用户数据分组下，按照指定条件返回进程资产列表",
 	Long:  `有效用户数据分组下，按照指定条件返回进程资产列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatProcessByEffectiveUserCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatProcessByEffectiveUserCustomAttrJSON), &statProcessByEffectiveUserParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if StatProcessByEffectiveUserFilterJSON != "" {
+			if err := json.Unmarshal([]byte(StatProcessByEffectiveUserFilterJSON), &statProcessByEffectiveUserParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ProcessAssetService.StatProcessByEffectiveUser", statProcessByEffectiveUserParams, &result)
@@ -35,8 +50,7 @@ func init() {
 	StatProcessByEffectiveUserCmd.Flags().StringSliceVar(&statProcessByEffectiveUserParams.Container, "container", nil, "相关容器ID")
 	StatProcessByEffectiveUserCmd.Flags().IntVar(&statProcessByEffectiveUserParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatProcessByEffectiveUserCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatProcessByEffectiveUserCmd.Flags().StringVar(&StatProcessByEffectiveUserCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatProcessByEffectiveUserCmd.Flags().StringSliceVar(&statProcessByEffectiveUserParams.EffectiveGroup, "effective-group", nil, "进程所属有效用户组")
 	StatProcessByEffectiveUserCmd.Flags().StringSliceVar(&statProcessByEffectiveUserParams.EffectiveUser, "effective-user", nil, "进程所属有效用户")
 	StatProcessByEffectiveUserCmd.Flags().Float64SliceVar(&statProcessByEffectiveUserParams.Egid, "egid", nil, "进程所属有效用户组id")
@@ -46,8 +60,7 @@ func init() {
 	StatProcessByEffectiveUserCmd.Flags().StringSliceVar(&statProcessByEffectiveUserParams.FileChangeTime, "file-change-time", nil, "文件属性修改时间")
 	StatProcessByEffectiveUserCmd.Flags().StringSliceVar(&statProcessByEffectiveUserParams.FileModifyTime, "file-modify-time", nil, "文件内容修改时间")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	StatProcessByEffectiveUserCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. [{\"effective_user\": \"System\", \"host_id\": 196, \"id\": 85521, \"name\": \"winlogon.exe\", \"path\": \"C:\\Windows\\System32\\winlogon.exe\"}])")
+	StatProcessByEffectiveUserCmd.Flags().StringVar(&StatProcessByEffectiveUserFilterJSON, "filter", "", "filter (JSON, e.g. [{\"effective_user\": \"System\", \"host_id\": 196, \"id\": 85521, \"name\": \"winlogon.exe\", \"path\": \"C:\\Windows\\System32\\winlogon.exe\"}])")
 	StatProcessByEffectiveUserCmd.Flags().Float64SliceVar(&statProcessByEffectiveUserParams.Gid, "gid", nil, "进程所属组id")
 	StatProcessByEffectiveUserCmd.Flags().Float64SliceVar(&statProcessByEffectiveUserParams.Gids, "gids", nil, "业务组 ID 列表")
 	StatProcessByEffectiveUserCmd.Flags().StringSliceVar(&statProcessByEffectiveUserParams.Group, "group", nil, "进程所属组")

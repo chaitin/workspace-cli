@@ -17,6 +17,7 @@ var DeleteLogicCmd = &cobra.Command{
 	Short: "删除核查逻辑",
 	Long:  `删除核查逻辑`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.DeleteLogic", deleteLogicParams, &result)

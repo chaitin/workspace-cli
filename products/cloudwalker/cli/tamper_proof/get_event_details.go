@@ -17,6 +17,7 @@ var GetEventDetailsCmd = &cobra.Command{
 	Short: "事件的详情",
 	Long:  `事件的详情`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.GetEventDetails", getEventDetailsParams, &result)

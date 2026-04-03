@@ -4,6 +4,7 @@ package emergency_vuln_v1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var retestVulnParams RetestVulnParams
+var RetestVulnSelectJSON string
 
 var RetestVulnCmd = &cobra.Command{
 	Use:   "retest_vuln",
 	Short: "根据应急漏洞事件筛选条件进行复测",
 	Long:  `根据应急漏洞事件筛选条件进行复测`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if RetestVulnSelectJSON != "" {
+			if err := json.Unmarshal([]byte(RetestVulnSelectJSON), &retestVulnParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EmergencyVulnV1Service.RetestVuln", retestVulnParams, &result)
@@ -30,8 +38,7 @@ var RetestVulnCmd = &cobra.Command{
 
 func init() {
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	RetestVulnCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"event_id\": 120, \"host_id\": 111, \"vuln_id\": 111}])")
+	RetestVulnCmd.Flags().StringVar(&RetestVulnSelectJSON, "select", "", "select (JSON, e.g. [{\"event_id\": 120, \"host_id\": 111, \"vuln_id\": 111}])")
 	RetestVulnCmd.Flags().BoolVar(&retestVulnParams.SelectAll, "select-all", false, "select_all")
 }
 

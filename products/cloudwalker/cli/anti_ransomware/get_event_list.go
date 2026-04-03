@@ -4,6 +4,7 @@ package anti_ransomware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getEventListParams GetEventListParams
+var GetEventListCustomAttrJSON string
+var GetEventListOrderJSON string
 
 var GetEventListCmd = &cobra.Command{
 	Use:   "get_event_list",
 	Short: "获取事件列表",
 	Long:  `获取事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListCustomAttrJSON), &getEventListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListOrderJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListOrderJSON), &getEventListParams.Order); err != nil {
+				cmd.PrintErrln("Error parsing order:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AntiRansomwareService.GetEventList", getEventListParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	GetEventListCmd.Flags().Float64Var(&getEventListParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.CreateAt, "create-at", nil, "告警时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListCmd.Flags().StringVar(&GetEventListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.ExecPath, "exec-path", nil, "执行路径")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.ExposedIp, "exposed-ip", nil, "主机外网 IP")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.Family, "family", nil, "恶意软件家族")
@@ -53,8 +67,7 @@ func init() {
 	GetEventListCmd.Flags().Float64Var(&getEventListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.Oid, "oid", nil, "机构ID")
 	// order is object type, use JSON string
-	var orderJSON string
-	GetEventListCmd.Flags().StringVar(&orderJSON, "order", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListCmd.Flags().StringVar(&GetEventListOrderJSON, "order", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.ProcessName, "process-name", nil, "进程名")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.RuleName, "rule-name", nil, "规则名")
 	GetEventListCmd.Flags().BoolVar(&getEventListParams.SelectAll, "select-all", false, "是否选中所有")

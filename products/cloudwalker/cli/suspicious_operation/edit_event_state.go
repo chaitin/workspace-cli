@@ -4,6 +4,7 @@ package suspicious_operation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editEventStateParams EditEventStateParams
+var EditEventStateCustomAttrJSON string
+var EditEventStateFilterJSON string
 
 var EditEventStateCmd = &cobra.Command{
 	Use:   "edit_event_state",
 	Short: "编辑事件状态",
 	Long:  `编辑事件状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditEventStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventStateCustomAttrJSON), &editEventStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if EditEventStateFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventStateFilterJSON), &editEventStateParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SuspiciousOperationService.EditEventState", editEventStateParams, &result)
@@ -32,15 +47,13 @@ func init() {
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Comment, "comment", nil, "用户自定义备注")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.ContainerHashId, "container-hash-id", nil, "容器Id")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditEventStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditEventStateCmd.Flags().StringVar(&EditEventStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Egid, "egid", nil, "有效用户组ID")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Egname, "egname", nil, "有效用户组名")
 	EditEventStateCmd.Flags().Float64SliceVar(&editEventStateParams.Euid, "euid", nil, "有效用户ID")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Euname, "euname", nil, "有效用户名")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	EditEventStateCmd.Flags().StringVar(&filterJSON, "filter", "", "过滤信息 (JSON, e.g. [{\"host_id\": 122, \"id\": 122, \"net_app\": \"weblogic\", \"rule_name\": \"使用黑客工具\", \"ssh_client_ip\": \"120.12.27.128\", \"ssh_user\": \"root\"}])")
+	EditEventStateCmd.Flags().StringVar(&EditEventStateFilterJSON, "filter", "", "过滤信息 (JSON, e.g. [{\"host_id\": 122, \"id\": 122, \"net_app\": \"weblogic\", \"rule_name\": \"使用黑客工具\", \"ssh_client_ip\": \"120.12.27.128\", \"ssh_user\": \"root\"}])")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Gid, "gid", nil, "用户组ID")
 	EditEventStateCmd.Flags().Float64SliceVar(&editEventStateParams.Gids, "gids", nil, "业务组ID")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Gname, "gname", nil, "用户组名")

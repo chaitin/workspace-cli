@@ -4,6 +4,7 @@ package sensitive_port
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getPortPnameProtocolViewEventListParams GetPortPnameProtocolViewEventListParams
+var GetPortPnameProtocolViewEventListCustomAttrJSON string
+var GetPortPnameProtocolViewEventListOrderByJSON string
+var GetPortPnameProtocolViewEventListSelectJSON string
 
 var GetPortPnameProtocolViewEventListCmd = &cobra.Command{
 	Use:   "get_port_pname_protocol_view_event_list",
 	Short: "获取高危端口事件列表(端口进程名视角)",
 	Long:  `获取高危端口事件列表(端口进程名视角)`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetPortPnameProtocolViewEventListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetPortPnameProtocolViewEventListCustomAttrJSON), &getPortPnameProtocolViewEventListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetPortPnameProtocolViewEventListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetPortPnameProtocolViewEventListOrderByJSON), &getPortPnameProtocolViewEventListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetPortPnameProtocolViewEventListSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetPortPnameProtocolViewEventListSelectJSON), &getPortPnameProtocolViewEventListParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitivePortService.GetPortPnameProtocolViewEventList", getPortPnameProtocolViewEventListParams, &result)
@@ -34,8 +56,7 @@ func init() {
 	GetPortPnameProtocolViewEventListCmd.Flags().Float64Var(&getPortPnameProtocolViewEventListParams.Count, "count", 20, "数量")
 	GetPortPnameProtocolViewEventListCmd.Flags().StringSliceVar(&getPortPnameProtocolViewEventListParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetPortPnameProtocolViewEventListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetPortPnameProtocolViewEventListCmd.Flags().StringVar(&GetPortPnameProtocolViewEventListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetPortPnameProtocolViewEventListCmd.Flags().StringSliceVar(&getPortPnameProtocolViewEventListParams.Exepath, "exepath", nil, "可执行文件路径")
 	GetPortPnameProtocolViewEventListCmd.Flags().Float64SliceVar(&getPortPnameProtocolViewEventListParams.Gids, "gids", nil, "业务组 ID 列表")
 	GetPortPnameProtocolViewEventListCmd.Flags().StringSliceVar(&getPortPnameProtocolViewEventListParams.HostComment, "host-comment", nil, "主机备注")
@@ -49,16 +70,14 @@ func init() {
 	GetPortPnameProtocolViewEventListCmd.Flags().Float64Var(&getPortPnameProtocolViewEventListParams.Offset, "offset", 0, "偏移量")
 	GetPortPnameProtocolViewEventListCmd.Flags().Float64SliceVar(&getPortPnameProtocolViewEventListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetPortPnameProtocolViewEventListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetPortPnameProtocolViewEventListCmd.Flags().StringVar(&GetPortPnameProtocolViewEventListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetPortPnameProtocolViewEventListCmd.Flags().Float64SliceVar(&getPortPnameProtocolViewEventListParams.Pid, "pid", nil, "PID")
 	GetPortPnameProtocolViewEventListCmd.Flags().StringSliceVar(&getPortPnameProtocolViewEventListParams.Pname, "pname", nil, "进程名")
 	GetPortPnameProtocolViewEventListCmd.Flags().StringSliceVar(&getPortPnameProtocolViewEventListParams.Port, "port", nil, "端口")
 	GetPortPnameProtocolViewEventListCmd.Flags().Float64SliceVar(&getPortPnameProtocolViewEventListParams.PortState, "port-state", nil, "端口状态")
 	GetPortPnameProtocolViewEventListCmd.Flags().StringSliceVar(&getPortPnameProtocolViewEventListParams.Protocol, "protocol", nil, "协议")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetPortPnameProtocolViewEventListCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 165, \"id\": 192, \"pname\": \"unknown\", \"port\": 22, \"protocol\": \"tcp\"}])")
+	GetPortPnameProtocolViewEventListCmd.Flags().StringVar(&GetPortPnameProtocolViewEventListSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 165, \"id\": 192, \"pname\": \"unknown\", \"port\": 22, \"protocol\": \"tcp\"}])")
 	GetPortPnameProtocolViewEventListCmd.Flags().BoolVar(&getPortPnameProtocolViewEventListParams.SelectAll, "select-all", false, "是否全选")
 	GetPortPnameProtocolViewEventListCmd.Flags().IntSliceVar(&getPortPnameProtocolViewEventListParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")
 	GetPortPnameProtocolViewEventListCmd.Flags().StringSliceVar(&getPortPnameProtocolViewEventListParams.UpdatedAt, "updated-at", nil, "事件更新时间")

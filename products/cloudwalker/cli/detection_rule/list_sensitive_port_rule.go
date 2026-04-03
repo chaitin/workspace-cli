@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listSensitivePortRuleParams ListSensitivePortRuleParams
+var ListSensitivePortRuleCustomAttrJSON string
 
 var ListSensitivePortRuleCmd = &cobra.Command{
 	Use:   "list_sensitive_port_rule",
 	Short: "获取高危端口检测规则列表",
 	Long:  `获取高危端口检测规则列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListSensitivePortRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListSensitivePortRuleCustomAttrJSON), &listSensitivePortRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.ListSensitivePortRule", listSensitivePortRuleParams, &result)
@@ -31,8 +39,7 @@ var ListSensitivePortRuleCmd = &cobra.Command{
 func init() {
 	ListSensitivePortRuleCmd.Flags().IntVar(&listSensitivePortRuleParams.Count, "count", 20, "每页记录数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListSensitivePortRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListSensitivePortRuleCmd.Flags().StringVar(&ListSensitivePortRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListSensitivePortRuleCmd.Flags().BoolVar(&listSensitivePortRuleParams.Enable, "enable", false, "是否启用")
 	ListSensitivePortRuleCmd.Flags().StringSliceVar(&listSensitivePortRuleParams.HostComment, "host-comment", nil, "主机备注")
 	ListSensitivePortRuleCmd.Flags().Float64SliceVar(&listSensitivePortRuleParams.HostId, "host-id", nil, "主机ID")

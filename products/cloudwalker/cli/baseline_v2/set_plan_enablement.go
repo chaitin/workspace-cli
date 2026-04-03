@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var setPlanEnablementParams SetPlanEnablementParams
+var SetPlanEnablementCustomAttrJSON string
+var SetPlanEnablementSelectJSON string
 
 var SetPlanEnablementCmd = &cobra.Command{
 	Use:   "set_plan_enablement",
 	Short: "设置是否启用自动执行",
 	Long:  `设置是否启用自动执行`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SetPlanEnablementCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(SetPlanEnablementCustomAttrJSON), &setPlanEnablementParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if SetPlanEnablementSelectJSON != "" {
+			if err := json.Unmarshal([]byte(SetPlanEnablementSelectJSON), &setPlanEnablementParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.SetPlanEnablement", setPlanEnablementParams, &result)
@@ -32,8 +47,7 @@ func init() {
 	SetPlanEnablementCmd.Flags().BoolVar(&setPlanEnablementParams.Enable, "Enable", false, "是否启用自动执行")
 	SetPlanEnablementCmd.Flags().StringSliceVar(&setPlanEnablementParams.CreatedAt, "created-at", nil, "任务创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	SetPlanEnablementCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	SetPlanEnablementCmd.Flags().StringVar(&SetPlanEnablementCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// enable skipped: duplicate field name with existing field
 	SetPlanEnablementCmd.Flags().StringSliceVar(&setPlanEnablementParams.FinishedAt, "finished-at", nil, "任务结束时间")
 	SetPlanEnablementCmd.Flags().Float64SliceVar(&setPlanEnablementParams.Gids, "gids", nil, "业务组 ID")
@@ -45,8 +59,7 @@ func init() {
 	SetPlanEnablementCmd.Flags().StringSliceVar(&setPlanEnablementParams.HostTags, "host-tags", nil, "主机标签")
 	SetPlanEnablementCmd.Flags().StringSliceVar(&setPlanEnablementParams.ItemName, "item-name", nil, "核查项名称")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	SetPlanEnablementCmd.Flags().StringVar(&selectJSON, "select", "", "选择内容 (JSON, e.g. [{\"id\": 1}])")
+	SetPlanEnablementCmd.Flags().StringVar(&SetPlanEnablementSelectJSON, "select", "", "选择内容 (JSON, e.g. [{\"id\": 1}])")
 	SetPlanEnablementCmd.Flags().BoolVar(&setPlanEnablementParams.SelectAll, "select-all", false, "选择所有")
 	SetPlanEnablementCmd.Flags().StringSliceVar(&setPlanEnablementParams.SetName, "set-name", nil, "核查策略名称")
 	SetPlanEnablementCmd.Flags().StringSliceVar(&setPlanEnablementParams.StartedAt, "started-at", nil, "任务运行时间")

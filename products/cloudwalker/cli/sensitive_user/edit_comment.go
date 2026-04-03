@@ -4,6 +4,7 @@ package sensitive_user
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var editCommentParams EditCommentParams
+var EditCommentCustomAttrJSON string
 
 var EditCommentCmd = &cobra.Command{
 	Use:   "edit_comment",
 	Short: "编辑事件备注",
 	Long:  `编辑事件备注`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditCommentCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditCommentCustomAttrJSON), &editCommentParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitiveUserService.EditComment", editCommentParams, &result)
@@ -31,8 +39,7 @@ var EditCommentCmd = &cobra.Command{
 func init() {
 	EditCommentCmd.Flags().StringSliceVar(&editCommentParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditCommentCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditCommentCmd.Flags().StringVar(&EditCommentCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditCommentCmd.Flags().StringSliceVar(&editCommentParams.EventComment, "event-comment", nil, "事件备注")
 	EditCommentCmd.Flags().Float64SliceVar(&editCommentParams.EventId, "event-id", nil, "事件 ID")
 	EditCommentCmd.Flags().StringSliceVar(&editCommentParams.EventType, "event-type", nil, "事件类型")

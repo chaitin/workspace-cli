@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statTagParams StatTagParams
+var StatTagCustomAttrJSON string
 
 var StatTagCmd = &cobra.Command{
 	Use:   "stat_tag",
 	Short: "获取按 主机特征(用户自定的) 聚合的主机分布",
 	Long:  `获取按 主机特征(用户自定的) 聚合的主机分布`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatTagCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatTagCustomAttrJSON), &statTagParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.StatTag", statTagParams, &result)
@@ -40,8 +48,7 @@ func init() {
 	StatTagCmd.Flags().StringSliceVar(&statTagParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	StatTagCmd.Flags().StringSliceVar(&statTagParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatTagCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatTagCmd.Flags().StringVar(&StatTagCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatTagCmd.Flags().BoolVar(&statTagParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	StatTagCmd.Flags().BoolVar(&statTagParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	StatTagCmd.Flags().StringSliceVar(&statTagParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")

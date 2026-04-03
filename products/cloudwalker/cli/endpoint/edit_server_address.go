@@ -17,6 +17,7 @@ var EditServerAddressCmd = &cobra.Command{
 	Short: "修改服务端地址（当前仅用于判断连接方式）",
 	Long:  `修改服务端地址（当前仅用于判断连接方式）`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EndpointService.EditServerAddress", editServerAddressParams, &result)

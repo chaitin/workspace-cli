@@ -4,6 +4,7 @@ package weak_passwd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var listParams ListParams
+var ListCustomAttrJSON string
+var ListFilterJSON string
+var ListOrderByJSON string
 
 var ListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "弱口令事件列表",
 	Long:  `弱口令事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListCustomAttrJSON), &listParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if ListFilterJSON != "" {
+			if err := json.Unmarshal([]byte(ListFilterJSON), &listParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if ListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(ListOrderByJSON), &listParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.List", listParams, &result)
@@ -35,11 +57,9 @@ func init() {
 	ListCmd.Flags().IntVar(&listParams.Count, "count", 20, "count")
 	ListCmd.Flags().StringSliceVar(&listParams.CreatedAt, "created-at", nil, "创建事件")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListCmd.Flags().StringVar(&ListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	ListCmd.Flags().StringVar(&filterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 3643, \"id\": 3643, \"password\": \"123456\", \"service\": \"ssh\", \"username\": \"test\"}])")
+	ListCmd.Flags().StringVar(&ListFilterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 3643, \"id\": 3643, \"password\": \"123456\", \"service\": \"ssh\", \"username\": \"test\"}])")
 	ListCmd.Flags().Float64SliceVar(&listParams.Gids, "gids", nil, "业务组 ID 列表")
 	ListCmd.Flags().StringSliceVar(&listParams.HostComment, "host-comment", nil, "主机备注")
 	ListCmd.Flags().Float64SliceVar(&listParams.HostId, "host-id", nil, "主机 ID")
@@ -52,8 +72,7 @@ func init() {
 	ListCmd.Flags().IntVar(&listParams.Offset, "offset", 0, "offset")
 	ListCmd.Flags().Float64SliceVar(&listParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	ListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	ListCmd.Flags().StringVar(&ListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	ListCmd.Flags().StringSliceVar(&listParams.Password, "password", nil, "密码")
 	ListCmd.Flags().BoolVar(&listParams.SelectAll, "select-all", false, "是否全选")
 	ListCmd.Flags().StringSliceVar(&listParams.Service, "service", nil, "服务")

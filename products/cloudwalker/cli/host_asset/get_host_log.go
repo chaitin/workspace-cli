@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getHostLogParams GetHostLogParams
+var GetHostLogCustomAttrJSON string
+var GetHostLogSelectJSON string
 
 var GetHostLogCmd = &cobra.Command{
 	Use:   "get_host_log",
 	Short: "获取探针端获取日志，默认忽略离线探针，默认超时时间为1min.",
 	Long:  `获取探针端获取日志，默认忽略离线探针，默认超时时间为1min.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetHostLogCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostLogCustomAttrJSON), &getHostLogParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetHostLogSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostLogSelectJSON), &getHostLogParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetHostLog", getHostLogParams, &result)
@@ -40,8 +55,7 @@ func init() {
 	GetHostLogCmd.Flags().StringSliceVar(&getHostLogParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	GetHostLogCmd.Flags().StringSliceVar(&getHostLogParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetHostLogCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetHostLogCmd.Flags().StringVar(&GetHostLogCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetHostLogCmd.Flags().BoolVar(&getHostLogParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	GetHostLogCmd.Flags().BoolVar(&getHostLogParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	GetHostLogCmd.Flags().StringSliceVar(&getHostLogParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")
@@ -76,8 +90,7 @@ func init() {
 	GetHostLogCmd.Flags().StringSliceVar(&getHostLogParams.ResLimitMemory, "res-limit-memory", nil, "内存资源限制")
 	GetHostLogCmd.Flags().StringSliceVar(&getHostLogParams.ResLimitNetwork, "res-limit-network", nil, "网络资源限制")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetHostLogCmd.Flags().StringVar(&selectJSON, "select", "", "选择项目 (JSON, e.g. [{\"id\": 196}])")
+	GetHostLogCmd.Flags().StringVar(&GetHostLogSelectJSON, "select", "", "选择项目 (JSON, e.g. [{\"id\": 196}])")
 	GetHostLogCmd.Flags().BoolVar(&getHostLogParams.SelectAll, "select-all", false, "是否选取所有")
 	GetHostLogCmd.Flags().StringSliceVar(&getHostLogParams.ServerAddresses, "server-addresses", nil, "探针连接的服务端的地址（若该字段不是真正的服务端地址，说明存在反向代理）")
 	GetHostLogCmd.Flags().StringSliceVar(&getHostLogParams.Tags, "tags", nil, "特征")

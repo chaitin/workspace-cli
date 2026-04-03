@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getHostPprofParams GetHostPprofParams
+var GetHostPprofCustomAttrJSON string
+var GetHostPprofSelectJSON string
 
 var GetHostPprofCmd = &cobra.Command{
 	Use:   "get_host_pprof",
 	Short: "探针端获取日志，默认忽略离线探针，默认超时时间为 1 min.",
 	Long:  `探针端获取日志，默认忽略离线探针，默认超时时间为 1 min.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetHostPprofCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostPprofCustomAttrJSON), &getHostPprofParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetHostPprofSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostPprofSelectJSON), &getHostPprofParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetHostPprof", getHostPprofParams, &result)
@@ -40,8 +55,7 @@ func init() {
 	GetHostPprofCmd.Flags().StringSliceVar(&getHostPprofParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	GetHostPprofCmd.Flags().StringSliceVar(&getHostPprofParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetHostPprofCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetHostPprofCmd.Flags().StringVar(&GetHostPprofCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetHostPprofCmd.Flags().BoolVar(&getHostPprofParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	GetHostPprofCmd.Flags().BoolVar(&getHostPprofParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	GetHostPprofCmd.Flags().StringSliceVar(&getHostPprofParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")
@@ -77,8 +91,7 @@ func init() {
 	GetHostPprofCmd.Flags().StringSliceVar(&getHostPprofParams.ResLimitMemory, "res-limit-memory", nil, "内存资源限制")
 	GetHostPprofCmd.Flags().StringSliceVar(&getHostPprofParams.ResLimitNetwork, "res-limit-network", nil, "网络资源限制")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetHostPprofCmd.Flags().StringVar(&selectJSON, "select", "", "选择项目 (JSON, e.g. [{\"id\": 196}])")
+	GetHostPprofCmd.Flags().StringVar(&GetHostPprofSelectJSON, "select", "", "选择项目 (JSON, e.g. [{\"id\": 196}])")
 	GetHostPprofCmd.Flags().BoolVar(&getHostPprofParams.SelectAll, "select-all", false, "是否选取所有")
 	GetHostPprofCmd.Flags().StringSliceVar(&getHostPprofParams.ServerAddresses, "server-addresses", nil, "探针连接的服务端的地址（若该字段不是真正的服务端地址，说明存在反向代理）")
 	GetHostPprofCmd.Flags().StringSliceVar(&getHostPprofParams.Tags, "tags", nil, "特征")

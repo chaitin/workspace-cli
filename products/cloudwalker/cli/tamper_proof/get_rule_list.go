@@ -4,6 +4,7 @@ package tamper_proof
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getRuleListParams GetRuleListParams
+var GetRuleListFilterJSON string
 
 var GetRuleListCmd = &cobra.Command{
 	Use:   "get_rule_list",
 	Short: "文件防篡改规则的列表",
 	Long:  `文件防篡改规则的列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetRuleListFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetRuleListFilterJSON), &getRuleListParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.GetRuleList", getRuleListParams, &result)
@@ -31,8 +39,7 @@ var GetRuleListCmd = &cobra.Command{
 func init() {
 	GetRuleListCmd.Flags().IntVar(&getRuleListParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	// filter is object type, use JSON string
-	var filterJSON string
-	GetRuleListCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": false, \"exposed_ip\": [\"\"], \"...\": \"...\"})")
+	GetRuleListCmd.Flags().StringVar(&GetRuleListFilterJSON, "filter", "", "filter (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": false, \"exposed_ip\": [\"\"], \"...\": \"...\"})")
 	GetRuleListCmd.Flags().IntVar(&getRuleListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 }
 

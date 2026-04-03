@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteHoneypotRuleParams DeleteHoneypotRuleParams
+var DeleteHoneypotRuleCustomAttrJSON string
 
 var DeleteHoneypotRuleCmd = &cobra.Command{
 	Use:   "delete_honeypot_rule",
 	Short: "删除蜜罐诱捕检测规则",
 	Long:  `删除蜜罐诱捕检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteHoneypotRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteHoneypotRuleCustomAttrJSON), &deleteHoneypotRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.DeleteHoneypotRule", deleteHoneypotRuleParams, &result)
@@ -30,8 +38,7 @@ var DeleteHoneypotRuleCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteHoneypotRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteHoneypotRuleCmd.Flags().StringVar(&DeleteHoneypotRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteHoneypotRuleCmd.Flags().BoolVar(&deleteHoneypotRuleParams.Enable, "enable", false, "是否启用")
 	DeleteHoneypotRuleCmd.Flags().StringSliceVar(&deleteHoneypotRuleParams.HoneypotName, "honeypot-name", nil, "蜜罐名称")
 	DeleteHoneypotRuleCmd.Flags().StringSliceVar(&deleteHoneypotRuleParams.HostComment, "host-comment", nil, "主机备注")

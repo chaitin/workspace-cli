@@ -17,6 +17,7 @@ var UpdateHostIsolateRuleCmd = &cobra.Command{
 	Short: "修改一键隔离失陷主机规则",
 	Long:  `修改一键隔离失陷主机规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.UpdateHostIsolateRule", updateHostIsolateRuleParams, &result)

@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var multiEditTagsParams MultiEditTagsParams
+var MultiEditTagsCustomAttrJSON string
+var MultiEditTagsSelectJSON string
 
 var MultiEditTagsCmd = &cobra.Command{
 	Use:   "multi_edit_tags",
 	Short: "更新主机的标签",
 	Long:  `更新主机的标签`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if MultiEditTagsCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(MultiEditTagsCustomAttrJSON), &multiEditTagsParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if MultiEditTagsSelectJSON != "" {
+			if err := json.Unmarshal([]byte(MultiEditTagsSelectJSON), &multiEditTagsParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.MultiEditTags", multiEditTagsParams, &result)
@@ -41,8 +56,7 @@ func init() {
 	MultiEditTagsCmd.Flags().StringSliceVar(&multiEditTagsParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	MultiEditTagsCmd.Flags().StringSliceVar(&multiEditTagsParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	MultiEditTagsCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	MultiEditTagsCmd.Flags().StringVar(&MultiEditTagsCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	MultiEditTagsCmd.Flags().BoolVar(&multiEditTagsParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	MultiEditTagsCmd.Flags().BoolVar(&multiEditTagsParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	MultiEditTagsCmd.Flags().StringSliceVar(&multiEditTagsParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")
@@ -78,8 +92,7 @@ func init() {
 	MultiEditTagsCmd.Flags().StringSliceVar(&multiEditTagsParams.ResLimitMemory, "res-limit-memory", nil, "内存资源限制")
 	MultiEditTagsCmd.Flags().StringSliceVar(&multiEditTagsParams.ResLimitNetwork, "res-limit-network", nil, "网络资源限制")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	MultiEditTagsCmd.Flags().StringVar(&selectJSON, "select", "", "选择项目 (JSON, e.g. [{\"id\": 196}])")
+	MultiEditTagsCmd.Flags().StringVar(&MultiEditTagsSelectJSON, "select", "", "选择项目 (JSON, e.g. [{\"id\": 196}])")
 	MultiEditTagsCmd.Flags().BoolVar(&multiEditTagsParams.SelectAll, "select-all", false, "是否选取所有")
 	MultiEditTagsCmd.Flags().StringSliceVar(&multiEditTagsParams.ServerAddresses, "server-addresses", nil, "探针连接的服务端的地址（若该字段不是真正的服务端地址，说明存在反向代理）")
 	MultiEditTagsCmd.Flags().StringSliceVar(&multiEditTagsParams.Tags, "tags", nil, "特征")

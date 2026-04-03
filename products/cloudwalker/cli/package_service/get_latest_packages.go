@@ -17,6 +17,7 @@ var GetLatestPackagesCmd = &cobra.Command{
 	Short: "获取最近的升级包",
 	Long:  `获取最近的升级包`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PackageService.GetLatestPackages", getLatestPackagesParams, &result)

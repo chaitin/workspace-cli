@@ -4,6 +4,7 @@ package honeypot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var listByHoneypotParams ListByHoneypotParams
+var ListByHoneypotCustomAttrJSON string
+var ListByHoneypotOrderByJSON string
 
 var ListByHoneypotCmd = &cobra.Command{
 	Use:   "list_by_honeypot",
 	Short: "获取按蜜罐名聚合的事件列表",
 	Long:  `获取按蜜罐名聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListByHoneypotCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListByHoneypotCustomAttrJSON), &listByHoneypotParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if ListByHoneypotOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(ListByHoneypotOrderByJSON), &listByHoneypotParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HoneypotService.ListByHoneypot", listByHoneypotParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	ListByHoneypotCmd.Flags().IntVar(&listByHoneypotParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	ListByHoneypotCmd.Flags().StringSliceVar(&listByHoneypotParams.CreatedAt, "created-at", nil, "事件创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListByHoneypotCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListByHoneypotCmd.Flags().StringVar(&ListByHoneypotCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListByHoneypotCmd.Flags().StringSliceVar(&listByHoneypotParams.EndTime, "end-time", nil, "攻击结束时间")
 	ListByHoneypotCmd.Flags().Float64SliceVar(&listByHoneypotParams.Gids, "gids", nil, "业务组 ID")
 	ListByHoneypotCmd.Flags().StringSliceVar(&listByHoneypotParams.HostComment, "host-comment", nil, "主机备注")
@@ -49,8 +63,7 @@ func init() {
 	ListByHoneypotCmd.Flags().IntVar(&listByHoneypotParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	ListByHoneypotCmd.Flags().Float64SliceVar(&listByHoneypotParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	ListByHoneypotCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	ListByHoneypotCmd.Flags().StringVar(&ListByHoneypotOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	ListByHoneypotCmd.Flags().StringSliceVar(&listByHoneypotParams.RemoteAddrType, "remote-addr-type", nil, "远程IP类型，intranet(内网)、internet(外网)")
 	ListByHoneypotCmd.Flags().StringSliceVar(&listByHoneypotParams.SourceIp, "source-ip", nil, "攻击源 IP")
 	ListByHoneypotCmd.Flags().StringSliceVar(&listByHoneypotParams.StartTime, "start-time", nil, "攻击开始时间")

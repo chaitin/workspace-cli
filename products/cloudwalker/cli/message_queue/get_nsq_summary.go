@@ -15,6 +15,7 @@ var GetNsqSummaryCmd = &cobra.Command{
 	Short: "获取nsq消息",
 	Long:  `获取nsq消息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "MessageQueueService.GetNsqSummary", nil, &result)

@@ -4,6 +4,7 @@ package event_stat
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editEventCommentParams EditEventCommentParams
+var EditEventCommentCustomAttrJSON string
+var EditEventCommentSelectJSON string
 
 var EditEventCommentCmd = &cobra.Command{
 	Use:   "edit_event_comment",
 	Short: "编辑事件备注",
 	Long:  `编辑事件备注`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditEventCommentCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventCommentCustomAttrJSON), &editEventCommentParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if EditEventCommentSelectJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventCommentSelectJSON), &editEventCommentParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EventStatService.EditEventComment", editEventCommentParams, &result)
@@ -31,8 +46,7 @@ var EditEventCommentCmd = &cobra.Command{
 func init() {
 	EditEventCommentCmd.Flags().StringVar(&editEventCommentParams.Comment, "comment", "", "事件备注")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditEventCommentCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditEventCommentCmd.Flags().StringVar(&EditEventCommentCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.EventType, "event-type", nil, "事件类型")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.Filename, "filename", nil, "相关文件名")
 	EditEventCommentCmd.Flags().Float64SliceVar(&editEventCommentParams.Gids, "gids", nil, "业务组 ID")
@@ -48,8 +62,7 @@ func init() {
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.ProcessName, "process-name", nil, "相关进程名")
 	EditEventCommentCmd.Flags().BoolVar(&editEventCommentParams.Risky, "risky", false, "是否有风险")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	EditEventCommentCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"id\": 120}])")
+	EditEventCommentCmd.Flags().StringVar(&EditEventCommentSelectJSON, "select", "", "select (JSON, e.g. [{\"id\": 120}])")
 	EditEventCommentCmd.Flags().BoolVar(&editEventCommentParams.SelectAll, "select-all", false, "是否选中所有")
 	EditEventCommentCmd.Flags().StringSliceVar(&editEventCommentParams.SourceIp, "source-ip", nil, "攻击源 IP")
 }

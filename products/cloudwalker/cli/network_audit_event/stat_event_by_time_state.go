@@ -4,6 +4,7 @@ package network_audit_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var statEventByTimeStateParams StatEventByTimeStateParams
+var StatEventByTimeStateCustomAttrJSON string
+var StatEventByTimeStateSelectJSON string
 
 var StatEventByTimeStateCmd = &cobra.Command{
 	Use:   "stat_event_by_time_state",
 	Short: "获取按事件发生时间聚合的事件列表",
 	Long:  `获取按事件发生时间聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatEventByTimeStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByTimeStateCustomAttrJSON), &statEventByTimeStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if StatEventByTimeStateSelectJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByTimeStateSelectJSON), &statEventByTimeStateParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NetworkAuditEventService.StatEventByTimeState", statEventByTimeStateParams, &result)
@@ -34,8 +49,7 @@ func init() {
 	StatEventByTimeStateCmd.Flags().StringSliceVar(&statEventByTimeStateParams.ContainerId, "container-id", nil, "容器id")
 	StatEventByTimeStateCmd.Flags().StringSliceVar(&statEventByTimeStateParams.CreatedAt, "created-at", nil, "发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatEventByTimeStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatEventByTimeStateCmd.Flags().StringVar(&StatEventByTimeStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatEventByTimeStateCmd.Flags().Float64SliceVar(&statEventByTimeStateParams.Gids, "gids", nil, "业务组 ID")
 	StatEventByTimeStateCmd.Flags().StringSliceVar(&statEventByTimeStateParams.GroupName, "group-name", nil, "业务组名")
 	StatEventByTimeStateCmd.Flags().StringSliceVar(&statEventByTimeStateParams.HostComment, "host-comment", nil, "主机备注")
@@ -49,8 +63,7 @@ func init() {
 	StatEventByTimeStateCmd.Flags().StringSliceVar(&statEventByTimeStateParams.ProcessName, "process-name", nil, "进程名")
 	StatEventByTimeStateCmd.Flags().StringSliceVar(&statEventByTimeStateParams.RemoteAddrType, "remote-addr-type", nil, "远程IP类型，intranet(内网)、internet(外网)")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	StatEventByTimeStateCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 151, \"id\": 151, \"process_name\": \"AliSecureCheckAdvanced.exe\", \"target\": \"119.96.137.252\"}])")
+	StatEventByTimeStateCmd.Flags().StringVar(&StatEventByTimeStateSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 151, \"id\": 151, \"process_name\": \"AliSecureCheckAdvanced.exe\", \"target\": \"119.96.137.252\"}])")
 	StatEventByTimeStateCmd.Flags().BoolVar(&statEventByTimeStateParams.SelectAll, "select-all", false, "选择所有事件")
 	StatEventByTimeStateCmd.Flags().Float64SliceVar(&statEventByTimeStateParams.StatEventId, "stat-event-id", nil, "事件统计 ID")
 	StatEventByTimeStateCmd.Flags().IntSliceVar(&statEventByTimeStateParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

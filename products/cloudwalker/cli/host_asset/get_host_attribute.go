@@ -17,6 +17,7 @@ var GetHostAttributeCmd = &cobra.Command{
 	Short: "获取主机属性信息",
 	Long:  `获取主机属性信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetHostAttribute", getHostAttributeParams, &result)

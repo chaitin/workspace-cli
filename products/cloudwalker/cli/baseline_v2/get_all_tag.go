@@ -15,6 +15,7 @@ var GetAllTagCmd = &cobra.Command{
 	Short: "获取目前用户自定义的所有 Tag",
 	Long:  `获取目前用户自定义的所有 Tag`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.GetAllTag", nil, &result)

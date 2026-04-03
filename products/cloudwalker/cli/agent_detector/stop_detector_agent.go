@@ -4,6 +4,7 @@ package agent_detector
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var stopDetectorAgentParams StopDetectorAgentParams
+var StopDetectorAgentCustomAttrJSON string
 
 var StopDetectorAgentCmd = &cobra.Command{
 	Use:   "stop_detector_agent",
 	Short: "停用检测探针",
 	Long:  `停用检测探针`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StopDetectorAgentCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StopDetectorAgentCustomAttrJSON), &stopDetectorAgentParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentDetectorService.StopDetectorAgent", stopDetectorAgentParams, &result)
@@ -30,8 +38,7 @@ var StopDetectorAgentCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StopDetectorAgentCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StopDetectorAgentCmd.Flags().StringVar(&StopDetectorAgentCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StopDetectorAgentCmd.Flags().Float64SliceVar(&stopDetectorAgentParams.GroupId, "group-id", nil, "业务组 ID")
 	StopDetectorAgentCmd.Flags().StringSliceVar(&stopDetectorAgentParams.HostComment, "host-comment", nil, "主机备注")
 	StopDetectorAgentCmd.Flags().Float64SliceVar(&stopDetectorAgentParams.HostId, "host-id", nil, "主机 ID")

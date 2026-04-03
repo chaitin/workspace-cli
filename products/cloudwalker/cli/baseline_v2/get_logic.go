@@ -17,6 +17,7 @@ var GetLogicCmd = &cobra.Command{
 	Short: "获取核查逻辑详细信息，仅应该在用户选择好逻辑后，获取几个具体逻辑的详细信息",
 	Long:  `获取核查逻辑详细信息，仅应该在用户选择好逻辑后，获取几个具体逻辑的详细信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.GetLogic", getLogicParams, &result)

@@ -17,6 +17,7 @@ var GetWebsiteCmd = &cobra.Command{
 	Short: "获取站点资产详情",
 	Long:  `获取站点资产详情`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebsiteAssetService.GetWebsite", getWebsiteParams, &result)

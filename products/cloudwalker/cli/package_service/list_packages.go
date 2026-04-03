@@ -4,6 +4,7 @@ package package_service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listPackagesParams ListPackagesParams
+var ListPackagesOrderByJSON string
 
 var ListPackagesCmd = &cobra.Command{
 	Use:   "list_packages",
 	Short: "获取升级包列表",
 	Long:  `获取升级包列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListPackagesOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(ListPackagesOrderByJSON), &listPackagesParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PackageService.ListPackages", listPackagesParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	ListPackagesCmd.Flags().IntVar(&listPackagesParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	ListPackagesCmd.Flags().IntVar(&listPackagesParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	ListPackagesCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	ListPackagesCmd.Flags().StringVar(&ListPackagesOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 }
 
 // ListPackagesParams 请求参数

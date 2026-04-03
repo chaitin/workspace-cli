@@ -4,6 +4,7 @@ package network_audit_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getEventListByTargetParams GetEventListByTargetParams
+var GetEventListByTargetCustomAttrJSON string
+var GetEventListByTargetOrderByJSON string
+var GetEventListByTargetSelectJSON string
 
 var GetEventListByTargetCmd = &cobra.Command{
 	Use:   "get_event_list_by_target",
 	Short: "获取按目标网络地址统计的事件列表",
 	Long:  `获取按目标网络地址统计的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListByTargetCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByTargetCustomAttrJSON), &getEventListByTargetParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListByTargetOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByTargetOrderByJSON), &getEventListByTargetParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetEventListByTargetSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByTargetSelectJSON), &getEventListByTargetParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NetworkAuditEventService.GetEventListByTarget", getEventListByTargetParams, &result)
@@ -35,8 +57,7 @@ func init() {
 	GetEventListByTargetCmd.Flags().IntVar(&getEventListByTargetParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetEventListByTargetCmd.Flags().StringSliceVar(&getEventListByTargetParams.CreatedAt, "created-at", nil, "发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListByTargetCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListByTargetCmd.Flags().StringVar(&GetEventListByTargetCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListByTargetCmd.Flags().Float64SliceVar(&getEventListByTargetParams.Gids, "gids", nil, "业务组 ID")
 	GetEventListByTargetCmd.Flags().StringSliceVar(&getEventListByTargetParams.GroupName, "group-name", nil, "业务组名")
 	GetEventListByTargetCmd.Flags().StringSliceVar(&getEventListByTargetParams.HostComment, "host-comment", nil, "主机备注")
@@ -49,13 +70,11 @@ func init() {
 	GetEventListByTargetCmd.Flags().IntVar(&getEventListByTargetParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventListByTargetCmd.Flags().Float64SliceVar(&getEventListByTargetParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListByTargetCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListByTargetCmd.Flags().StringVar(&GetEventListByTargetOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListByTargetCmd.Flags().StringSliceVar(&getEventListByTargetParams.ProcessName, "process-name", nil, "进程名")
 	GetEventListByTargetCmd.Flags().StringSliceVar(&getEventListByTargetParams.RemoteAddrType, "remote-addr-type", nil, "远程IP类型，intranet(内网)、internet(外网)")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetEventListByTargetCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 151, \"id\": 151, \"process_name\": \"AliSecureCheckAdvanced.exe\", \"target\": \"119.96.137.252\"}])")
+	GetEventListByTargetCmd.Flags().StringVar(&GetEventListByTargetSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 151, \"id\": 151, \"process_name\": \"AliSecureCheckAdvanced.exe\", \"target\": \"119.96.137.252\"}])")
 	GetEventListByTargetCmd.Flags().BoolVar(&getEventListByTargetParams.SelectAll, "select-all", false, "选择所有事件")
 	GetEventListByTargetCmd.Flags().Float64SliceVar(&getEventListByTargetParams.StatEventId, "stat-event-id", nil, "事件统计 ID")
 	GetEventListByTargetCmd.Flags().IntSliceVar(&getEventListByTargetParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

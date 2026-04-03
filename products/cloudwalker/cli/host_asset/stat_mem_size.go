@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statMemSizeParams StatMemSizeParams
+var StatMemSizeCustomAttrJSON string
 
 var StatMemSizeCmd = &cobra.Command{
 	Use:   "stat_mem_size",
 	Short: "获取按 内存大小 聚合的主机分布",
 	Long:  `获取按 内存大小 聚合的主机分布`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatMemSizeCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatMemSizeCustomAttrJSON), &statMemSizeParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.StatMemSize", statMemSizeParams, &result)
@@ -40,8 +48,7 @@ func init() {
 	StatMemSizeCmd.Flags().StringSliceVar(&statMemSizeParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	StatMemSizeCmd.Flags().StringSliceVar(&statMemSizeParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatMemSizeCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatMemSizeCmd.Flags().StringVar(&StatMemSizeCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatMemSizeCmd.Flags().BoolVar(&statMemSizeParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	StatMemSizeCmd.Flags().BoolVar(&statMemSizeParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	StatMemSizeCmd.Flags().StringSliceVar(&statMemSizeParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")

@@ -4,6 +4,7 @@ package honeypot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var listHoneypotStatusParams ListHoneypotStatusParams
+var ListHoneypotStatusCustomAttrJSON string
+var ListHoneypotStatusOrderByJSON string
 
 var ListHoneypotStatusCmd = &cobra.Command{
 	Use:   "list_honeypot_status",
 	Short: "获取蜜罐状态列表",
 	Long:  `获取蜜罐状态列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListHoneypotStatusCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListHoneypotStatusCustomAttrJSON), &listHoneypotStatusParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if ListHoneypotStatusOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(ListHoneypotStatusOrderByJSON), &listHoneypotStatusParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HoneypotService.ListHoneypotStatus", listHoneypotStatusParams, &result)
@@ -31,8 +46,7 @@ var ListHoneypotStatusCmd = &cobra.Command{
 func init() {
 	ListHoneypotStatusCmd.Flags().IntVar(&listHoneypotStatusParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListHoneypotStatusCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListHoneypotStatusCmd.Flags().StringVar(&ListHoneypotStatusCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListHoneypotStatusCmd.Flags().Float64SliceVar(&listHoneypotStatusParams.Gids, "gids", nil, "业务组 ID")
 	ListHoneypotStatusCmd.Flags().StringSliceVar(&listHoneypotStatusParams.HostComment, "host-comment", nil, "主机备注")
 	ListHoneypotStatusCmd.Flags().Float64SliceVar(&listHoneypotStatusParams.HostId, "host-id", nil, "主机 ID")
@@ -47,8 +61,7 @@ func init() {
 	ListHoneypotStatusCmd.Flags().IntVar(&listHoneypotStatusParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	ListHoneypotStatusCmd.Flags().Float64SliceVar(&listHoneypotStatusParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	ListHoneypotStatusCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	ListHoneypotStatusCmd.Flags().StringVar(&ListHoneypotStatusOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	ListHoneypotStatusCmd.Flags().Float64SliceVar(&listHoneypotStatusParams.Port, "port", nil, "端口")
 	ListHoneypotStatusCmd.Flags().StringSliceVar(&listHoneypotStatusParams.RuleName, "rule-name", nil, "规则名")
 	ListHoneypotStatusCmd.Flags().IntSliceVar(&listHoneypotStatusParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

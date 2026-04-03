@@ -15,6 +15,7 @@ var GetVulnTypesCmd = &cobra.Command{
 	Short: "获取漏洞类型",
 	Long:  `获取漏洞类型`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "VulnService.GetVulnTypes", nil, &result)

@@ -4,6 +4,7 @@ package port_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statPortParams StatPortParams
+var StatPortCustomAttrJSON string
 
 var StatPortCmd = &cobra.Command{
 	Use:   "stat_port",
 	Short: "表示端口开放情况",
 	Long:  `表示端口开放情况`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatPortCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatPortCustomAttrJSON), &statPortParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PortAssetService.StatPort", statPortParams, &result)
@@ -31,8 +39,7 @@ var StatPortCmd = &cobra.Command{
 func init() {
 	StatPortCmd.Flags().StringSliceVar(&statPortParams.Cmd, "cmd", nil, "IP")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatPortCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatPortCmd.Flags().StringVar(&StatPortCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatPortCmd.Flags().Float64SliceVar(&statPortParams.Gids, "gids", nil, "gids")
 	StatPortCmd.Flags().StringSliceVar(&statPortParams.HostComment, "host-comment", nil, "主机备注")
 	StatPortCmd.Flags().Float64SliceVar(&statPortParams.HostId, "host-id", nil, "主机 ID")

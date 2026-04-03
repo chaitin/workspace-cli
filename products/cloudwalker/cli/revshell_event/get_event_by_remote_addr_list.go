@@ -4,6 +4,7 @@ package revshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getEventByRemoteAddrListParams GetEventByRemoteAddrListParams
+var GetEventByRemoteAddrListCustomAttrJSON string
+var GetEventByRemoteAddrListOrderByJSON string
 
 var GetEventByRemoteAddrListCmd = &cobra.Command{
 	Use:   "get_event_by_remote_addr_list",
 	Short: "获取按远程 IP 聚合的事件列表",
 	Long:  `获取按远程 IP 聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventByRemoteAddrListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventByRemoteAddrListCustomAttrJSON), &getEventByRemoteAddrListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventByRemoteAddrListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventByRemoteAddrListOrderByJSON), &getEventByRemoteAddrListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "RevshellEventService.GetEventByRemoteAddrList", getEventByRemoteAddrListParams, &result)
@@ -32,8 +47,7 @@ func init() {
 	GetEventByRemoteAddrListCmd.Flags().IntVar(&getEventByRemoteAddrListParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetEventByRemoteAddrListCmd.Flags().StringSliceVar(&getEventByRemoteAddrListParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventByRemoteAddrListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventByRemoteAddrListCmd.Flags().StringVar(&GetEventByRemoteAddrListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventByRemoteAddrListCmd.Flags().Float64SliceVar(&getEventByRemoteAddrListParams.Gids, "gids", nil, "gids")
 	GetEventByRemoteAddrListCmd.Flags().StringSliceVar(&getEventByRemoteAddrListParams.HostComment, "host-comment", nil, "主机备注")
 	GetEventByRemoteAddrListCmd.Flags().Float64SliceVar(&getEventByRemoteAddrListParams.HostId, "host-id", nil, "主机 ID")
@@ -48,8 +62,7 @@ func init() {
 	GetEventByRemoteAddrListCmd.Flags().IntVar(&getEventByRemoteAddrListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventByRemoteAddrListCmd.Flags().Float64SliceVar(&getEventByRemoteAddrListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventByRemoteAddrListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventByRemoteAddrListCmd.Flags().StringVar(&GetEventByRemoteAddrListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventByRemoteAddrListCmd.Flags().StringSliceVar(&getEventByRemoteAddrListParams.ParentCmdline, "parent-cmdline", nil, "父 Shell 命令行")
 	GetEventByRemoteAddrListCmd.Flags().Float64SliceVar(&getEventByRemoteAddrListParams.ParentPid, "parent-pid", nil, "父进程 ID")
 	GetEventByRemoteAddrListCmd.Flags().Float64SliceVar(&getEventByRemoteAddrListParams.Pid, "pid", nil, "进程 ID")

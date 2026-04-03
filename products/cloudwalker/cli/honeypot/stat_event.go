@@ -4,6 +4,7 @@ package honeypot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statEventParams StatEventParams
+var StatEventCustomAttrJSON string
 
 var StatEventCmd = &cobra.Command{
 	Use:   "stat_event",
 	Short: "获取按多种视角聚合的事件统计信息",
 	Long:  `获取按多种视角聚合的事件统计信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatEventCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventCustomAttrJSON), &statEventParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HoneypotService.StatEvent", statEventParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	StatEventCmd.Flags().StringSliceVar(&statEventParams.Comment, "comment", nil, "用户自定义备注")
 	StatEventCmd.Flags().StringSliceVar(&statEventParams.CreatedAt, "created-at", nil, "事件创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatEventCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatEventCmd.Flags().StringVar(&StatEventCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatEventCmd.Flags().StringSliceVar(&statEventParams.EndTime, "end-time", nil, "攻击结束时间")
 	StatEventCmd.Flags().Float64SliceVar(&statEventParams.Gids, "gids", nil, "业务组 ID")
 	StatEventCmd.Flags().StringSliceVar(&statEventParams.HostComment, "host-comment", nil, "主机备注")

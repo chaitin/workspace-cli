@@ -4,6 +4,7 @@ package scout_agent_api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var setCollectionRangeParams SetCollectionRangeParams
+var SetCollectionRangeFilterJSON string
+var SetCollectionRangeSelectFilterJSON string
 
 var SetCollectionRangeCmd = &cobra.Command{
 	Use:   "set_collection_range",
 	Short: "设置采集范围",
 	Long:  `设置采集范围`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SetCollectionRangeFilterJSON != "" {
+			if err := json.Unmarshal([]byte(SetCollectionRangeFilterJSON), &setCollectionRangeParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if SetCollectionRangeSelectFilterJSON != "" {
+			if err := json.Unmarshal([]byte(SetCollectionRangeSelectFilterJSON), &setCollectionRangeParams.SelectFilter); err != nil {
+				cmd.PrintErrln("Error parsing select-filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ScoutAgentApiService.SetCollectionRange", setCollectionRangeParams, &result)
@@ -31,11 +46,9 @@ var SetCollectionRangeCmd = &cobra.Command{
 func init() {
 	SetCollectionRangeCmd.Flags().StringSliceVar(&setCollectionRangeParams.CollectionRange, "collection-range", nil, "采集范围")
 	// filter is object type, use JSON string
-	var filterJSON string
-	SetCollectionRangeCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_memory_rate\": [\"0.03298633\"], \"cpu\": [\"0.007942708\"], \"created_at\": [\"1664273285.232421\"], \"...\": \"...\"})")
+	SetCollectionRangeCmd.Flags().StringVar(&SetCollectionRangeFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_memory_rate\": [\"0.03298633\"], \"cpu\": [\"0.007942708\"], \"created_at\": [\"1664273285.232421\"], \"...\": \"...\"})")
 	// select_filter is object type, use JSON string
-	var selectFilterJSON string
-	SetCollectionRangeCmd.Flags().StringVar(&selectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
+	SetCollectionRangeCmd.Flags().StringVar(&SetCollectionRangeSelectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
 }
 
 // SetCollectionRangeParams 请求参数

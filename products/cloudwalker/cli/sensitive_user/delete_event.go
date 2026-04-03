@@ -4,6 +4,7 @@ package sensitive_user
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteEventParams DeleteEventParams
+var DeleteEventCustomAttrJSON string
 
 var DeleteEventCmd = &cobra.Command{
 	Use:   "delete_event",
 	Short: "删除事件",
 	Long:  `删除事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteEventCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteEventCustomAttrJSON), &deleteEventParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitiveUserService.DeleteEvent", deleteEventParams, &result)
@@ -31,8 +39,7 @@ var DeleteEventCmd = &cobra.Command{
 func init() {
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteEventCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteEventCmd.Flags().StringVar(&DeleteEventCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.EventComment, "event-comment", nil, "事件备注")
 	DeleteEventCmd.Flags().Float64SliceVar(&deleteEventParams.EventId, "event-id", nil, "事件 ID")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.EventType, "event-type", nil, "事件类型")

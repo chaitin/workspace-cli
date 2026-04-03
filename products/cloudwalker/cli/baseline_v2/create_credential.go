@@ -17,6 +17,7 @@ var CreateCredentialCmd = &cobra.Command{
 	Short: "添加凭证",
 	Long:  `添加凭证`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.CreateCredential", createCredentialParams, &result)

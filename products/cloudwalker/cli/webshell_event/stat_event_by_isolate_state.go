@@ -4,6 +4,7 @@ package webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statEventByIsolateStateParams StatEventByIsolateStateParams
+var StatEventByIsolateStateCustomAttrJSON string
 
 var StatEventByIsolateStateCmd = &cobra.Command{
 	Use:   "stat_event_by_isolate_state",
 	Short: "获取按 Webshell 隔离状态聚合的统计结果",
 	Long:  `获取按 Webshell 隔离状态聚合的统计结果`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatEventByIsolateStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByIsolateStateCustomAttrJSON), &statEventByIsolateStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.StatEventByIsolateState", statEventByIsolateStateParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	StatEventByIsolateStateCmd.Flags().StringSliceVar(&statEventByIsolateStateParams.Comment, "comment", nil, "用户自定义备注")
 	StatEventByIsolateStateCmd.Flags().StringSliceVar(&statEventByIsolateStateParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatEventByIsolateStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatEventByIsolateStateCmd.Flags().StringVar(&StatEventByIsolateStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatEventByIsolateStateCmd.Flags().StringSliceVar(&statEventByIsolateStateParams.Domain, "domain", nil, "域名")
 	StatEventByIsolateStateCmd.Flags().StringSliceVar(&statEventByIsolateStateParams.FileName, "file-name", nil, "文件名")
 	StatEventByIsolateStateCmd.Flags().StringSliceVar(&statEventByIsolateStateParams.FilePath, "file-path", nil, "文件路径")

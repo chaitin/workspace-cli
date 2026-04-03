@@ -4,6 +4,7 @@ package patch_info
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getPatchInfoListParams GetPatchInfoListParams
+var GetPatchInfoListOrderByJSON string
 
 var GetPatchInfoListCmd = &cobra.Command{
 	Use:   "get_patch_info_list",
 	Short: "获取补丁风险列表",
 	Long:  `获取补丁风险列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetPatchInfoListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetPatchInfoListOrderByJSON), &getPatchInfoListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PatchInfoService.GetPatchInfoList", getPatchInfoListParams, &result)
@@ -38,8 +46,7 @@ func init() {
 	GetPatchInfoListCmd.Flags().StringSliceVar(&getPatchInfoListParams.Number, "number", nil, "补丁号, 精确")
 	GetPatchInfoListCmd.Flags().IntVar(&getPatchInfoListParams.Offset, "offset", 0, "偏移量")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetPatchInfoListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetPatchInfoListCmd.Flags().StringVar(&GetPatchInfoListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetPatchInfoListCmd.Flags().StringSliceVar(&getPatchInfoListParams.PublishTime, "publish-time", nil, "发现时间")
 	GetPatchInfoListCmd.Flags().StringSliceVar(&getPatchInfoListParams.Triat, "triat", nil, "补丁特征, 精确")
 	GetPatchInfoListCmd.Flags().StringSliceVar(&getPatchInfoListParams.Type, "type", nil, "补丁类型")

@@ -4,6 +4,7 @@ package process_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getProcessListByPathParams GetProcessListByPathParams
+var GetProcessListByPathCustomAttrJSON string
+var GetProcessListByPathFilterJSON string
+var GetProcessListByPathOrderByJSON string
 
 var GetProcessListByPathCmd = &cobra.Command{
 	Use:   "get_process_list_by_path",
 	Short: "获取主机上进程列表",
 	Long:  `获取主机上进程列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetProcessListByPathCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetProcessListByPathCustomAttrJSON), &getProcessListByPathParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetProcessListByPathFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetProcessListByPathFilterJSON), &getProcessListByPathParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetProcessListByPathOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetProcessListByPathOrderByJSON), &getProcessListByPathParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ProcessAssetService.GetProcessListByPath", getProcessListByPathParams, &result)
@@ -35,8 +57,7 @@ func init() {
 	GetProcessListByPathCmd.Flags().StringSliceVar(&getProcessListByPathParams.Container, "container", nil, "相关容器ID")
 	GetProcessListByPathCmd.Flags().IntVar(&getProcessListByPathParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetProcessListByPathCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetProcessListByPathCmd.Flags().StringVar(&GetProcessListByPathCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetProcessListByPathCmd.Flags().StringSliceVar(&getProcessListByPathParams.EffectiveGroup, "effective-group", nil, "进程所属有效用户组")
 	GetProcessListByPathCmd.Flags().StringSliceVar(&getProcessListByPathParams.EffectiveUser, "effective-user", nil, "进程所属有效用户")
 	GetProcessListByPathCmd.Flags().Float64SliceVar(&getProcessListByPathParams.Egid, "egid", nil, "进程所属有效用户组id")
@@ -46,8 +67,7 @@ func init() {
 	GetProcessListByPathCmd.Flags().StringSliceVar(&getProcessListByPathParams.FileChangeTime, "file-change-time", nil, "文件属性修改时间")
 	GetProcessListByPathCmd.Flags().StringSliceVar(&getProcessListByPathParams.FileModifyTime, "file-modify-time", nil, "文件内容修改时间")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetProcessListByPathCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. [{\"effective_user\": \"System\", \"host_id\": 196, \"id\": 85521, \"name\": \"winlogon.exe\", \"path\": \"C:\\Windows\\System32\\winlogon.exe\"}])")
+	GetProcessListByPathCmd.Flags().StringVar(&GetProcessListByPathFilterJSON, "filter", "", "filter (JSON, e.g. [{\"effective_user\": \"System\", \"host_id\": 196, \"id\": 85521, \"name\": \"winlogon.exe\", \"path\": \"C:\\Windows\\System32\\winlogon.exe\"}])")
 	GetProcessListByPathCmd.Flags().Float64SliceVar(&getProcessListByPathParams.Gid, "gid", nil, "进程所属组id")
 	GetProcessListByPathCmd.Flags().Float64SliceVar(&getProcessListByPathParams.Gids, "gids", nil, "业务组 ID 列表")
 	GetProcessListByPathCmd.Flags().StringSliceVar(&getProcessListByPathParams.Group, "group", nil, "进程所属组")
@@ -63,8 +83,7 @@ func init() {
 	GetProcessListByPathCmd.Flags().IntVar(&getProcessListByPathParams.Offset, "offset", 0, "偏移量")
 	GetProcessListByPathCmd.Flags().Float64SliceVar(&getProcessListByPathParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetProcessListByPathCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetProcessListByPathCmd.Flags().StringVar(&GetProcessListByPathOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetProcessListByPathCmd.Flags().StringSliceVar(&getProcessListByPathParams.Path, "path", nil, "可执行文件路径")
 	GetProcessListByPathCmd.Flags().Float64SliceVar(&getProcessListByPathParams.Pid, "pid", nil, "进程pid")
 	GetProcessListByPathCmd.Flags().StringSliceVar(&getProcessListByPathParams.PortNum, "port-num", nil, "端口数量范围")

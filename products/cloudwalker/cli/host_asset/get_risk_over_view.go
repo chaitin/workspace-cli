@@ -17,6 +17,7 @@ var GetRiskOverViewCmd = &cobra.Command{
 	Short: "获取主机上的资产的统计信息",
 	Long:  `获取主机上的资产的统计信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetRiskOverView", getRiskOverViewParams, &result)

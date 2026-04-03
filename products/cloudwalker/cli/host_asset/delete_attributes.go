@@ -17,6 +17,7 @@ var DeleteAttributesCmd = &cobra.Command{
 	Short: "删除主机属性字段",
 	Long:  `删除主机属性字段`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.DeleteAttributes", deleteAttributesParams, &result)

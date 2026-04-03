@@ -4,6 +4,7 @@ package event_stat
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var deleteEventParams DeleteEventParams
+var DeleteEventCustomAttrJSON string
+var DeleteEventSelectJSON string
 
 var DeleteEventCmd = &cobra.Command{
 	Use:   "delete_event",
 	Short: "删除事件",
 	Long:  `删除事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteEventCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteEventCustomAttrJSON), &deleteEventParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if DeleteEventSelectJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteEventSelectJSON), &deleteEventParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EventStatService.DeleteEvent", deleteEventParams, &result)
@@ -30,8 +45,7 @@ var DeleteEventCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteEventCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteEventCmd.Flags().StringVar(&DeleteEventCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.EventType, "event-type", nil, "事件类型")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.Filename, "filename", nil, "相关文件名")
 	DeleteEventCmd.Flags().Float64SliceVar(&deleteEventParams.Gids, "gids", nil, "业务组 ID")
@@ -47,8 +61,7 @@ func init() {
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.ProcessName, "process-name", nil, "相关进程名")
 	DeleteEventCmd.Flags().BoolVar(&deleteEventParams.Risky, "risky", false, "是否有风险")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	DeleteEventCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"id\": 120}])")
+	DeleteEventCmd.Flags().StringVar(&DeleteEventSelectJSON, "select", "", "select (JSON, e.g. [{\"id\": 120}])")
 	DeleteEventCmd.Flags().BoolVar(&deleteEventParams.SelectAll, "select-all", false, "是否选中所有")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.SourceIp, "source-ip", nil, "攻击源 IP")
 }

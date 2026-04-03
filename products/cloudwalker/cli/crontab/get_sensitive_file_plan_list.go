@@ -4,6 +4,7 @@ package crontab
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getSensitiveFilePlanListParams GetSensitiveFilePlanListParams
+var GetSensitiveFilePlanListOrderByJSON string
 
 var GetSensitiveFilePlanListCmd = &cobra.Command{
 	Use:   "get_sensitive_file_plan_list",
 	Short: "获取弱口令任务计划列表",
 	Long:  `获取弱口令任务计划列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetSensitiveFilePlanListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetSensitiveFilePlanListOrderByJSON), &getSensitiveFilePlanListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.GetSensitiveFilePlanList", getSensitiveFilePlanListParams, &result)
@@ -39,8 +47,7 @@ func init() {
 	GetSensitiveFilePlanListCmd.Flags().StringSliceVar(&getSensitiveFilePlanListParams.NextStartedAt, "next-started-at", nil, "下次扫描启动时间：时间范围")
 	GetSensitiveFilePlanListCmd.Flags().IntVar(&getSensitiveFilePlanListParams.Offset, "offset", 0, "偏移量")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetSensitiveFilePlanListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetSensitiveFilePlanListCmd.Flags().StringVar(&GetSensitiveFilePlanListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetSensitiveFilePlanListCmd.Flags().StringSliceVar(&getSensitiveFilePlanListParams.State, "state", nil, "扫描状态：多选")
 	GetSensitiveFilePlanListCmd.Flags().StringSliceVar(&getSensitiveFilePlanListParams.TriggerMethod, "trigger-method", nil, "触发方式：多选")
 	GetSensitiveFilePlanListCmd.Flags().StringSliceVar(&getSensitiveFilePlanListParams.UpdatedAt, "updated-at", nil, "最近修改时间：时间范围")

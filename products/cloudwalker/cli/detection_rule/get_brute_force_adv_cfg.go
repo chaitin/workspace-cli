@@ -15,6 +15,7 @@ var GetBruteForceAdvCfgCmd = &cobra.Command{
 	Short: "获取暴力破解高级配置",
 	Long:  `获取暴力破解高级配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.GetBruteForceAdvCfg", nil, &result)

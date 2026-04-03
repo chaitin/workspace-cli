@@ -17,6 +17,7 @@ var GetRuleCmd = &cobra.Command{
 	Short: "获取单个文件防篡改规则",
 	Long:  `获取单个文件防篡改规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.GetRule", getRuleParams, &result)

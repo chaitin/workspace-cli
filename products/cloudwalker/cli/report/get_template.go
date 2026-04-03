@@ -17,6 +17,7 @@ var GetTemplateCmd = &cobra.Command{
 	Short: "获取模板",
 	Long:  `获取模板`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ReportService.GetTemplate", getTemplateParams, &result)

@@ -4,6 +4,7 @@ package firewall
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteHostIsolateRuleParams DeleteHostIsolateRuleParams
+var DeleteHostIsolateRuleFilterJSON string
 
 var DeleteHostIsolateRuleCmd = &cobra.Command{
 	Use:   "delete_host_isolate_rule",
 	Short: "删除一键隔离失陷主机规则",
 	Long:  `删除一键隔离失陷主机规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteHostIsolateRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteHostIsolateRuleFilterJSON), &deleteHostIsolateRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.DeleteHostIsolateRule", deleteHostIsolateRuleParams, &result)
@@ -30,8 +38,7 @@ var DeleteHostIsolateRuleCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	DeleteHostIsolateRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"created_at\": [\"\"], \"enable\": true, \"host_group\": [1], \"...\": \"...\"})")
+	DeleteHostIsolateRuleCmd.Flags().StringVar(&DeleteHostIsolateRuleFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"created_at\": [\"\"], \"enable\": true, \"host_group\": [1], \"...\": \"...\"})")
 }
 
 // DeleteHostIsolateRuleParams 请求参数

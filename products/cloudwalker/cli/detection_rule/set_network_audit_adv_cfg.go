@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var setNetworkAuditAdvCfgParams SetNetworkAuditAdvCfgParams
+var SetNetworkAuditAdvCfgEngineJSON string
 
 var SetNetworkAuditAdvCfgCmd = &cobra.Command{
 	Use:   "set_network_audit_adv_cfg",
 	Short: "设置网络异常高级配置",
 	Long:  `设置网络异常高级配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SetNetworkAuditAdvCfgEngineJSON != "" {
+			if err := json.Unmarshal([]byte(SetNetworkAuditAdvCfgEngineJSON), &setNetworkAuditAdvCfgParams.Engine); err != nil {
+				cmd.PrintErrln("Error parsing engine:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.SetNetworkAuditAdvCfg", setNetworkAuditAdvCfgParams, &result)
@@ -30,8 +38,7 @@ var SetNetworkAuditAdvCfgCmd = &cobra.Command{
 
 func init() {
 	// engine is object type, use JSON string
-	var engineJSON string
-	SetNetworkAuditAdvCfgCmd.Flags().StringVar(&engineJSON, "engine", "", "智能检测引擎 (JSON, e.g. {\"dns_detection\": false, \"ip_detection\": false, \"process_detection\": false})")
+	SetNetworkAuditAdvCfgCmd.Flags().StringVar(&SetNetworkAuditAdvCfgEngineJSON, "engine", "", "智能检测引擎 (JSON, e.g. {\"dns_detection\": false, \"ip_detection\": false, \"process_detection\": false})")
 }
 
 // SetNetworkAuditAdvCfgParams 请求参数

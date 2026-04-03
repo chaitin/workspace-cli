@@ -4,6 +4,7 @@ package agent_module
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var setOverloadParams SetOverloadParams
+var SetOverloadFilterJSON string
+var SetOverloadSelectFilterJSON string
 
 var SetOverloadCmd = &cobra.Command{
 	Use:   "set_overload",
 	Short: "设置自动休眠设置",
 	Long:  `设置自动休眠设置`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SetOverloadFilterJSON != "" {
+			if err := json.Unmarshal([]byte(SetOverloadFilterJSON), &setOverloadParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if SetOverloadSelectFilterJSON != "" {
+			if err := json.Unmarshal([]byte(SetOverloadSelectFilterJSON), &setOverloadParams.SelectFilter); err != nil {
+				cmd.PrintErrln("Error parsing select-filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentModuleService.SetOverload", setOverloadParams, &result)
@@ -31,12 +46,10 @@ var SetOverloadCmd = &cobra.Command{
 func init() {
 	SetOverloadCmd.Flags().IntVar(&setOverloadParams.Cpu, "cpu", 0, "cpu 自动休眠阈值")
 	// filter is object type, use JSON string
-	var filterJSON string
-	SetOverloadCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
+	SetOverloadCmd.Flags().StringVar(&SetOverloadFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
 	SetOverloadCmd.Flags().IntVar(&setOverloadParams.Memory, "memory", 0, "内存自动休眠阈值")
 	// select_filter is object type, use JSON string
-	var selectFilterJSON string
-	SetOverloadCmd.Flags().StringVar(&selectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
+	SetOverloadCmd.Flags().StringVar(&SetOverloadSelectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
 }
 
 // SetOverloadParams 请求参数

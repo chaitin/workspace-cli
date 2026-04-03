@@ -4,6 +4,7 @@ package sensitive_file_scan
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var syncEventToBaseParams SyncEventToBaseParams
+var SyncEventToBaseCustomAttrJSON string
 
 var SyncEventToBaseCmd = &cobra.Command{
 	Use:   "sync_event_to_base",
 	Short: "文件完整性事件同步至基准",
 	Long:  `文件完整性事件同步至基准`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SyncEventToBaseCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(SyncEventToBaseCustomAttrJSON), &syncEventToBaseParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitiveFileScanService.SyncEventToBase", syncEventToBaseParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	SyncEventToBaseCmd.Flags().StringSliceVar(&syncEventToBaseParams.Comment, "comment", nil, "用户自定义备注")
 	SyncEventToBaseCmd.Flags().StringSliceVar(&syncEventToBaseParams.CreatedAt, "created-at", nil, "事件创建事件")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	SyncEventToBaseCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	SyncEventToBaseCmd.Flags().StringVar(&SyncEventToBaseCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	SyncEventToBaseCmd.Flags().Float64SliceVar(&syncEventToBaseParams.Gids, "gids", nil, "业务组 ID 列表")
 	SyncEventToBaseCmd.Flags().StringSliceVar(&syncEventToBaseParams.HostComment, "host-comment", nil, "主机备注")
 	SyncEventToBaseCmd.Flags().Float64SliceVar(&syncEventToBaseParams.HostId, "host-id", nil, "主机 ID")

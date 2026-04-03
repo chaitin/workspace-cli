@@ -17,6 +17,7 @@ var DisableHostListCmd = &cobra.Command{
 	Short: "关闭多个主机的文件防篡改功能",
 	Long:  `关闭多个主机的文件防篡改功能`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.DisableHostList", disableHostListParams, &result)

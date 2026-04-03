@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var deleteSubtaskParams DeleteSubtaskParams
+var DeleteSubtaskCustomAttrJSON string
+var DeleteSubtaskSelectJSON string
 
 var DeleteSubtaskCmd = &cobra.Command{
 	Use:   "delete_subtask",
 	Short: "删除核查子任务",
 	Long:  `删除核查子任务`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteSubtaskCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteSubtaskCustomAttrJSON), &deleteSubtaskParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if DeleteSubtaskSelectJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteSubtaskSelectJSON), &deleteSubtaskParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.DeleteSubtask", deleteSubtaskParams, &result)
@@ -31,8 +46,7 @@ var DeleteSubtaskCmd = &cobra.Command{
 func init() {
 	DeleteSubtaskCmd.Flags().StringSliceVar(&deleteSubtaskParams.CreatedAt, "created-at", nil, "任务创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteSubtaskCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteSubtaskCmd.Flags().StringVar(&DeleteSubtaskCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteSubtaskCmd.Flags().StringSliceVar(&deleteSubtaskParams.Description, "description", nil, "核查项描述")
 	DeleteSubtaskCmd.Flags().StringSliceVar(&deleteSubtaskParams.FinishedAt, "finished-at", nil, "任务结束时间")
 	DeleteSubtaskCmd.Flags().Float64SliceVar(&deleteSubtaskParams.Gids, "gids", nil, "业务组 ID")
@@ -46,8 +60,7 @@ func init() {
 	DeleteSubtaskCmd.Flags().IntSliceVar(&deleteSubtaskParams.Level, "level", nil, "核查项风险级别(1-低危，2-中危，3-高危，4-严重)")
 	DeleteSubtaskCmd.Flags().StringSliceVar(&deleteSubtaskParams.Reply, "reply", nil, "核查输出")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	DeleteSubtaskCmd.Flags().StringVar(&selectJSON, "select", "", "选中的项 (JSON, e.g. [{\"id\": 1, \"task_id\": 1}])")
+	DeleteSubtaskCmd.Flags().StringVar(&DeleteSubtaskSelectJSON, "select", "", "选中的项 (JSON, e.g. [{\"id\": 1, \"task_id\": 1}])")
 	DeleteSubtaskCmd.Flags().BoolVar(&deleteSubtaskParams.SelectAll, "select-all", false, "全选所有")
 	DeleteSubtaskCmd.Flags().StringSliceVar(&deleteSubtaskParams.SetName, "set-name", nil, "核查策略名称")
 	DeleteSubtaskCmd.Flags().StringSliceVar(&deleteSubtaskParams.StartedAt, "started-at", nil, "任务运行时间")

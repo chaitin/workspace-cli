@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listSuspiciousOperationRuleParams ListSuspiciousOperationRuleParams
+var ListSuspiciousOperationRuleCustomAttrJSON string
 
 var ListSuspiciousOperationRuleCmd = &cobra.Command{
 	Use:   "list_suspicious_operation_rule",
 	Short: "获取可疑命令检测规则列表",
 	Long:  `获取可疑命令检测规则列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListSuspiciousOperationRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListSuspiciousOperationRuleCustomAttrJSON), &listSuspiciousOperationRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.ListSuspiciousOperationRule", listSuspiciousOperationRuleParams, &result)
@@ -31,8 +39,7 @@ var ListSuspiciousOperationRuleCmd = &cobra.Command{
 func init() {
 	ListSuspiciousOperationRuleCmd.Flags().IntVar(&listSuspiciousOperationRuleParams.Count, "count", 20, "每页记录数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListSuspiciousOperationRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListSuspiciousOperationRuleCmd.Flags().StringVar(&ListSuspiciousOperationRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListSuspiciousOperationRuleCmd.Flags().BoolVar(&listSuspiciousOperationRuleParams.Enable, "enable", false, "是否启用")
 	ListSuspiciousOperationRuleCmd.Flags().StringSliceVar(&listSuspiciousOperationRuleParams.HostComment, "host-comment", nil, "主机备注")
 	ListSuspiciousOperationRuleCmd.Flags().Float64SliceVar(&listSuspiciousOperationRuleParams.HostId, "host-id", nil, "主机ID")

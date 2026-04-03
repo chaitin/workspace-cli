@@ -17,6 +17,7 @@ var GetVulnInfoCmd = &cobra.Command{
 	Short: "敏感端口事件导出",
 	Long:  `敏感端口事件导出`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "VulnInfoService.GetVulnInfo", getVulnInfoParams, &result)

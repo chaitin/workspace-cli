@@ -4,6 +4,7 @@ package report
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var createReportParams CreateReportParams
+var CreateReportFilterJSON string
+var CreateReportMailJSON string
 
 var CreateReportCmd = &cobra.Command{
 	Use:   "create_report",
 	Short: "添加报告",
 	Long:  `添加报告`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateReportFilterJSON != "" {
+			if err := json.Unmarshal([]byte(CreateReportFilterJSON), &createReportParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if CreateReportMailJSON != "" {
+			if err := json.Unmarshal([]byte(CreateReportMailJSON), &createReportParams.Mail); err != nil {
+				cmd.PrintErrln("Error parsing mail:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ReportService.CreateReport", createReportParams, &result)
@@ -32,12 +47,10 @@ func init() {
 	CreateReportCmd.Flags().IntVar(&createReportParams.BaselineTaskId, "baseline-task-id", 0, "baseline_task_id")
 	CreateReportCmd.Flags().StringVar(&createReportParams.DataScope, "data-scope", "", "data_scope")
 	// filter is object type, use JSON string
-	var filterJSON string
-	CreateReportCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. {\"host_ip\": [\"10.2.28.217\", \"10.3.29.218\"], \"host_name\": [\"centos7.2-x64\", \"ubuntu20.04\"]})")
+	CreateReportCmd.Flags().StringVar(&CreateReportFilterJSON, "filter", "", "filter (JSON, e.g. {\"host_ip\": [\"10.2.28.217\", \"10.3.29.218\"], \"host_name\": [\"centos7.2-x64\", \"ubuntu20.04\"]})")
 	CreateReportCmd.Flags().Float64SliceVar(&createReportParams.GroupId, "group-id", nil, "(主机资产)分析范围")
 	// mail is object type, use JSON string
-	var mailJSON string
-	CreateReportCmd.Flags().StringVar(&mailJSON, "mail", "", "邮件信息 (JSON, e.g. {\"body\": \"\", \"subject\": \"\", \"to\": [\"\"]})")
+	CreateReportCmd.Flags().StringVar(&CreateReportMailJSON, "mail", "", "邮件信息 (JSON, e.g. {\"body\": \"\", \"subject\": \"\", \"to\": [\"\"]})")
 	CreateReportCmd.Flags().StringVar(&createReportParams.Name, "name", "", "报告名称")
 	CreateReportCmd.Flags().IntVar(&createReportParams.TemplateId, "template-id", 0, "template_id")
 }

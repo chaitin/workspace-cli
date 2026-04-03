@@ -4,6 +4,7 @@ package weak_passwd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var editDictParams EditDictParams
+var EditDictParamsJSON string
 
 var EditDictCmd = &cobra.Command{
 	Use:   "edit_dict",
 	Short: "修改弱口令字典",
 	Long:  `修改弱口令字典`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditDictParamsJSON != "" {
+			if err := json.Unmarshal([]byte(EditDictParamsJSON), &editDictParams.Params); err != nil {
+				cmd.PrintErrln("Error parsing params:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.EditDict", editDictParams, &result)
@@ -34,8 +42,7 @@ func init() {
 	EditDictCmd.Flags().IntVar(&editDictParams.Id, "id", 0, "弱口令字典 ID")
 	EditDictCmd.Flags().StringVar(&editDictParams.Name, "name", "", "字典名称")
 	// params is complex type []map[string]interface{}, use JSON string
-	var paramsJSON string
-	EditDictCmd.Flags().StringVar(&paramsJSON, "params", "", "字典参数 (JSON, e.g. [{\"description\": \"描述\", \"is_default\": false, \"name\": \"test\", \"value\": \"1\"}])")
+	EditDictCmd.Flags().StringVar(&EditDictParamsJSON, "params", "", "字典参数 (JSON, e.g. [{\"description\": \"描述\", \"is_default\": false, \"name\": \"test\", \"value\": \"1\"}])")
 	EditDictCmd.Flags().StringSliceVar(&editDictParams.Prefix, "prefix", nil, "前缀，最多3条")
 	EditDictCmd.Flags().StringSliceVar(&editDictParams.Suffix, "suffix", nil, "后缀，最多3条")
 }

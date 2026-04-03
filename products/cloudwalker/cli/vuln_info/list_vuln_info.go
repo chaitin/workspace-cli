@@ -4,6 +4,7 @@ package vuln_info
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listVulnInfoParams ListVulnInfoParams
+var ListVulnInfoOrderByJSON string
 
 var ListVulnInfoCmd = &cobra.Command{
 	Use:   "list_vuln_info",
 	Short: "获取事件列表",
 	Long:  `获取事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListVulnInfoOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(ListVulnInfoOrderByJSON), &listVulnInfoParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "VulnInfoService.ListVulnInfo", listVulnInfoParams, &result)
@@ -48,8 +56,7 @@ func init() {
 	ListVulnInfoCmd.Flags().StringSliceVar(&listVulnInfoParams.Name, "name", nil, "漏洞名称")
 	ListVulnInfoCmd.Flags().IntVar(&listVulnInfoParams.Offset, "offset", 0, "偏移量")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	ListVulnInfoCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	ListVulnInfoCmd.Flags().StringVar(&ListVulnInfoOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	ListVulnInfoCmd.Flags().StringSliceVar(&listVulnInfoParams.PublishDate, "publish-date", nil, "漏洞发布时间")
 	ListVulnInfoCmd.Flags().StringSliceVar(&listVulnInfoParams.Score, "score", nil, "漏洞分值")
 	ListVulnInfoCmd.Flags().StringSliceVar(&listVulnInfoParams.Tags, "tags", nil, "漏洞标签")

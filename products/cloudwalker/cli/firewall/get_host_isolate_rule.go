@@ -4,6 +4,7 @@ package firewall
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getHostIsolateRuleParams GetHostIsolateRuleParams
+var GetHostIsolateRuleFilterJSON string
+var GetHostIsolateRulePageJSON string
 
 var GetHostIsolateRuleCmd = &cobra.Command{
 	Use:   "get_host_isolate_rule",
 	Short: "获取一键隔离失陷主机规则列表",
 	Long:  `获取一键隔离失陷主机规则列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetHostIsolateRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostIsolateRuleFilterJSON), &getHostIsolateRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetHostIsolateRulePageJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostIsolateRulePageJSON), &getHostIsolateRuleParams.Page); err != nil {
+				cmd.PrintErrln("Error parsing page:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.GetHostIsolateRule", getHostIsolateRuleParams, &result)
@@ -30,11 +45,9 @@ var GetHostIsolateRuleCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	GetHostIsolateRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"created_at\": [\"\"], \"enable\": true, \"host_group\": [1], \"...\": \"...\"})")
+	GetHostIsolateRuleCmd.Flags().StringVar(&GetHostIsolateRuleFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"created_at\": [\"\"], \"enable\": true, \"host_group\": [1], \"...\": \"...\"})")
 	// page is object type, use JSON string
-	var pageJSON string
-	GetHostIsolateRuleCmd.Flags().StringVar(&pageJSON, "page", "", "分页器 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
+	GetHostIsolateRuleCmd.Flags().StringVar(&GetHostIsolateRulePageJSON, "page", "", "分页器 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
 }
 
 // GetHostIsolateRuleParams 请求参数

@@ -4,6 +4,7 @@ package port_scan
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enableRuleParams EnableRuleParams
+var EnableRuleFilterJSON string
 
 var EnableRuleCmd = &cobra.Command{
 	Use:   "enable_rule",
 	Short: "启禁用规则",
 	Long:  `启禁用规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnableRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EnableRuleFilterJSON), &enableRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PortScanService.EnableRule", enableRuleParams, &result)
@@ -31,8 +39,7 @@ var EnableRuleCmd = &cobra.Command{
 func init() {
 	EnableRuleCmd.Flags().BoolVar(&enableRuleParams.Enable, "enable", false, "是否启用")
 	// filter is object type, use JSON string
-	var filterJSON string
-	EnableRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "规则过滤条件 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": [true], \"host_comment\": [\"主机备注\"], \"...\": \"...\"})")
+	EnableRuleCmd.Flags().StringVar(&EnableRuleFilterJSON, "filter", "", "规则过滤条件 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": [true], \"host_comment\": [\"主机备注\"], \"...\": \"...\"})")
 }
 
 // EnableRuleParams 请求参数

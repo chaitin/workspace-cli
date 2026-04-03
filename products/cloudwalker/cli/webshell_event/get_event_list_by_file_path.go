@@ -4,6 +4,7 @@ package webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getEventListByFilePathParams GetEventListByFilePathParams
+var GetEventListByFilePathCustomAttrJSON string
+var GetEventListByFilePathOrderByJSON string
+var GetEventListByFilePathSelectJSON string
 
 var GetEventListByFilePathCmd = &cobra.Command{
 	Use:   "get_event_list_by_file_path",
 	Short: "根据文件路径获取事件列表",
 	Long:  `根据文件路径获取事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListByFilePathCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByFilePathCustomAttrJSON), &getEventListByFilePathParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListByFilePathOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByFilePathOrderByJSON), &getEventListByFilePathParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetEventListByFilePathSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByFilePathSelectJSON), &getEventListByFilePathParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.GetEventListByFilePath", getEventListByFilePathParams, &result)
@@ -33,8 +55,7 @@ func init() {
 	GetEventListByFilePathCmd.Flags().IntVar(&getEventListByFilePathParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetEventListByFilePathCmd.Flags().StringSliceVar(&getEventListByFilePathParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListByFilePathCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListByFilePathCmd.Flags().StringVar(&GetEventListByFilePathCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListByFilePathCmd.Flags().StringSliceVar(&getEventListByFilePathParams.Domain, "domain", nil, "域名")
 	GetEventListByFilePathCmd.Flags().StringSliceVar(&getEventListByFilePathParams.FileName, "file-name", nil, "文件名")
 	GetEventListByFilePathCmd.Flags().StringSliceVar(&getEventListByFilePathParams.FilePath, "file-path", nil, "文件路径")
@@ -52,12 +73,10 @@ func init() {
 	GetEventListByFilePathCmd.Flags().IntVar(&getEventListByFilePathParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventListByFilePathCmd.Flags().Float64SliceVar(&getEventListByFilePathParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListByFilePathCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListByFilePathCmd.Flags().StringVar(&GetEventListByFilePathOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListByFilePathCmd.Flags().Float64SliceVar(&getEventListByFilePathParams.PlanId, "plan-id", nil, "任务 id")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetEventListByFilePathCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
+	GetEventListByFilePathCmd.Flags().StringVar(&GetEventListByFilePathSelectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
 	GetEventListByFilePathCmd.Flags().BoolVar(&getEventListByFilePathParams.SelectAll, "select-all", false, "是否全选")
 	GetEventListByFilePathCmd.Flags().Float64SliceVar(&getEventListByFilePathParams.StatEventId, "stat-event-id", nil, "统计事件 ID")
 	GetEventListByFilePathCmd.Flags().IntSliceVar(&getEventListByFilePathParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

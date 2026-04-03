@@ -4,6 +4,7 @@ package mimicry
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var stopMimicryParams StopMimicryParams
+var StopMimicryCustomAttrJSON string
 
 var StopMimicryCmd = &cobra.Command{
 	Use:   "stop_mimicry",
 	Short: "停止拟态防护",
 	Long:  `停止拟态防护`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StopMimicryCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StopMimicryCustomAttrJSON), &stopMimicryParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "MimicryService.StopMimicry", stopMimicryParams, &result)
@@ -31,8 +39,7 @@ var StopMimicryCmd = &cobra.Command{
 func init() {
 	StopMimicryCmd.Flags().Float64Var(&stopMimicryParams.Action, "action", 0, "操作，1信任文件，2隔离文件")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StopMimicryCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StopMimicryCmd.Flags().StringVar(&StopMimicryCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StopMimicryCmd.Flags().StringSliceVar(&stopMimicryParams.ExposedIp, "exposed-ip", nil, "主机外网 IP")
 	StopMimicryCmd.Flags().StringSliceVar(&stopMimicryParams.FilePath, "file-path", nil, "文件路径")
 	StopMimicryCmd.Flags().Float64SliceVar(&stopMimicryParams.Gids, "gids", nil, "主机业务组 ID")

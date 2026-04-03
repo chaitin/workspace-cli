@@ -15,6 +15,7 @@ var ListCmd = &cobra.Command{
 	Short: "获取告警信息",
 	Long:  `获取告警信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AlertConfigService.List", nil, &result)

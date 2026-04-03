@@ -4,6 +4,7 @@ package firewall
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteRuleParams DeleteRuleParams
+var DeleteRuleFilterJSON string
 
 var DeleteRuleCmd = &cobra.Command{
 	Use:   "delete_rule",
 	Short: "删除规则",
 	Long:  `删除规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteRuleFilterJSON), &deleteRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.DeleteRule", deleteRuleParams, &result)
@@ -30,8 +38,7 @@ var DeleteRuleCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	DeleteRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"action\": [\"ACCEPT\"], \"cidr\": [\"\"], \"created_at\": [\"\"], \"...\": \"...\"})")
+	DeleteRuleCmd.Flags().StringVar(&DeleteRuleFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"action\": [\"ACCEPT\"], \"cidr\": [\"\"], \"created_at\": [\"\"], \"...\": \"...\"})")
 }
 
 // DeleteRuleParams 请求参数

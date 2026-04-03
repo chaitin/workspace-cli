@@ -4,6 +4,7 @@ package abnormal_login_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getEventByLoginIpListParams GetEventByLoginIpListParams
+var GetEventByLoginIpListCustomAttrJSON string
+var GetEventByLoginIpListOrderByJSON string
 
 var GetEventByLoginIpListCmd = &cobra.Command{
 	Use:   "get_event_by_login_ip_list",
 	Short: "获取按登陆 IP 聚合的事件列表",
 	Long:  `获取按登陆 IP 聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventByLoginIpListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventByLoginIpListCustomAttrJSON), &getEventByLoginIpListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventByLoginIpListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventByLoginIpListOrderByJSON), &getEventByLoginIpListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AbnormalLoginEventService.GetEventByLoginIPList", getEventByLoginIpListParams, &result)
@@ -34,8 +49,7 @@ func init() {
 	GetEventByLoginIpListCmd.Flags().IntVar(&getEventByLoginIpListParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetEventByLoginIpListCmd.Flags().StringSliceVar(&getEventByLoginIpListParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventByLoginIpListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventByLoginIpListCmd.Flags().StringVar(&GetEventByLoginIpListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventByLoginIpListCmd.Flags().Float64SliceVar(&getEventByLoginIpListParams.Gids, "gids", nil, "业务组 ID")
 	GetEventByLoginIpListCmd.Flags().StringSliceVar(&getEventByLoginIpListParams.HostComment, "host-comment", nil, "主机备注")
 	GetEventByLoginIpListCmd.Flags().Float64SliceVar(&getEventByLoginIpListParams.HostId, "host-id", nil, "主机 ID")
@@ -51,8 +65,7 @@ func init() {
 	GetEventByLoginIpListCmd.Flags().IntVar(&getEventByLoginIpListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventByLoginIpListCmd.Flags().Float64SliceVar(&getEventByLoginIpListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventByLoginIpListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventByLoginIpListCmd.Flags().StringVar(&GetEventByLoginIpListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventByLoginIpListCmd.Flags().StringSliceVar(&getEventByLoginIpListParams.RemoteAddrType, "remote-addr-type", nil, "远程IP类型，intranet(内网)、internet(外网)")
 	GetEventByLoginIpListCmd.Flags().Float64SliceVar(&getEventByLoginIpListParams.StatEventId, "stat-event-id", nil, "事件统计 ID")
 	GetEventByLoginIpListCmd.Flags().IntSliceVar(&getEventByLoginIpListParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

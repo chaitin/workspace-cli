@@ -4,6 +4,7 @@ package port_scan
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getEventListParams GetEventListParams
+var GetEventListCustomAttrJSON string
+var GetEventListOrderByJSON string
+var GetEventListSelectJSON string
 
 var GetEventListCmd = &cobra.Command{
 	Use:   "get_event_list",
 	Short: "事件列表查询",
 	Long:  `事件列表查询`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListCustomAttrJSON), &getEventListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListOrderByJSON), &getEventListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetEventListSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListSelectJSON), &getEventListParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PortScanService.GetEventList", getEventListParams, &result)
@@ -32,8 +54,7 @@ func init() {
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.Comment, "comment", nil, "comment")
 	GetEventListCmd.Flags().IntVar(&getEventListParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListCmd.Flags().StringVar(&GetEventListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.FinishedAt, "finished-at", nil, "finished_at")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.Gids, "gids", nil, "业务组 ID")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.HostComment, "host-comment", nil, "主机备注")
@@ -47,13 +68,11 @@ func init() {
 	GetEventListCmd.Flags().IntVar(&getEventListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则，默认 created_at desc，支持 started_at 和 scan_count (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListCmd.Flags().StringVar(&GetEventListOrderByJSON, "order-by", "", "排序规则，默认 created_at desc，支持 started_at 和 scan_count (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListCmd.Flags().Float64SliceVar(&getEventListParams.Port, "port", nil, "port")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.RuleId, "rule-id", nil, "规则ID")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetEventListCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 162, \"id\": 154, \"source_ip\": \"127.0.0.1\"}])")
+	GetEventListCmd.Flags().StringVar(&GetEventListSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 162, \"id\": 154, \"source_ip\": \"127.0.0.1\"}])")
 	GetEventListCmd.Flags().BoolVar(&getEventListParams.SelectAll, "select-all", false, "是否全选")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.SourceIp, "source-ip", nil, "source_ip")
 	GetEventListCmd.Flags().StringSliceVar(&getEventListParams.StartedAt, "started-at", nil, "started_at")

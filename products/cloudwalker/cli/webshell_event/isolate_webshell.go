@@ -4,6 +4,7 @@ package webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var isolateWebshellParams IsolateWebshellParams
+var IsolateWebshellCustomAttrJSON string
+var IsolateWebshellSelectJSON string
 
 var IsolateWebshellCmd = &cobra.Command{
 	Use:   "isolate_webshell",
 	Short: "用来隔离主机上的 Webshell",
 	Long:  `用来隔离主机上的 Webshell`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if IsolateWebshellCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(IsolateWebshellCustomAttrJSON), &isolateWebshellParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if IsolateWebshellSelectJSON != "" {
+			if err := json.Unmarshal([]byte(IsolateWebshellSelectJSON), &isolateWebshellParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.IsolateWebshell", isolateWebshellParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	IsolateWebshellCmd.Flags().StringSliceVar(&isolateWebshellParams.Comment, "comment", nil, "用户自定义备注")
 	IsolateWebshellCmd.Flags().StringSliceVar(&isolateWebshellParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	IsolateWebshellCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	IsolateWebshellCmd.Flags().StringVar(&IsolateWebshellCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	IsolateWebshellCmd.Flags().StringSliceVar(&isolateWebshellParams.Domain, "domain", nil, "域名")
 	IsolateWebshellCmd.Flags().StringSliceVar(&isolateWebshellParams.FileName, "file-name", nil, "文件名")
 	IsolateWebshellCmd.Flags().StringSliceVar(&isolateWebshellParams.FilePath, "file-path", nil, "文件路径")
@@ -53,8 +67,7 @@ func init() {
 	IsolateWebshellCmd.Flags().Float64SliceVar(&isolateWebshellParams.Oid, "oid", nil, "机构 ID")
 	IsolateWebshellCmd.Flags().Float64SliceVar(&isolateWebshellParams.PlanId, "plan-id", nil, "任务 id")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	IsolateWebshellCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
+	IsolateWebshellCmd.Flags().StringVar(&IsolateWebshellSelectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
 	IsolateWebshellCmd.Flags().BoolVar(&isolateWebshellParams.SelectAll, "select-all", false, "是否全选")
 	IsolateWebshellCmd.Flags().Float64SliceVar(&isolateWebshellParams.StatEventId, "stat-event-id", nil, "统计事件 ID")
 	IsolateWebshellCmd.Flags().IntSliceVar(&isolateWebshellParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

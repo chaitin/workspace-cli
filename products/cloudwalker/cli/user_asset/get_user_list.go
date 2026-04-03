@@ -4,6 +4,7 @@ package user_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getUserListParams GetUserListParams
+var GetUserListCustomAttrJSON string
+var GetUserListFilterJSON string
+var GetUserListOrderByJSON string
 
 var GetUserListCmd = &cobra.Command{
 	Use:   "get_user_list",
 	Short: "根据指定条件获取用户资产列表",
 	Long:  `根据指定条件获取用户资产列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetUserListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetUserListCustomAttrJSON), &getUserListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetUserListFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetUserListFilterJSON), &getUserListParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetUserListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetUserListOrderByJSON), &getUserListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "UserAssetService.GetUserList", getUserListParams, &result)
@@ -32,12 +54,10 @@ func init() {
 	GetUserListCmd.Flags().BoolSliceVar(&getUserListParams.CanLogin, "can-login", nil, "是否可登录，true代表可登录，false代表不可登录")
 	GetUserListCmd.Flags().IntVar(&getUserListParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetUserListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetUserListCmd.Flags().StringVar(&GetUserListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetUserListCmd.Flags().BoolSliceVar(&getUserListParams.Enabled, "enabled", nil, "是否启用，true代表启用，false代表禁用")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetUserListCmd.Flags().StringVar(&filterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"id\": 123, \"username\": \"test222\"}])")
+	GetUserListCmd.Flags().StringVar(&GetUserListFilterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"id\": 123, \"username\": \"test222\"}])")
 	GetUserListCmd.Flags().Float64SliceVar(&getUserListParams.Gid, "gid", nil, "用户组id")
 	GetUserListCmd.Flags().Float64SliceVar(&getUserListParams.Gids, "gids", nil, "业务组")
 	GetUserListCmd.Flags().StringSliceVar(&getUserListParams.HomeDir, "home-dir", nil, "home目录")
@@ -52,8 +72,7 @@ func init() {
 	GetUserListCmd.Flags().IntVar(&getUserListParams.Offset, "offset", 0, "偏移量")
 	GetUserListCmd.Flags().Float64SliceVar(&getUserListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetUserListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetUserListCmd.Flags().StringVar(&GetUserListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetUserListCmd.Flags().StringSliceVar(&getUserListParams.PasswordExpire, "password-expire", nil, "密码到期时间")
 	GetUserListCmd.Flags().StringSliceVar(&getUserListParams.PasswordModify, "password-modify", nil, "上次修改密码时间")
 	GetUserListCmd.Flags().BoolSliceVar(&getUserListParams.Privileged, "privileged", nil, "是否最高权限，true代表有最高权限，false代表不是最高权限")

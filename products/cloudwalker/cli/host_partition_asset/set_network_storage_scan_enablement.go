@@ -4,6 +4,7 @@ package host_partition_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var setNetworkStorageScanEnablementParams SetNetworkStorageScanEnablementParams
+var SetNetworkStorageScanEnablementCustomAttrJSON string
+var SetNetworkStorageScanEnablementFilterJSON string
 
 var SetNetworkStorageScanEnablementCmd = &cobra.Command{
 	Use:   "set_network_storage_scan_enablement",
 	Short: "设置主机网络存储分区资产扫描启用状态",
 	Long:  `设置主机网络存储分区资产扫描启用状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SetNetworkStorageScanEnablementCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(SetNetworkStorageScanEnablementCustomAttrJSON), &setNetworkStorageScanEnablementParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if SetNetworkStorageScanEnablementFilterJSON != "" {
+			if err := json.Unmarshal([]byte(SetNetworkStorageScanEnablementFilterJSON), &setNetworkStorageScanEnablementParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostPartitionAssetService.SetNetworkStorageScanEnablement", setNetworkStorageScanEnablementParams, &result)
@@ -30,14 +45,12 @@ var SetNetworkStorageScanEnablementCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	SetNetworkStorageScanEnablementCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	SetNetworkStorageScanEnablementCmd.Flags().StringVar(&SetNetworkStorageScanEnablementCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	SetNetworkStorageScanEnablementCmd.Flags().BoolSliceVar(&setNetworkStorageScanEnablementParams.Enable, "enable", nil, "是否启用")
 	SetNetworkStorageScanEnablementCmd.Flags().BoolVar(&setNetworkStorageScanEnablementParams.EnableNetworkStorageScan, "enable-network-storage-scan", false, "是否启用网络存储资产扫描")
 	SetNetworkStorageScanEnablementCmd.Flags().StringSliceVar(&setNetworkStorageScanEnablementParams.FileSystem, "file-system", nil, "文件系统")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	SetNetworkStorageScanEnablementCmd.Flags().StringVar(&filterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"file_system\": \"tmpfs\", \"host_id\": 3643, \"id\": 3643, \"mount_point\": \"/var/lib/kubelet/pods/fa6a6416-b931-41f9-8d3b-9ddf87480a12/volumes/kubernetes.io~secret/webhook-cert\"}])")
+	SetNetworkStorageScanEnablementCmd.Flags().StringVar(&SetNetworkStorageScanEnablementFilterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"file_system\": \"tmpfs\", \"host_id\": 3643, \"id\": 3643, \"mount_point\": \"/var/lib/kubelet/pods/fa6a6416-b931-41f9-8d3b-9ddf87480a12/volumes/kubernetes.io~secret/webhook-cert\"}])")
 	SetNetworkStorageScanEnablementCmd.Flags().Float64SliceVar(&setNetworkStorageScanEnablementParams.Gids, "gids", nil, "业务组 ID 列表")
 	SetNetworkStorageScanEnablementCmd.Flags().StringSliceVar(&setNetworkStorageScanEnablementParams.HostComment, "host-comment", nil, "主机备注")
 	SetNetworkStorageScanEnablementCmd.Flags().Float64SliceVar(&setNetworkStorageScanEnablementParams.HostId, "host-id", nil, "主机ID")

@@ -4,6 +4,7 @@ package suspicious_operation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getWhitelistParams GetWhitelistParams
+var GetWhitelistCustomAttrJSON string
+var GetWhitelistFilterJSON string
 
 var GetWhitelistCmd = &cobra.Command{
 	Use:   "get_whitelist",
 	Short: "获取白名单规则",
 	Long:  `获取白名单规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetWhitelistCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetWhitelistCustomAttrJSON), &getWhitelistParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetWhitelistFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetWhitelistFilterJSON), &getWhitelistParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SuspiciousOperationService.GetWhitelist", getWhitelistParams, &result)
@@ -32,15 +47,13 @@ func init() {
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.Comment, "comment", nil, "用户自定义备注")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.ContainerHashId, "container-hash-id", nil, "容器Id")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetWhitelistCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetWhitelistCmd.Flags().StringVar(&GetWhitelistCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.Egid, "egid", nil, "有效用户组ID")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.Egname, "egname", nil, "有效用户组名")
 	GetWhitelistCmd.Flags().Float64SliceVar(&getWhitelistParams.Euid, "euid", nil, "有效用户ID")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.Euname, "euname", nil, "有效用户名")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetWhitelistCmd.Flags().StringVar(&filterJSON, "filter", "", "过滤信息 (JSON, e.g. [{\"host_id\": 122, \"id\": 122, \"net_app\": \"weblogic\", \"rule_name\": \"使用黑客工具\", \"ssh_client_ip\": \"120.12.27.128\", \"ssh_user\": \"root\"}])")
+	GetWhitelistCmd.Flags().StringVar(&GetWhitelistFilterJSON, "filter", "", "过滤信息 (JSON, e.g. [{\"host_id\": 122, \"id\": 122, \"net_app\": \"weblogic\", \"rule_name\": \"使用黑客工具\", \"ssh_client_ip\": \"120.12.27.128\", \"ssh_user\": \"root\"}])")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.Gid, "gid", nil, "用户组ID")
 	GetWhitelistCmd.Flags().Float64SliceVar(&getWhitelistParams.Gids, "gids", nil, "业务组ID")
 	GetWhitelistCmd.Flags().StringSliceVar(&getWhitelistParams.Gname, "gname", nil, "用户组名")

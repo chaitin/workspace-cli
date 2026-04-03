@@ -4,6 +4,7 @@ package organization
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listOrgParams ListOrgParams
+var ListOrgOrderByJSON string
 
 var ListOrgCmd = &cobra.Command{
 	Use:   "list_org",
 	Short: "用户列表",
 	Long:  `用户列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListOrgOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(ListOrgOrderByJSON), &listOrgParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "OrganizationService.ListOrg", listOrgParams, &result)
@@ -38,8 +46,7 @@ func init() {
 	ListOrgCmd.Flags().StringSliceVar(&listOrgParams.Name, "name", nil, "机构名称")
 	ListOrgCmd.Flags().Float64Var(&listOrgParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	ListOrgCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	ListOrgCmd.Flags().StringVar(&ListOrgOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	ListOrgCmd.Flags().StringSliceVar(&listOrgParams.Remark, "remark", nil, "机构备注")
 	ListOrgCmd.Flags().StringSliceVar(&listOrgParams.UpdatedAt, "updated-at", nil, "更新时间")
 }

@@ -17,6 +17,7 @@ var EditMimicryConfigCmd = &cobra.Command{
 	Short: "用来修改全局拟态防御的配置",
 	Long:  `用来修改全局拟态防御的配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.EditMimicryConfig", editMimicryConfigParams, &result)

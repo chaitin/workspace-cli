@@ -4,6 +4,7 @@ package port_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getPortAssetListByProtocolIpPortParams GetPortAssetListByProtocolIpPortParams
+var GetPortAssetListByProtocolIpPortCustomAttrJSON string
+var GetPortAssetListByProtocolIpPortFilterJSON string
+var GetPortAssetListByProtocolIpPortOrderByJSON string
 
 var GetPortAssetListByProtocolIpPortCmd = &cobra.Command{
 	Use:   "get_port_asset_list_by_protocol_ip_port",
 	Short: "监听端口协议数据分组，按照指定要求获取端口",
 	Long:  `监听端口协议数据分组，按照指定要求获取端口`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetPortAssetListByProtocolIpPortCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetPortAssetListByProtocolIpPortCustomAttrJSON), &getPortAssetListByProtocolIpPortParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetPortAssetListByProtocolIpPortFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetPortAssetListByProtocolIpPortFilterJSON), &getPortAssetListByProtocolIpPortParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetPortAssetListByProtocolIpPortOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetPortAssetListByProtocolIpPortOrderByJSON), &getPortAssetListByProtocolIpPortParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PortAssetService.GetPortAssetListByProtocolIPPort", getPortAssetListByProtocolIpPortParams, &result)
@@ -32,11 +54,9 @@ func init() {
 	GetPortAssetListByProtocolIpPortCmd.Flags().StringSliceVar(&getPortAssetListByProtocolIpPortParams.Cmd, "cmd", nil, "IP")
 	GetPortAssetListByProtocolIpPortCmd.Flags().IntVar(&getPortAssetListByProtocolIpPortParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetPortAssetListByProtocolIpPortCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetPortAssetListByProtocolIpPortCmd.Flags().StringVar(&GetPortAssetListByProtocolIpPortCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetPortAssetListByProtocolIpPortCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. [{\"cmd\": \"java\", \"id\": 151, \"ip\": \"::\", \"port\": 50002, \"protocol\": \"tcp\"}])")
+	GetPortAssetListByProtocolIpPortCmd.Flags().StringVar(&GetPortAssetListByProtocolIpPortFilterJSON, "filter", "", "filter (JSON, e.g. [{\"cmd\": \"java\", \"id\": 151, \"ip\": \"::\", \"port\": 50002, \"protocol\": \"tcp\"}])")
 	GetPortAssetListByProtocolIpPortCmd.Flags().Float64SliceVar(&getPortAssetListByProtocolIpPortParams.Gids, "gids", nil, "gids")
 	GetPortAssetListByProtocolIpPortCmd.Flags().StringSliceVar(&getPortAssetListByProtocolIpPortParams.HostComment, "host-comment", nil, "主机备注")
 	GetPortAssetListByProtocolIpPortCmd.Flags().Float64SliceVar(&getPortAssetListByProtocolIpPortParams.HostId, "host-id", nil, "主机 ID")
@@ -48,8 +68,7 @@ func init() {
 	GetPortAssetListByProtocolIpPortCmd.Flags().IntVar(&getPortAssetListByProtocolIpPortParams.Offset, "offset", 0, "偏移量")
 	GetPortAssetListByProtocolIpPortCmd.Flags().Float64SliceVar(&getPortAssetListByProtocolIpPortParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetPortAssetListByProtocolIpPortCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetPortAssetListByProtocolIpPortCmd.Flags().StringVar(&GetPortAssetListByProtocolIpPortOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetPortAssetListByProtocolIpPortCmd.Flags().Float64SliceVar(&getPortAssetListByProtocolIpPortParams.Pid, "pid", nil, "IP")
 	GetPortAssetListByProtocolIpPortCmd.Flags().StringSliceVar(&getPortAssetListByProtocolIpPortParams.Port, "port", nil, "IP")
 	GetPortAssetListByProtocolIpPortCmd.Flags().StringSliceVar(&getPortAssetListByProtocolIpPortParams.Protocol, "protocol", nil, "IP")

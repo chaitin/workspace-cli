@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editSubtaskStateParams EditSubtaskStateParams
+var EditSubtaskStateCustomAttrJSON string
+var EditSubtaskStateSelectJSON string
 
 var EditSubtaskStateCmd = &cobra.Command{
 	Use:   "edit_subtask_state",
 	Short: "修改子任务状态",
 	Long:  `修改子任务状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditSubtaskStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditSubtaskStateCustomAttrJSON), &editSubtaskStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if EditSubtaskStateSelectJSON != "" {
+			if err := json.Unmarshal([]byte(EditSubtaskStateSelectJSON), &editSubtaskStateParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.EditSubtaskState", editSubtaskStateParams, &result)
@@ -31,8 +46,7 @@ var EditSubtaskStateCmd = &cobra.Command{
 func init() {
 	EditSubtaskStateCmd.Flags().StringSliceVar(&editSubtaskStateParams.CreatedAt, "created-at", nil, "任务创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditSubtaskStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditSubtaskStateCmd.Flags().StringVar(&EditSubtaskStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditSubtaskStateCmd.Flags().StringSliceVar(&editSubtaskStateParams.Description, "description", nil, "核查项描述")
 	EditSubtaskStateCmd.Flags().StringSliceVar(&editSubtaskStateParams.FinishedAt, "finished-at", nil, "任务结束时间")
 	EditSubtaskStateCmd.Flags().Float64SliceVar(&editSubtaskStateParams.Gids, "gids", nil, "业务组 ID")
@@ -46,8 +60,7 @@ func init() {
 	EditSubtaskStateCmd.Flags().IntSliceVar(&editSubtaskStateParams.Level, "level", nil, "核查项风险级别(1-低危，2-中危，3-高危，4-严重)")
 	EditSubtaskStateCmd.Flags().StringSliceVar(&editSubtaskStateParams.Reply, "reply", nil, "核查输出")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	EditSubtaskStateCmd.Flags().StringVar(&selectJSON, "select", "", "选中的项 (JSON, e.g. [{\"id\": 1, \"task_id\": 1}])")
+	EditSubtaskStateCmd.Flags().StringVar(&EditSubtaskStateSelectJSON, "select", "", "选中的项 (JSON, e.g. [{\"id\": 1, \"task_id\": 1}])")
 	EditSubtaskStateCmd.Flags().BoolVar(&editSubtaskStateParams.SelectAll, "select-all", false, "全选所有")
 	EditSubtaskStateCmd.Flags().StringSliceVar(&editSubtaskStateParams.SetName, "set-name", nil, "核查策略名称")
 	EditSubtaskStateCmd.Flags().StringSliceVar(&editSubtaskStateParams.StartedAt, "started-at", nil, "任务运行时间")

@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,47 @@ import (
 )
 
 var setBruteForceAdvCfgParams SetBruteForceAdvCfgParams
+var SetBruteForceAdvCfgFtpJSON string
+var SetBruteForceAdvCfgRdpJSON string
+var SetBruteForceAdvCfgSmbJSON string
+var SetBruteForceAdvCfgSshJSON string
+var SetBruteForceAdvCfgWinrmJSON string
 
 var SetBruteForceAdvCfgCmd = &cobra.Command{
 	Use:   "set_brute_force_adv_cfg",
 	Short: "设置暴力破解高级配置",
 	Long:  `设置暴力破解高级配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SetBruteForceAdvCfgFtpJSON != "" {
+			if err := json.Unmarshal([]byte(SetBruteForceAdvCfgFtpJSON), &setBruteForceAdvCfgParams.Ftp); err != nil {
+				cmd.PrintErrln("Error parsing ftp:", err)
+				return
+			}
+		}
+		if SetBruteForceAdvCfgRdpJSON != "" {
+			if err := json.Unmarshal([]byte(SetBruteForceAdvCfgRdpJSON), &setBruteForceAdvCfgParams.Rdp); err != nil {
+				cmd.PrintErrln("Error parsing rdp:", err)
+				return
+			}
+		}
+		if SetBruteForceAdvCfgSmbJSON != "" {
+			if err := json.Unmarshal([]byte(SetBruteForceAdvCfgSmbJSON), &setBruteForceAdvCfgParams.Smb); err != nil {
+				cmd.PrintErrln("Error parsing smb:", err)
+				return
+			}
+		}
+		if SetBruteForceAdvCfgSshJSON != "" {
+			if err := json.Unmarshal([]byte(SetBruteForceAdvCfgSshJSON), &setBruteForceAdvCfgParams.Ssh); err != nil {
+				cmd.PrintErrln("Error parsing ssh:", err)
+				return
+			}
+		}
+		if SetBruteForceAdvCfgWinrmJSON != "" {
+			if err := json.Unmarshal([]byte(SetBruteForceAdvCfgWinrmJSON), &setBruteForceAdvCfgParams.Winrm); err != nil {
+				cmd.PrintErrln("Error parsing winrm:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.SetBruteForceAdvCfg", setBruteForceAdvCfgParams, &result)
@@ -30,20 +66,15 @@ var SetBruteForceAdvCfgCmd = &cobra.Command{
 
 func init() {
 	// ftp is object type, use JSON string
-	var ftpJSON string
-	SetBruteForceAdvCfgCmd.Flags().StringVar(&ftpJSON, "ftp", "", "FTP (JSON, e.g. {\"period\": 60, \"threshold\": 10})")
+	SetBruteForceAdvCfgCmd.Flags().StringVar(&SetBruteForceAdvCfgFtpJSON, "ftp", "", "FTP (JSON, e.g. {\"period\": 60, \"threshold\": 10})")
 	// rdp is object type, use JSON string
-	var rdpJSON string
-	SetBruteForceAdvCfgCmd.Flags().StringVar(&rdpJSON, "rdp", "", "RDP (JSON, e.g. {\"period\": 60, \"threshold\": 10})")
+	SetBruteForceAdvCfgCmd.Flags().StringVar(&SetBruteForceAdvCfgRdpJSON, "rdp", "", "RDP (JSON, e.g. {\"period\": 60, \"threshold\": 10})")
 	// smb is object type, use JSON string
-	var smbJSON string
-	SetBruteForceAdvCfgCmd.Flags().StringVar(&smbJSON, "smb", "", "SMB (JSON, e.g. {\"period\": 60, \"threshold\": 10})")
+	SetBruteForceAdvCfgCmd.Flags().StringVar(&SetBruteForceAdvCfgSmbJSON, "smb", "", "SMB (JSON, e.g. {\"period\": 60, \"threshold\": 10})")
 	// ssh is object type, use JSON string
-	var sshJSON string
-	SetBruteForceAdvCfgCmd.Flags().StringVar(&sshJSON, "ssh", "", "SSH (JSON, e.g. {\"period\": 60, \"threshold\": 10})")
+	SetBruteForceAdvCfgCmd.Flags().StringVar(&SetBruteForceAdvCfgSshJSON, "ssh", "", "SSH (JSON, e.g. {\"period\": 60, \"threshold\": 10})")
 	// winrm is object type, use JSON string
-	var winrmJSON string
-	SetBruteForceAdvCfgCmd.Flags().StringVar(&winrmJSON, "winrm", "", "WINRM (JSON, e.g. {\"period\": 60, \"threshold\": 10})")
+	SetBruteForceAdvCfgCmd.Flags().StringVar(&SetBruteForceAdvCfgWinrmJSON, "winrm", "", "WINRM (JSON, e.g. {\"period\": 60, \"threshold\": 10})")
 }
 
 // SetBruteForceAdvCfgParams 请求参数

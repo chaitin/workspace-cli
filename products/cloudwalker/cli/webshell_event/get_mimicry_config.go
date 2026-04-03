@@ -15,6 +15,7 @@ var GetMimicryConfigCmd = &cobra.Command{
 	Short: "用来换取拟态防御全局配置",
 	Long:  `用来换取拟态防御全局配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.GetMimicryConfig", nil, &result)

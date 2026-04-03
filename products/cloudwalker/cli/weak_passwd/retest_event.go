@@ -4,6 +4,7 @@ package weak_passwd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var retestEventParams RetestEventParams
+var RetestEventCustomAttrJSON string
+var RetestEventFilterJSON string
 
 var RetestEventCmd = &cobra.Command{
 	Use:   "retest_event",
 	Short: "复测弱口令事件",
 	Long:  `复测弱口令事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if RetestEventCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(RetestEventCustomAttrJSON), &retestEventParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if RetestEventFilterJSON != "" {
+			if err := json.Unmarshal([]byte(RetestEventFilterJSON), &retestEventParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.RetestEvent", retestEventParams, &result)
@@ -34,11 +49,9 @@ func init() {
 	RetestEventCmd.Flags().StringSliceVar(&retestEventParams.Comment, "comment", nil, "用户自定义备注")
 	RetestEventCmd.Flags().StringSliceVar(&retestEventParams.CreatedAt, "created-at", nil, "创建事件")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	RetestEventCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	RetestEventCmd.Flags().StringVar(&RetestEventCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	RetestEventCmd.Flags().StringVar(&filterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 3643, \"id\": 3643, \"password\": \"123456\", \"service\": \"ssh\", \"username\": \"test\"}])")
+	RetestEventCmd.Flags().StringVar(&RetestEventFilterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 3643, \"id\": 3643, \"password\": \"123456\", \"service\": \"ssh\", \"username\": \"test\"}])")
 	RetestEventCmd.Flags().Float64SliceVar(&retestEventParams.Gids, "gids", nil, "业务组 ID 列表")
 	RetestEventCmd.Flags().StringSliceVar(&retestEventParams.HostComment, "host-comment", nil, "主机备注")
 	RetestEventCmd.Flags().Float64SliceVar(&retestEventParams.HostId, "host-id", nil, "主机 ID")

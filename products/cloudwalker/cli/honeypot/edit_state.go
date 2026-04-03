@@ -4,6 +4,7 @@ package honeypot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var editStateParams EditStateParams
+var EditStateCustomAttrJSON string
 
 var EditStateCmd = &cobra.Command{
 	Use:   "edit_state",
 	Short: "改变所选 ID 事件的处置状态",
 	Long:  `改变所选 ID 事件的处置状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditStateCustomAttrJSON), &editStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HoneypotService.EditState", editStateParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	EditStateCmd.Flags().StringSliceVar(&editStateParams.Comment, "comment", nil, "用户自定义备注")
 	EditStateCmd.Flags().StringSliceVar(&editStateParams.CreatedAt, "created-at", nil, "事件创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditStateCmd.Flags().StringVar(&EditStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditStateCmd.Flags().StringSliceVar(&editStateParams.EndTime, "end-time", nil, "攻击结束时间")
 	EditStateCmd.Flags().Float64SliceVar(&editStateParams.Gids, "gids", nil, "业务组 ID")
 	EditStateCmd.Flags().StringSliceVar(&editStateParams.HostComment, "host-comment", nil, "主机备注")

@@ -4,6 +4,7 @@ package firewall
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var updateRuleParams UpdateRuleParams
+var UpdateRuleDestJSON string
+var UpdateRuleFilterJSON string
+var UpdateRuleSourceJSON string
 
 var UpdateRuleCmd = &cobra.Command{
 	Use:   "update_rule",
 	Short: "修改规则",
 	Long:  `修改规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if UpdateRuleDestJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateRuleDestJSON), &updateRuleParams.Dest); err != nil {
+				cmd.PrintErrln("Error parsing dest:", err)
+				return
+			}
+		}
+		if UpdateRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateRuleFilterJSON), &updateRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if UpdateRuleSourceJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateRuleSourceJSON), &updateRuleParams.Source); err != nil {
+				cmd.PrintErrln("Error parsing source:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.UpdateRule", updateRuleParams, &result)
@@ -31,20 +53,17 @@ var UpdateRuleCmd = &cobra.Command{
 func init() {
 	UpdateRuleCmd.Flags().StringVar(&updateRuleParams.Action, "action", "", "动作")
 	// dest is object type, use JSON string
-	var destJSON string
-	UpdateRuleCmd.Flags().StringVar(&destJSON, "dest", "", "被访问者 (JSON, e.g. {\"cidr\": [\"\"], \"domain\": [\"\"], \"group_id\": [0.0], \"group_name\": [\"\"], \"host_id\": [0.0], \"host_ip\": [\"\"], \"tags\": [\"\"], \"type\": 1})")
+	UpdateRuleCmd.Flags().StringVar(&UpdateRuleDestJSON, "dest", "", "被访问者 (JSON, e.g. {\"cidr\": [\"\"], \"domain\": [\"\"], \"group_id\": [0.0], \"group_name\": [\"\"], \"host_id\": [0.0], \"host_ip\": [\"\"], \"tags\": [\"\"], \"type\": 1})")
 	UpdateRuleCmd.Flags().BoolVar(&updateRuleParams.Enable, "enable", false, "是否开启规则")
 	// filter is object type, use JSON string
-	var filterJSON string
-	UpdateRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"action\": [\"ACCEPT\"], \"cidr\": [\"\"], \"created_at\": [\"\"], \"...\": \"...\"})")
+	UpdateRuleCmd.Flags().StringVar(&UpdateRuleFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"action\": [\"ACCEPT\"], \"cidr\": [\"\"], \"created_at\": [\"\"], \"...\": \"...\"})")
 	UpdateRuleCmd.Flags().BoolVar(&updateRuleParams.FilterSpecialAddress, "filter-special-address", false, "是否过滤特殊地址")
 	UpdateRuleCmd.Flags().StringVar(&updateRuleParams.Name, "name", "", "规则名")
 	UpdateRuleCmd.Flags().StringSliceVar(&updateRuleParams.Ports, "ports", nil, "端口范围")
 	UpdateRuleCmd.Flags().Float64Var(&updateRuleParams.Priority, "priority", 0, "优先级，数字越低优先级越高，优先级相同按修改时间倒序")
 	UpdateRuleCmd.Flags().StringVar(&updateRuleParams.Protocol, "protocol", "", "传输协议")
 	// source is object type, use JSON string
-	var sourceJSON string
-	UpdateRuleCmd.Flags().StringVar(&sourceJSON, "source", "", "访问者 (JSON, e.g. {\"cidr\": [\"\"], \"domain\": [\"\"], \"group_id\": [0.0], \"group_name\": [\"\"], \"host_id\": [0.0], \"host_ip\": [\"\"], \"tags\": [\"\"], \"type\": 1})")
+	UpdateRuleCmd.Flags().StringVar(&UpdateRuleSourceJSON, "source", "", "访问者 (JSON, e.g. {\"cidr\": [\"\"], \"domain\": [\"\"], \"group_id\": [0.0], \"group_name\": [\"\"], \"host_id\": [0.0], \"host_ip\": [\"\"], \"tags\": [\"\"], \"type\": 1})")
 }
 
 // UpdateRuleParams 请求参数

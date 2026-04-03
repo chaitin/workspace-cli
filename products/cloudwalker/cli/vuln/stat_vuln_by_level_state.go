@@ -4,6 +4,7 @@ package vuln
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statVulnByLevelStateParams StatVulnByLevelStateParams
+var StatVulnByLevelStateCustomAttrJSON string
 
 var StatVulnByLevelStateCmd = &cobra.Command{
 	Use:   "stat_vuln_by_level_state",
 	Short: "返回按 风险级别类型 聚合的统计视图",
 	Long:  `返回按 风险级别类型 聚合的统计视图`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatVulnByLevelStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatVulnByLevelStateCustomAttrJSON), &statVulnByLevelStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "VulnService.StatVulnByLevelState", statVulnByLevelStateParams, &result)
@@ -44,8 +52,7 @@ func init() {
 	StatVulnByLevelStateCmd.Flags().StringSliceVar(&statVulnByLevelStateParams.Confidentiality, "confidentiality", nil, "机密性影响")
 	StatVulnByLevelStateCmd.Flags().StringSliceVar(&statVulnByLevelStateParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatVulnByLevelStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatVulnByLevelStateCmd.Flags().StringVar(&StatVulnByLevelStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatVulnByLevelStateCmd.Flags().StringSliceVar(&statVulnByLevelStateParams.Cve, "cve", nil, "CVE 编号")
 	StatVulnByLevelStateCmd.Flags().StringSliceVar(&statVulnByLevelStateParams.CvssScore, "cvss-score", nil, "CVSS 分数")
 	StatVulnByLevelStateCmd.Flags().StringSliceVar(&statVulnByLevelStateParams.Cwe, "cwe", nil, "CWE 编号")

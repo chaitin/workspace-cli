@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var startSubtaskParams StartSubtaskParams
+var StartSubtaskCustomAttrJSON string
+var StartSubtaskSelectJSON string
 
 var StartSubtaskCmd = &cobra.Command{
 	Use:   "start_subtask",
 	Short: "立即进行子任务核查，将会覆盖原有的子任务结果",
 	Long:  `立即进行子任务核查，将会覆盖原有的子任务结果`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StartSubtaskCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StartSubtaskCustomAttrJSON), &startSubtaskParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if StartSubtaskSelectJSON != "" {
+			if err := json.Unmarshal([]byte(StartSubtaskSelectJSON), &startSubtaskParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.StartSubtask", startSubtaskParams, &result)
@@ -31,8 +46,7 @@ var StartSubtaskCmd = &cobra.Command{
 func init() {
 	StartSubtaskCmd.Flags().StringSliceVar(&startSubtaskParams.CreatedAt, "created-at", nil, "任务创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StartSubtaskCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StartSubtaskCmd.Flags().StringVar(&StartSubtaskCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StartSubtaskCmd.Flags().StringSliceVar(&startSubtaskParams.Description, "description", nil, "核查项描述")
 	StartSubtaskCmd.Flags().StringSliceVar(&startSubtaskParams.FinishedAt, "finished-at", nil, "任务结束时间")
 	StartSubtaskCmd.Flags().Float64SliceVar(&startSubtaskParams.Gids, "gids", nil, "业务组 ID")
@@ -46,8 +60,7 @@ func init() {
 	StartSubtaskCmd.Flags().IntSliceVar(&startSubtaskParams.Level, "level", nil, "核查项风险级别(1-低危，2-中危，3-高危，4-严重)")
 	StartSubtaskCmd.Flags().StringSliceVar(&startSubtaskParams.Reply, "reply", nil, "核查输出")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	StartSubtaskCmd.Flags().StringVar(&selectJSON, "select", "", "选中的项 (JSON, e.g. [{\"id\": 1, \"task_id\": 1}])")
+	StartSubtaskCmd.Flags().StringVar(&StartSubtaskSelectJSON, "select", "", "选中的项 (JSON, e.g. [{\"id\": 1, \"task_id\": 1}])")
 	StartSubtaskCmd.Flags().BoolVar(&startSubtaskParams.SelectAll, "select-all", false, "全选所有")
 	StartSubtaskCmd.Flags().StringSliceVar(&startSubtaskParams.SetName, "set-name", nil, "核查策略名称")
 	StartSubtaskCmd.Flags().StringSliceVar(&startSubtaskParams.StartedAt, "started-at", nil, "任务运行时间")

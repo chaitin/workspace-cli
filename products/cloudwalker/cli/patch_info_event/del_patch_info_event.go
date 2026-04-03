@@ -4,6 +4,7 @@ package patch_info_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var delPatchInfoEventParams DelPatchInfoEventParams
+var DelPatchInfoEventCustomAttrJSON string
+var DelPatchInfoEventSelectJSON string
 
 var DelPatchInfoEventCmd = &cobra.Command{
 	Use:   "del_patch_info_event",
 	Short: "删除事件",
 	Long:  `删除事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DelPatchInfoEventCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DelPatchInfoEventCustomAttrJSON), &delPatchInfoEventParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if DelPatchInfoEventSelectJSON != "" {
+			if err := json.Unmarshal([]byte(DelPatchInfoEventSelectJSON), &delPatchInfoEventParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PatchInfoEventService.DelPatchInfoEvent", delPatchInfoEventParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	DelPatchInfoEventCmd.Flags().StringSliceVar(&delPatchInfoEventParams.Comment, "comment", nil, "用户自定义备注")
 	DelPatchInfoEventCmd.Flags().StringSliceVar(&delPatchInfoEventParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DelPatchInfoEventCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DelPatchInfoEventCmd.Flags().StringVar(&DelPatchInfoEventCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DelPatchInfoEventCmd.Flags().StringSliceVar(&delPatchInfoEventParams.Cve, "cve", nil, "CVE 编号")
 	DelPatchInfoEventCmd.Flags().Float64SliceVar(&delPatchInfoEventParams.Gids, "gids", nil, "业务组 ID")
 	DelPatchInfoEventCmd.Flags().StringSliceVar(&delPatchInfoEventParams.GroupName, "group-name", nil, "业务组名")
@@ -53,8 +67,7 @@ func init() {
 	DelPatchInfoEventCmd.Flags().Float64SliceVar(&delPatchInfoEventParams.PlanId, "plan-id", nil, "计划ID")
 	DelPatchInfoEventCmd.Flags().StringSliceVar(&delPatchInfoEventParams.PublishTime, "publish-time", nil, "补丁发布时间")
 	// select is object type, use JSON string
-	var selectJSON string
-	DelPatchInfoEventCmd.Flags().StringVar(&selectJSON, "select", "", "选项 (JSON, e.g. {})")
+	DelPatchInfoEventCmd.Flags().StringVar(&DelPatchInfoEventSelectJSON, "select", "", "选项 (JSON, e.g. {})")
 	DelPatchInfoEventCmd.Flags().BoolVar(&delPatchInfoEventParams.SelectAll, "select-all", false, "是否全选")
 	DelPatchInfoEventCmd.Flags().StringSliceVar(&delPatchInfoEventParams.Trait, "trait", nil, "特征")
 	DelPatchInfoEventCmd.Flags().StringSliceVar(&delPatchInfoEventParams.Type, "type", nil, "补丁类型 KB/Ubuntu")

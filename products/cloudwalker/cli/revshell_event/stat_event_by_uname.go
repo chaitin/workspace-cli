@@ -4,6 +4,7 @@ package revshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statEventByUnameParams StatEventByUnameParams
+var StatEventByUnameCustomAttrJSON string
 
 var StatEventByUnameCmd = &cobra.Command{
 	Use:   "stat_event_by_uname",
 	Short: "返回反弹shell最多的User Name( 按shell权限 ) top n ( n = 5 default )",
 	Long:  `返回反弹shell最多的User Name( 按shell权限 ) top n ( n = 5 default )`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatEventByUnameCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByUnameCustomAttrJSON), &statEventByUnameParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "RevshellEventService.StatEventByUname", statEventByUnameParams, &result)
@@ -31,8 +39,7 @@ var StatEventByUnameCmd = &cobra.Command{
 func init() {
 	StatEventByUnameCmd.Flags().StringSliceVar(&statEventByUnameParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatEventByUnameCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatEventByUnameCmd.Flags().StringVar(&StatEventByUnameCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatEventByUnameCmd.Flags().Float64SliceVar(&statEventByUnameParams.Gids, "gids", nil, "gids")
 	StatEventByUnameCmd.Flags().StringSliceVar(&statEventByUnameParams.HostComment, "host-comment", nil, "主机备注")
 	StatEventByUnameCmd.Flags().Float64SliceVar(&statEventByUnameParams.HostId, "host-id", nil, "主机 ID")

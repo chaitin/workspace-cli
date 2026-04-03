@@ -4,6 +4,7 @@ package network_audit_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var statEventByTypeParams StatEventByTypeParams
+var StatEventByTypeCustomAttrJSON string
+var StatEventByTypeSelectJSON string
 
 var StatEventByTypeCmd = &cobra.Command{
 	Use:   "stat_event_by_type",
 	Short: "获取按网络外连类型聚合的事件列表",
 	Long:  `获取按网络外连类型聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatEventByTypeCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByTypeCustomAttrJSON), &statEventByTypeParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if StatEventByTypeSelectJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByTypeSelectJSON), &statEventByTypeParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NetworkAuditEventService.StatEventByType", statEventByTypeParams, &result)
@@ -34,8 +49,7 @@ func init() {
 	StatEventByTypeCmd.Flags().StringSliceVar(&statEventByTypeParams.ContainerId, "container-id", nil, "容器id")
 	StatEventByTypeCmd.Flags().StringSliceVar(&statEventByTypeParams.CreatedAt, "created-at", nil, "发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatEventByTypeCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatEventByTypeCmd.Flags().StringVar(&StatEventByTypeCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatEventByTypeCmd.Flags().Float64SliceVar(&statEventByTypeParams.Gids, "gids", nil, "业务组 ID")
 	StatEventByTypeCmd.Flags().StringSliceVar(&statEventByTypeParams.GroupName, "group-name", nil, "业务组名")
 	StatEventByTypeCmd.Flags().StringSliceVar(&statEventByTypeParams.HostComment, "host-comment", nil, "主机备注")
@@ -49,8 +63,7 @@ func init() {
 	StatEventByTypeCmd.Flags().StringSliceVar(&statEventByTypeParams.ProcessName, "process-name", nil, "进程名")
 	StatEventByTypeCmd.Flags().StringSliceVar(&statEventByTypeParams.RemoteAddrType, "remote-addr-type", nil, "远程IP类型，intranet(内网)、internet(外网)")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	StatEventByTypeCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 151, \"id\": 151, \"process_name\": \"AliSecureCheckAdvanced.exe\", \"target\": \"119.96.137.252\"}])")
+	StatEventByTypeCmd.Flags().StringVar(&StatEventByTypeSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 151, \"id\": 151, \"process_name\": \"AliSecureCheckAdvanced.exe\", \"target\": \"119.96.137.252\"}])")
 	StatEventByTypeCmd.Flags().BoolVar(&statEventByTypeParams.SelectAll, "select-all", false, "选择所有事件")
 	StatEventByTypeCmd.Flags().Float64SliceVar(&statEventByTypeParams.StatEventId, "stat-event-id", nil, "事件统计 ID")
 	StatEventByTypeCmd.Flags().IntSliceVar(&statEventByTypeParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

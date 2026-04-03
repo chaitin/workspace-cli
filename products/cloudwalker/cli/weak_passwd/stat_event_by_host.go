@@ -4,6 +4,7 @@ package weak_passwd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statEventByHostParams StatEventByHostParams
+var StatEventByHostCustomAttrJSON string
 
 var StatEventByHostCmd = &cobra.Command{
 	Use:   "stat_event_by_host",
 	Short: "高风险主机",
 	Long:  `高风险主机`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatEventByHostCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByHostCustomAttrJSON), &statEventByHostParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.StatEventByHost", statEventByHostParams, &result)
@@ -35,8 +43,7 @@ func init() {
 	StatEventByHostCmd.Flags().IntVar(&statEventByHostParams.Count, "count", 20, "数量")
 	StatEventByHostCmd.Flags().StringSliceVar(&statEventByHostParams.CreatedAt, "created-at", nil, "创建事件")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatEventByHostCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatEventByHostCmd.Flags().StringVar(&StatEventByHostCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatEventByHostCmd.Flags().Float64SliceVar(&statEventByHostParams.Gids, "gids", nil, "业务组 ID 列表")
 	StatEventByHostCmd.Flags().StringSliceVar(&statEventByHostParams.HostComment, "host-comment", nil, "主机备注")
 	StatEventByHostCmd.Flags().Float64SliceVar(&statEventByHostParams.HostId, "host-id", nil, "主机 ID")

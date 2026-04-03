@@ -17,6 +17,7 @@ var UpdateAgentIpCfgCmd = &cobra.Command{
 	Short: "更新探针自定义 IP 配置",
 	Long:  `更新探针自定义 IP 配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentService.UpdateAgentIPCfg", updateAgentIpCfgParams, &result)

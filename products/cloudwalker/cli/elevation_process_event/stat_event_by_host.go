@@ -4,6 +4,7 @@ package elevation_process_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statEventByHostParams StatEventByHostParams
+var StatEventByHostCustomAttrJSON string
 
 var StatEventByHostCmd = &cobra.Command{
 	Use:   "stat_event_by_host",
 	Short: "获取按主机聚合的统计结果",
 	Long:  `获取按主机聚合的统计结果`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatEventByHostCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByHostCustomAttrJSON), &statEventByHostParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ElevationProcessEventService.StatEventByHost", statEventByHostParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	StatEventByHostCmd.Flags().StringSliceVar(&statEventByHostParams.Comment, "comment", nil, "用户自定义备注")
 	StatEventByHostCmd.Flags().StringSliceVar(&statEventByHostParams.CreatedAt, "created-at", nil, "首次发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatEventByHostCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatEventByHostCmd.Flags().StringVar(&StatEventByHostCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatEventByHostCmd.Flags().StringSliceVar(&statEventByHostParams.Exename, "exename", nil, "进程名")
 	StatEventByHostCmd.Flags().Float64SliceVar(&statEventByHostParams.Gids, "gids", nil, "业务组 ID")
 	StatEventByHostCmd.Flags().StringSliceVar(&statEventByHostParams.HostComment, "host-comment", nil, "主机备注")

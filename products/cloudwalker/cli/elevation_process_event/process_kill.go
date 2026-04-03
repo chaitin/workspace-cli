@@ -4,6 +4,7 @@ package elevation_process_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var processKillParams ProcessKillParams
+var ProcessKillCustomAttrJSON string
 
 var ProcessKillCmd = &cobra.Command{
 	Use:   "process_kill",
 	Short: "删除所选的事件",
 	Long:  `删除所选的事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ProcessKillCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ProcessKillCustomAttrJSON), &processKillParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ElevationProcessEventService.ProcessKill", processKillParams, &result)
@@ -36,8 +44,7 @@ func init() {
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.Comment, "comment", nil, "用户自定义备注")
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.CreatedAt, "created-at", nil, "首次发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ProcessKillCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ProcessKillCmd.Flags().StringVar(&ProcessKillCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.Exename, "exename", nil, "进程名")
 	ProcessKillCmd.Flags().Float64SliceVar(&processKillParams.Gids, "gids", nil, "业务组 ID")
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.HostComment, "host-comment", nil, "主机备注")

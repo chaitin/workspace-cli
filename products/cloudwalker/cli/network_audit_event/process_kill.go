@@ -4,6 +4,7 @@ package network_audit_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var processKillParams ProcessKillParams
+var ProcessKillCustomAttrJSON string
+var ProcessKillSelectJSON string
 
 var ProcessKillCmd = &cobra.Command{
 	Use:   "process_kill",
 	Short: "进程阻断",
 	Long:  `进程阻断`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ProcessKillCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ProcessKillCustomAttrJSON), &processKillParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if ProcessKillSelectJSON != "" {
+			if err := json.Unmarshal([]byte(ProcessKillSelectJSON), &processKillParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NetworkAuditEventService.ProcessKill", processKillParams, &result)
@@ -34,8 +49,7 @@ func init() {
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.ContainerId, "container-id", nil, "容器id")
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.CreatedAt, "created-at", nil, "发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ProcessKillCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ProcessKillCmd.Flags().StringVar(&ProcessKillCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ProcessKillCmd.Flags().Float64SliceVar(&processKillParams.Gids, "gids", nil, "业务组 ID")
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.GroupName, "group-name", nil, "业务组名")
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.HostComment, "host-comment", nil, "主机备注")
@@ -49,8 +63,7 @@ func init() {
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.ProcessName, "process-name", nil, "进程名")
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.RemoteAddrType, "remote-addr-type", nil, "远程IP类型，intranet(内网)、internet(外网)")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	ProcessKillCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 151, \"id\": 151, \"process_name\": \"AliSecureCheckAdvanced.exe\", \"target\": \"119.96.137.252\"}])")
+	ProcessKillCmd.Flags().StringVar(&ProcessKillSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 151, \"id\": 151, \"process_name\": \"AliSecureCheckAdvanced.exe\", \"target\": \"119.96.137.252\"}])")
 	ProcessKillCmd.Flags().BoolVar(&processKillParams.SelectAll, "select-all", false, "选择所有事件")
 	ProcessKillCmd.Flags().Float64SliceVar(&processKillParams.StatEventId, "stat-event-id", nil, "事件统计 ID")
 	ProcessKillCmd.Flags().IntSliceVar(&processKillParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

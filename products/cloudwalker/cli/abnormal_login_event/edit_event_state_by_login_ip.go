@@ -4,6 +4,7 @@ package abnormal_login_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var editEventStateByLoginIpParams EditEventStateByLoginIpParams
+var EditEventStateByLoginIpCustomAttrJSON string
 
 var EditEventStateByLoginIpCmd = &cobra.Command{
 	Use:   "edit_event_state_by_login_ip",
 	Short: "改变所选登陆 IP 事件的处置状态",
 	Long:  `改变所选登陆 IP 事件的处置状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditEventStateByLoginIpCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventStateByLoginIpCustomAttrJSON), &editEventStateByLoginIpParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AbnormalLoginEventService.EditEventStateByLoginIP", editEventStateByLoginIpParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	EditEventStateByLoginIpCmd.Flags().StringSliceVar(&editEventStateByLoginIpParams.Comment, "comment", nil, "用户自定义备注")
 	EditEventStateByLoginIpCmd.Flags().StringSliceVar(&editEventStateByLoginIpParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditEventStateByLoginIpCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditEventStateByLoginIpCmd.Flags().StringVar(&EditEventStateByLoginIpCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditEventStateByLoginIpCmd.Flags().Float64SliceVar(&editEventStateByLoginIpParams.Gids, "gids", nil, "业务组 ID")
 	EditEventStateByLoginIpCmd.Flags().StringSliceVar(&editEventStateByLoginIpParams.HostComment, "host-comment", nil, "主机备注")
 	EditEventStateByLoginIpCmd.Flags().Float64SliceVar(&editEventStateByLoginIpParams.HostId, "host-id", nil, "主机 ID")

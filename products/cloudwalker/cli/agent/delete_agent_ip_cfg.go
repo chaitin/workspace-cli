@@ -4,6 +4,7 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteAgentIpCfgParams DeleteAgentIpCfgParams
+var DeleteAgentIpCfgCustomAttrJSON string
 
 var DeleteAgentIpCfgCmd = &cobra.Command{
 	Use:   "delete_agent_ip_cfg",
 	Short: "删除探针自定义 IP 配置",
 	Long:  `删除探针自定义 IP 配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteAgentIpCfgCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteAgentIpCfgCustomAttrJSON), &deleteAgentIpCfgParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentService.DeleteAgentIPCfg", deleteAgentIpCfgParams, &result)
@@ -30,8 +38,7 @@ var DeleteAgentIpCfgCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteAgentIpCfgCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteAgentIpCfgCmd.Flags().StringVar(&DeleteAgentIpCfgCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteAgentIpCfgCmd.Flags().BoolSliceVar(&deleteAgentIpCfgParams.Enable, "enable", nil, "是否启用")
 	DeleteAgentIpCfgCmd.Flags().StringSliceVar(&deleteAgentIpCfgParams.HostComment, "host-comment", nil, "主机备注")
 	DeleteAgentIpCfgCmd.Flags().Float64SliceVar(&deleteAgentIpCfgParams.HostId, "host-id", nil, "主机ID")

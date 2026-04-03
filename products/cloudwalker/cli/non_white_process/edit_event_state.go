@@ -4,6 +4,7 @@ package non_white_process
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editEventStateParams EditEventStateParams
+var EditEventStateCustomAttrJSON string
+var EditEventStateFilterJSON string
 
 var EditEventStateCmd = &cobra.Command{
 	Use:   "edit_event_state",
 	Short: "编辑事件状态",
 	Long:  `编辑事件状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditEventStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventStateCustomAttrJSON), &editEventStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if EditEventStateFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventStateFilterJSON), &editEventStateParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NonWhiteProcessService.EditEventState", editEventStateParams, &result)
@@ -35,16 +50,14 @@ func init() {
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.ContainerHashId, "container-hash-id", nil, "容器ID")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditEventStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditEventStateCmd.Flags().StringVar(&EditEventStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Cwd, "cwd", nil, "执行目录")
 	EditEventStateCmd.Flags().Float64SliceVar(&editEventStateParams.Egid, "egid", nil, "有效用户组ID")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Egname, "egname", nil, "有效用户组名")
 	EditEventStateCmd.Flags().Float64SliceVar(&editEventStateParams.Euid, "euid", nil, "有效用户ID")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Euname, "euname", nil, "有效用户名")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	EditEventStateCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. [{\"cmdline\": \"\", \"host_id\": 0.0, \"id\": 0.0, \"name\": \"\"}])")
+	EditEventStateCmd.Flags().StringVar(&EditEventStateFilterJSON, "filter", "", "filter (JSON, e.g. [{\"cmdline\": \"\", \"host_id\": 0.0, \"id\": 0.0, \"name\": \"\"}])")
 	EditEventStateCmd.Flags().Float64SliceVar(&editEventStateParams.Gid, "gid", nil, "用户组ID")
 	EditEventStateCmd.Flags().Float64SliceVar(&editEventStateParams.Gids, "gids", nil, "业务组ID")
 	EditEventStateCmd.Flags().StringSliceVar(&editEventStateParams.Gname, "gname", nil, "用户组")

@@ -17,6 +17,7 @@ var SetLoginControlStrategyCmd = &cobra.Command{
 	Short: "设置安全登陆控制策略",
 	Long:  `设置安全登陆控制策略`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AdminStrategyService.SetLoginControlStrategy", setLoginControlStrategyParams, &result)

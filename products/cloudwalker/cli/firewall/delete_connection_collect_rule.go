@@ -4,6 +4,7 @@ package firewall
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteConnectionCollectRuleParams DeleteConnectionCollectRuleParams
+var DeleteConnectionCollectRuleFilterJSON string
 
 var DeleteConnectionCollectRuleCmd = &cobra.Command{
 	Use:   "delete_connection_collect_rule",
 	Short: "删除连接采集规则",
 	Long:  `删除连接采集规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteConnectionCollectRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteConnectionCollectRuleFilterJSON), &deleteConnectionCollectRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.DeleteConnectionCollectRule", deleteConnectionCollectRuleParams, &result)
@@ -30,8 +38,7 @@ var DeleteConnectionCollectRuleCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	DeleteConnectionCollectRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选条件 (JSON, e.g. {\"created_at\": [\"xxxxxxxxx\"], \"enable\": true, \"host_ip\": [\"192.168.1.1\"], \"...\": \"...\"})")
+	DeleteConnectionCollectRuleCmd.Flags().StringVar(&DeleteConnectionCollectRuleFilterJSON, "filter", "", "筛选条件 (JSON, e.g. {\"created_at\": [\"xxxxxxxxx\"], \"enable\": true, \"host_ip\": [\"192.168.1.1\"], \"...\": \"...\"})")
 	DeleteConnectionCollectRuleCmd.Flags().BoolVar(&deleteConnectionCollectRuleParams.SelectAll, "select-all", false, "是否全选")
 }
 

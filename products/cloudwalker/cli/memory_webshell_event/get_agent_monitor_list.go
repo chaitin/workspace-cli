@@ -4,6 +4,7 @@ package memory_webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getAgentMonitorListParams GetAgentMonitorListParams
+var GetAgentMonitorListCustomAttrJSON string
+var GetAgentMonitorListOrderByJSON string
 
 var GetAgentMonitorListCmd = &cobra.Command{
 	Use:   "get_agent_monitor_list",
 	Short: "获取java agent注入情况",
 	Long:  `获取java agent注入情况`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetAgentMonitorListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetAgentMonitorListCustomAttrJSON), &getAgentMonitorListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetAgentMonitorListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetAgentMonitorListOrderByJSON), &getAgentMonitorListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "MemoryWebshellEventService.GetAgentMonitorList", getAgentMonitorListParams, &result)
@@ -32,8 +47,7 @@ func init() {
 	GetAgentMonitorListCmd.Flags().StringSliceVar(&getAgentMonitorListParams.Cmdline, "cmdline", nil, "进程命令行")
 	GetAgentMonitorListCmd.Flags().IntVar(&getAgentMonitorListParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetAgentMonitorListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetAgentMonitorListCmd.Flags().StringVar(&GetAgentMonitorListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetAgentMonitorListCmd.Flags().StringSliceVar(&getAgentMonitorListParams.ExePath, "exe-path", nil, "进程路径")
 	GetAgentMonitorListCmd.Flags().Float64SliceVar(&getAgentMonitorListParams.Gids, "gids", nil, "业务组 ID")
 	GetAgentMonitorListCmd.Flags().StringSliceVar(&getAgentMonitorListParams.HostComment, "host-comment", nil, "主机备注")
@@ -48,8 +62,7 @@ func init() {
 	GetAgentMonitorListCmd.Flags().IntVar(&getAgentMonitorListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetAgentMonitorListCmd.Flags().Float64SliceVar(&getAgentMonitorListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetAgentMonitorListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetAgentMonitorListCmd.Flags().StringVar(&GetAgentMonitorListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetAgentMonitorListCmd.Flags().Float64SliceVar(&getAgentMonitorListParams.Pid, "pid", nil, "进程ID")
 	GetAgentMonitorListCmd.Flags().StringSliceVar(&getAgentMonitorListParams.ProcessName, "process-name", nil, "进程名称")
 	GetAgentMonitorListCmd.Flags().StringSliceVar(&getAgentMonitorListParams.ProcessStatus, "process-status", nil, "进程状态")

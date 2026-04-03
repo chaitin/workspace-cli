@@ -17,6 +17,7 @@ var StatVulnInfoByLevelCmd = &cobra.Command{
 	Short: "漏洞级别分布",
 	Long:  `漏洞级别分布`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "VulnInfoService.StatVulnInfoByLevel", statVulnInfoByLevelParams, &result)

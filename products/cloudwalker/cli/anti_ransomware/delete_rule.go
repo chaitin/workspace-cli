@@ -4,6 +4,7 @@ package anti_ransomware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteRuleParams DeleteRuleParams
+var DeleteRuleCustomAttrJSON string
 
 var DeleteRuleCmd = &cobra.Command{
 	Use:   "delete_rule",
 	Short: "删除规则",
 	Long:  `删除规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteRuleCustomAttrJSON), &deleteRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AntiRansomwareService.DeleteRule", deleteRuleParams, &result)
@@ -30,8 +38,7 @@ var DeleteRuleCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteRuleCmd.Flags().StringVar(&DeleteRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteRuleCmd.Flags().BoolVar(&deleteRuleParams.Enabled, "enabled", false, "是否启用")
 	DeleteRuleCmd.Flags().StringSliceVar(&deleteRuleParams.ExposedIp, "exposed-ip", nil, "主机外网 IP")
 	DeleteRuleCmd.Flags().Float64SliceVar(&deleteRuleParams.Gids, "gids", nil, "业务组 ID")

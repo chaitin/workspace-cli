@@ -17,6 +17,7 @@ var HistoryListCmd = &cobra.Command{
 	Short: "弱口令事件变更记录",
 	Long:  `弱口令事件变更记录`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.HistoryList", historyListParams, &result)

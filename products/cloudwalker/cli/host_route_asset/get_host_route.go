@@ -17,6 +17,7 @@ var GetHostRouteCmd = &cobra.Command{
 	Short: "获取主机路由资产信息",
 	Long:  `获取主机路由资产信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostRouteAssetService.GetHostRoute", getHostRouteParams, &result)

@@ -17,6 +17,7 @@ var DeleteEventCmd = &cobra.Command{
 	Short: "删除事件",
 	Long:  `删除事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.DeleteEvent", deleteEventParams, &result)

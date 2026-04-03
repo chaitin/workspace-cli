@@ -17,6 +17,7 @@ var InternalIpDefineCmd = &cobra.Command{
 	Short: "添加IP规则",
 	Long:  `添加IP规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.InternalIPDefine", internalIpDefineParams, &result)

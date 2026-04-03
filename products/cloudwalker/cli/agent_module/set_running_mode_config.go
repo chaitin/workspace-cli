@@ -4,6 +4,7 @@ package agent_module
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var setRunningModeConfigParams SetRunningModeConfigParams
+var SetRunningModeConfigFilterJSON string
+var SetRunningModeConfigRunningModeConfigJSON string
+var SetRunningModeConfigSelectFilterJSON string
 
 var SetRunningModeConfigCmd = &cobra.Command{
 	Use:   "set_running_mode_config",
 	Short: "设置运行模式设置",
 	Long:  `设置运行模式设置`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SetRunningModeConfigFilterJSON != "" {
+			if err := json.Unmarshal([]byte(SetRunningModeConfigFilterJSON), &setRunningModeConfigParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if SetRunningModeConfigRunningModeConfigJSON != "" {
+			if err := json.Unmarshal([]byte(SetRunningModeConfigRunningModeConfigJSON), &setRunningModeConfigParams.RunningModeConfig); err != nil {
+				cmd.PrintErrln("Error parsing running-mode-config:", err)
+				return
+			}
+		}
+		if SetRunningModeConfigSelectFilterJSON != "" {
+			if err := json.Unmarshal([]byte(SetRunningModeConfigSelectFilterJSON), &setRunningModeConfigParams.SelectFilter); err != nil {
+				cmd.PrintErrln("Error parsing select-filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentModuleService.SetRunningModeConfig", setRunningModeConfigParams, &result)
@@ -31,14 +53,11 @@ var SetRunningModeConfigCmd = &cobra.Command{
 func init() {
 	SetRunningModeConfigCmd.Flags().BoolVar(&setRunningModeConfigParams.EnableRunningMode, "enable-running-mode", false, "enable_running_mode")
 	// filter is object type, use JSON string
-	var filterJSON string
-	SetRunningModeConfigCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
+	SetRunningModeConfigCmd.Flags().StringVar(&SetRunningModeConfigFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
 	// running_mode_config is object type, use JSON string
-	var runningModeConfigJSON string
-	SetRunningModeConfigCmd.Flags().StringVar(&runningModeConfigJSON, "running-mode-config", "", "running_mode_config (JSON, e.g. {\"enable_monitor\": [\"\"], \"mode\": 0})")
+	SetRunningModeConfigCmd.Flags().StringVar(&SetRunningModeConfigRunningModeConfigJSON, "running-mode-config", "", "running_mode_config (JSON, e.g. {\"enable_monitor\": [\"\"], \"mode\": 0})")
 	// select_filter is object type, use JSON string
-	var selectFilterJSON string
-	SetRunningModeConfigCmd.Flags().StringVar(&selectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
+	SetRunningModeConfigCmd.Flags().StringVar(&SetRunningModeConfigSelectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
 }
 
 // SetRunningModeConfigParams 请求参数

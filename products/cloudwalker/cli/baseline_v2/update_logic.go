@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var updateLogicParams UpdateLogicParams
+var UpdateLogicLogicsJSON string
 
 var UpdateLogicCmd = &cobra.Command{
 	Use:   "update_logic",
 	Short: "编辑核查逻辑,目前编辑核查逻辑只能编辑其默认参数(json schema 的 default)",
 	Long:  `编辑核查逻辑,目前编辑核查逻辑只能编辑其默认参数(json schema 的 default)`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if UpdateLogicLogicsJSON != "" {
+			if err := json.Unmarshal([]byte(UpdateLogicLogicsJSON), &updateLogicParams.Logics); err != nil {
+				cmd.PrintErrln("Error parsing logics:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.UpdateLogic", updateLogicParams, &result)
@@ -30,8 +38,7 @@ var UpdateLogicCmd = &cobra.Command{
 
 func init() {
 	// logics is complex type []map[string]interface{}, use JSON string
-	var logicsJSON string
-	UpdateLogicCmd.Flags().StringVar(&logicsJSON, "logics", "", "要修改的项目 (JSON, e.g. [{\"args\": \"\", \"id\": \"754821f3-06db-455f-9d58-89421216fcf2\"}])")
+	UpdateLogicCmd.Flags().StringVar(&UpdateLogicLogicsJSON, "logics", "", "要修改的项目 (JSON, e.g. [{\"args\": \"\", \"id\": \"754821f3-06db-455f-9d58-89421216fcf2\"}])")
 	UpdateLogicCmd.Flags().StringVar(&updateLogicParams.PkgId, "pkg-id", "", "上传的核查项包, 不传则是修改数据库中已存在的")
 }
 

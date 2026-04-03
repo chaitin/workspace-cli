@@ -4,6 +4,7 @@ package anti_ransomware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var disposeEventListParams DisposeEventListParams
+var DisposeEventListCustomAttrJSON string
 
 var DisposeEventListCmd = &cobra.Command{
 	Use:   "dispose_event_list",
 	Short: "处置事件，如阻断勒索进程、隔离勒索文件",
 	Long:  `处置事件，如阻断勒索进程、隔离勒索文件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DisposeEventListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DisposeEventListCustomAttrJSON), &disposeEventListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AntiRansomwareService.DisposeEventList", disposeEventListParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	DisposeEventListCmd.Flags().StringSliceVar(&disposeEventListParams.Comment, "comment", nil, "备注")
 	DisposeEventListCmd.Flags().StringSliceVar(&disposeEventListParams.CreateAt, "create-at", nil, "告警时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DisposeEventListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DisposeEventListCmd.Flags().StringVar(&DisposeEventListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DisposeEventListCmd.Flags().StringSliceVar(&disposeEventListParams.ExecPath, "exec-path", nil, "执行路径")
 	DisposeEventListCmd.Flags().StringSliceVar(&disposeEventListParams.ExposedIp, "exposed-ip", nil, "主机外网 IP")
 	DisposeEventListCmd.Flags().StringSliceVar(&disposeEventListParams.Family, "family", nil, "恶意软件家族")

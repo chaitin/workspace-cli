@@ -4,6 +4,7 @@ package suspicious_operation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statEventByRuleNameParams StatEventByRuleNameParams
+var StatEventByRuleNameCustomAttrJSON string
 
 var StatEventByRuleNameCmd = &cobra.Command{
 	Use:   "stat_event_by_rule_name",
 	Short: "返回按 规则名称 聚合的统计视图",
 	Long:  `返回按 规则名称 聚合的统计视图`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatEventByRuleNameCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatEventByRuleNameCustomAttrJSON), &statEventByRuleNameParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SuspiciousOperationService.StatEventByRuleName", statEventByRuleNameParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	StatEventByRuleNameCmd.Flags().StringSliceVar(&statEventByRuleNameParams.Comment, "comment", nil, "用户自定义备注")
 	StatEventByRuleNameCmd.Flags().StringSliceVar(&statEventByRuleNameParams.ContainerHashId, "container-hash-id", nil, "容器Id")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatEventByRuleNameCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatEventByRuleNameCmd.Flags().StringVar(&StatEventByRuleNameCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatEventByRuleNameCmd.Flags().StringSliceVar(&statEventByRuleNameParams.Egid, "egid", nil, "有效用户组ID")
 	StatEventByRuleNameCmd.Flags().StringSliceVar(&statEventByRuleNameParams.Egname, "egname", nil, "有效用户组名")
 	StatEventByRuleNameCmd.Flags().Float64SliceVar(&statEventByRuleNameParams.Euid, "euid", nil, "有效用户ID")

@@ -17,6 +17,7 @@ var CreateNetworkAuditRuleCmd = &cobra.Command{
 	Short: "创建网络异常检测规则",
 	Long:  `创建网络异常检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.CreateNetworkAuditRule", createNetworkAuditRuleParams, &result)

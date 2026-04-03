@@ -17,6 +17,7 @@ var GetOrgInfoCmd = &cobra.Command{
 	Short: "获取机构信息",
 	Long:  `获取机构信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "OrganizationService.GetOrgInfo", getOrgInfoParams, &result)

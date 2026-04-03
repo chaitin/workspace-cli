@@ -17,6 +17,7 @@ var EditBusinessGroupCmd = &cobra.Command{
 	Short: "编辑业务组",
 	Long:  `编辑业务组`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BusinessGroupService.EditBusinessGroup", editBusinessGroupParams, &result)

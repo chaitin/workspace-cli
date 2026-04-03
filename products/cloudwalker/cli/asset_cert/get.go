@@ -17,6 +17,7 @@ var GetCmd = &cobra.Command{
 	Short: "获取主机证书详情",
 	Long:  `获取主机证书详情`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AssetCertService.Get", getParams, &result)

@@ -4,6 +4,7 @@ package application_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statApplicationByCategoryParams StatApplicationByCategoryParams
+var StatApplicationByCategoryCustomAttrJSON string
 
 var StatApplicationByCategoryCmd = &cobra.Command{
 	Use:   "stat_application_by_category",
 	Short: "软件类型数据分组，根据指定条件获取软件资产的列表",
 	Long:  `软件类型数据分组，根据指定条件获取软件资产的列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatApplicationByCategoryCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatApplicationByCategoryCustomAttrJSON), &statApplicationByCategoryParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ApplicationAssetService.StatApplicationByCategory", statApplicationByCategoryParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	StatApplicationByCategoryCmd.Flags().StringSliceVar(&statApplicationByCategoryParams.Category, "category", nil, "分类")
 	StatApplicationByCategoryCmd.Flags().IntVar(&statApplicationByCategoryParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatApplicationByCategoryCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatApplicationByCategoryCmd.Flags().StringVar(&StatApplicationByCategoryCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatApplicationByCategoryCmd.Flags().Float64SliceVar(&statApplicationByCategoryParams.Gids, "gids", nil, "业务组 ID 列表")
 	StatApplicationByCategoryCmd.Flags().StringSliceVar(&statApplicationByCategoryParams.HostComment, "host-comment", nil, "主机备注")
 	StatApplicationByCategoryCmd.Flags().Float64SliceVar(&statApplicationByCategoryParams.HostId, "host-id", nil, "主机 ID")

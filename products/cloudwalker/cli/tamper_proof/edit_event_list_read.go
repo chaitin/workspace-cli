@@ -4,6 +4,7 @@ package tamper_proof
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var editEventListReadParams EditEventListReadParams
+var EditEventListReadCustomAttrJSON string
 
 var EditEventListReadCmd = &cobra.Command{
 	Use:   "edit_event_list_read",
 	Short: "将多个事件置为已读或未读",
 	Long:  `将多个事件置为已读或未读`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditEventListReadCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditEventListReadCustomAttrJSON), &editEventListReadParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.EditEventListRead", editEventListReadParams, &result)
@@ -30,8 +38,7 @@ var EditEventListReadCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditEventListReadCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditEventListReadCmd.Flags().StringVar(&EditEventListReadCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditEventListReadCmd.Flags().Float64SliceVar(&editEventListReadParams.Gids, "gids", nil, "业务组 ID")
 	EditEventListReadCmd.Flags().StringSliceVar(&editEventListReadParams.HostComment, "host-comment", nil, "主机备注")
 	EditEventListReadCmd.Flags().Float64SliceVar(&editEventListReadParams.HostId, "host-id", nil, "主机ID")

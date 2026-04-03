@@ -15,6 +15,7 @@ var GetLogicTagsCmd = &cobra.Command{
 	Short: "获取核查逻辑的所有标签",
 	Long:  `获取核查逻辑的所有标签`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.GetLogicTags", nil, &result)

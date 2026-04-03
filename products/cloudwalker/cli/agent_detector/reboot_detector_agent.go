@@ -4,6 +4,7 @@ package agent_detector
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var rebootDetectorAgentParams RebootDetectorAgentParams
+var RebootDetectorAgentCustomAttrJSON string
 
 var RebootDetectorAgentCmd = &cobra.Command{
 	Use:   "reboot_detector_agent",
 	Short: "重启检测探针",
 	Long:  `重启检测探针`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if RebootDetectorAgentCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(RebootDetectorAgentCustomAttrJSON), &rebootDetectorAgentParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentDetectorService.RebootDetectorAgent", rebootDetectorAgentParams, &result)
@@ -30,8 +38,7 @@ var RebootDetectorAgentCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	RebootDetectorAgentCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	RebootDetectorAgentCmd.Flags().StringVar(&RebootDetectorAgentCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	RebootDetectorAgentCmd.Flags().Float64SliceVar(&rebootDetectorAgentParams.GroupId, "group-id", nil, "业务组 ID")
 	RebootDetectorAgentCmd.Flags().StringSliceVar(&rebootDetectorAgentParams.HostComment, "host-comment", nil, "主机备注")
 	RebootDetectorAgentCmd.Flags().Float64SliceVar(&rebootDetectorAgentParams.HostId, "host-id", nil, "主机 ID")

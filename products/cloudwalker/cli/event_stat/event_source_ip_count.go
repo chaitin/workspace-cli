@@ -4,6 +4,7 @@ package event_stat
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var eventSourceIpCountParams EventSourceIpCountParams
+var EventSourceIpCountCustomAttrJSON string
 
 var EventSourceIpCountCmd = &cobra.Command{
 	Use:   "event_source_ip_count",
 	Short: "事件攻击源IP聚合数量统计",
 	Long:  `事件攻击源IP聚合数量统计`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EventSourceIpCountCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EventSourceIpCountCustomAttrJSON), &eventSourceIpCountParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EventStatService.EventSourceIPCount", eventSourceIpCountParams, &result)
@@ -30,8 +38,7 @@ var EventSourceIpCountCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EventSourceIpCountCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EventSourceIpCountCmd.Flags().StringVar(&EventSourceIpCountCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EventSourceIpCountCmd.Flags().StringSliceVar(&eventSourceIpCountParams.EventType, "event-type", nil, "事件类型")
 	EventSourceIpCountCmd.Flags().StringSliceVar(&eventSourceIpCountParams.Filename, "filename", nil, "相关文件名")
 	EventSourceIpCountCmd.Flags().Float64SliceVar(&eventSourceIpCountParams.Gids, "gids", nil, "业务组 ID")

@@ -15,6 +15,7 @@ var GetProxyHostCmd = &cobra.Command{
 	Short: "获取代理主机信息",
 	Long:  `获取代理主机信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PackageService.GetProxyHost", nil, &result)

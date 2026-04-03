@@ -4,6 +4,7 @@ package anti_ransomware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteEventParams DeleteEventParams
+var DeleteEventCustomAttrJSON string
 
 var DeleteEventCmd = &cobra.Command{
 	Use:   "delete_event",
 	Short: "删除规则",
 	Long:  `删除规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteEventCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteEventCustomAttrJSON), &deleteEventParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AntiRansomwareService.DeleteEvent", deleteEventParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.Comment, "comment", nil, "备注")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.CreateAt, "create-at", nil, "告警时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteEventCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteEventCmd.Flags().StringVar(&DeleteEventCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.ExecPath, "exec-path", nil, "执行路径")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.ExposedIp, "exposed-ip", nil, "主机外网 IP")
 	DeleteEventCmd.Flags().StringSliceVar(&deleteEventParams.Family, "family", nil, "恶意软件家族")

@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listNetworkAuditRuleParams ListNetworkAuditRuleParams
+var ListNetworkAuditRuleCustomAttrJSON string
 
 var ListNetworkAuditRuleCmd = &cobra.Command{
 	Use:   "list_network_audit_rule",
 	Short: "获取网络异常检测规则列表",
 	Long:  `获取网络异常检测规则列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListNetworkAuditRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListNetworkAuditRuleCustomAttrJSON), &listNetworkAuditRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.ListNetworkAuditRule", listNetworkAuditRuleParams, &result)
@@ -31,8 +39,7 @@ var ListNetworkAuditRuleCmd = &cobra.Command{
 func init() {
 	ListNetworkAuditRuleCmd.Flags().IntVar(&listNetworkAuditRuleParams.Count, "count", 20, "每页记录数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListNetworkAuditRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListNetworkAuditRuleCmd.Flags().StringVar(&ListNetworkAuditRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListNetworkAuditRuleCmd.Flags().BoolVar(&listNetworkAuditRuleParams.Enable, "enable", false, "是否启用")
 	ListNetworkAuditRuleCmd.Flags().StringSliceVar(&listNetworkAuditRuleParams.HostComment, "host-comment", nil, "主机备注")
 	ListNetworkAuditRuleCmd.Flags().Float64SliceVar(&listNetworkAuditRuleParams.HostId, "host-id", nil, "主机ID")

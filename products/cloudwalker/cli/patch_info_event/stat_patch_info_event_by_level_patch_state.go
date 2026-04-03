@@ -4,6 +4,7 @@ package patch_info_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var statPatchInfoEventByLevelPatchStateParams StatPatchInfoEventByLevelPatchStateParams
+var StatPatchInfoEventByLevelPatchStateCustomAttrJSON string
+var StatPatchInfoEventByLevelPatchStateSelectJSON string
 
 var StatPatchInfoEventByLevelPatchStateCmd = &cobra.Command{
 	Use:   "stat_patch_info_event_by_level_patch_state",
 	Short: "返回按 补丁处置状态 聚合的统计视图",
 	Long:  `返回按 补丁处置状态 聚合的统计视图`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatPatchInfoEventByLevelPatchStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatPatchInfoEventByLevelPatchStateCustomAttrJSON), &statPatchInfoEventByLevelPatchStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if StatPatchInfoEventByLevelPatchStateSelectJSON != "" {
+			if err := json.Unmarshal([]byte(StatPatchInfoEventByLevelPatchStateSelectJSON), &statPatchInfoEventByLevelPatchStateParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PatchInfoEventService.StatPatchInfoEventByLevelPatchState", statPatchInfoEventByLevelPatchStateParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	StatPatchInfoEventByLevelPatchStateCmd.Flags().StringSliceVar(&statPatchInfoEventByLevelPatchStateParams.Comment, "comment", nil, "用户自定义备注")
 	StatPatchInfoEventByLevelPatchStateCmd.Flags().StringSliceVar(&statPatchInfoEventByLevelPatchStateParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatPatchInfoEventByLevelPatchStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatPatchInfoEventByLevelPatchStateCmd.Flags().StringVar(&StatPatchInfoEventByLevelPatchStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatPatchInfoEventByLevelPatchStateCmd.Flags().StringSliceVar(&statPatchInfoEventByLevelPatchStateParams.Cve, "cve", nil, "CVE 编号")
 	StatPatchInfoEventByLevelPatchStateCmd.Flags().Float64SliceVar(&statPatchInfoEventByLevelPatchStateParams.Gids, "gids", nil, "业务组 ID")
 	StatPatchInfoEventByLevelPatchStateCmd.Flags().StringSliceVar(&statPatchInfoEventByLevelPatchStateParams.GroupName, "group-name", nil, "业务组名")
@@ -53,8 +67,7 @@ func init() {
 	StatPatchInfoEventByLevelPatchStateCmd.Flags().Float64SliceVar(&statPatchInfoEventByLevelPatchStateParams.PlanId, "plan-id", nil, "计划ID")
 	StatPatchInfoEventByLevelPatchStateCmd.Flags().StringSliceVar(&statPatchInfoEventByLevelPatchStateParams.PublishTime, "publish-time", nil, "补丁发布时间")
 	// select is object type, use JSON string
-	var selectJSON string
-	StatPatchInfoEventByLevelPatchStateCmd.Flags().StringVar(&selectJSON, "select", "", "选项 (JSON, e.g. {})")
+	StatPatchInfoEventByLevelPatchStateCmd.Flags().StringVar(&StatPatchInfoEventByLevelPatchStateSelectJSON, "select", "", "选项 (JSON, e.g. {})")
 	StatPatchInfoEventByLevelPatchStateCmd.Flags().BoolVar(&statPatchInfoEventByLevelPatchStateParams.SelectAll, "select-all", false, "是否全选")
 	StatPatchInfoEventByLevelPatchStateCmd.Flags().StringSliceVar(&statPatchInfoEventByLevelPatchStateParams.Trait, "trait", nil, "特征")
 	StatPatchInfoEventByLevelPatchStateCmd.Flags().StringSliceVar(&statPatchInfoEventByLevelPatchStateParams.Type, "type", nil, "补丁类型 KB/Ubuntu")

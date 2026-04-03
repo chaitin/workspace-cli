@@ -4,6 +4,7 @@ package firewall
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getConnectionRecordParams GetConnectionRecordParams
+var GetConnectionRecordFilterJSON string
+var GetConnectionRecordPageJSON string
 
 var GetConnectionRecordCmd = &cobra.Command{
 	Use:   "get_connection_record",
 	Short: "获取连接记录",
 	Long:  `获取连接记录`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetConnectionRecordFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetConnectionRecordFilterJSON), &getConnectionRecordParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetConnectionRecordPageJSON != "" {
+			if err := json.Unmarshal([]byte(GetConnectionRecordPageJSON), &getConnectionRecordParams.Page); err != nil {
+				cmd.PrintErrln("Error parsing page:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.GetConnectionRecord", getConnectionRecordParams, &result)
@@ -30,11 +45,9 @@ var GetConnectionRecordCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	GetConnectionRecordCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选条件 (JSON, e.g. {\"conn_type\": [0.0], \"dest_cidr\": [\"192.168.1.2\"], \"group_ids\": [100, 101], \"...\": \"...\"})")
+	GetConnectionRecordCmd.Flags().StringVar(&GetConnectionRecordFilterJSON, "filter", "", "筛选条件 (JSON, e.g. {\"conn_type\": [0.0], \"dest_cidr\": [\"192.168.1.2\"], \"group_ids\": [100, 101], \"...\": \"...\"})")
 	// page is object type, use JSON string
-	var pageJSON string
-	GetConnectionRecordCmd.Flags().StringVar(&pageJSON, "page", "", "分页参数 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
+	GetConnectionRecordCmd.Flags().StringVar(&GetConnectionRecordPageJSON, "page", "", "分页参数 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
 }
 
 // GetConnectionRecordParams 请求参数

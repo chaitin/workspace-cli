@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getAssetOverViewParams GetAssetOverViewParams
+var GetAssetOverViewCustomAttrJSON string
 
 var GetAssetOverViewCmd = &cobra.Command{
 	Use:   "get_asset_over_view",
 	Short: "获取主机上的资产的统计信息",
 	Long:  `获取主机上的资产的统计信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetAssetOverViewCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetAssetOverViewCustomAttrJSON), &getAssetOverViewParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetAssetOverView", getAssetOverViewParams, &result)
@@ -40,8 +48,7 @@ func init() {
 	GetAssetOverViewCmd.Flags().StringSliceVar(&getAssetOverViewParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	GetAssetOverViewCmd.Flags().StringSliceVar(&getAssetOverViewParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetAssetOverViewCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetAssetOverViewCmd.Flags().StringVar(&GetAssetOverViewCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetAssetOverViewCmd.Flags().BoolVar(&getAssetOverViewParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	GetAssetOverViewCmd.Flags().BoolVar(&getAssetOverViewParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	GetAssetOverViewCmd.Flags().StringSliceVar(&getAssetOverViewParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")

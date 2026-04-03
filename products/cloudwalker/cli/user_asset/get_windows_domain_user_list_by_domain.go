@@ -4,6 +4,7 @@ package user_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getWindowsDomainUserListByDomainParams GetWindowsDomainUserListByDomainParams
+var GetWindowsDomainUserListByDomainFilterJSON string
+var GetWindowsDomainUserListByDomainOrderByJSON string
 
 var GetWindowsDomainUserListByDomainCmd = &cobra.Command{
 	Use:   "get_windows_domain_user_list_by_domain",
 	Short: "获取 windows 域用户列表，按域聚合",
 	Long:  `获取 windows 域用户列表，按域聚合`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetWindowsDomainUserListByDomainFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetWindowsDomainUserListByDomainFilterJSON), &getWindowsDomainUserListByDomainParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetWindowsDomainUserListByDomainOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetWindowsDomainUserListByDomainOrderByJSON), &getWindowsDomainUserListByDomainParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "UserAssetService.GetWindowsDomainUserListByDomain", getWindowsDomainUserListByDomainParams, &result)
@@ -34,16 +49,14 @@ func init() {
 	GetWindowsDomainUserListByDomainCmd.Flags().StringSliceVar(&getWindowsDomainUserListByDomainParams.Domain, "domain", nil, "域")
 	GetWindowsDomainUserListByDomainCmd.Flags().BoolSliceVar(&getWindowsDomainUserListByDomainParams.Enabled, "enabled", nil, "是否启用，true代表启用，false代表禁用")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetWindowsDomainUserListByDomainCmd.Flags().StringVar(&filterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"domain\": \"test222\", \"id\": 123, \"username\": \"test222\"}])")
+	GetWindowsDomainUserListByDomainCmd.Flags().StringVar(&GetWindowsDomainUserListByDomainFilterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"domain\": \"test222\", \"id\": 123, \"username\": \"test222\"}])")
 	GetWindowsDomainUserListByDomainCmd.Flags().StringSliceVar(&getWindowsDomainUserListByDomainParams.LastLogin, "last-login", nil, "上次登录时间")
 	GetWindowsDomainUserListByDomainCmd.Flags().StringSliceVar(&getWindowsDomainUserListByDomainParams.LastLoginHostIp, "last-login-host-ip", nil, "域账户最近登录主机的 ip")
 	GetWindowsDomainUserListByDomainCmd.Flags().StringSliceVar(&getWindowsDomainUserListByDomainParams.LastLoginHostName, "last-login-host-name", nil, "域账户最近登录主机的名称")
 	GetWindowsDomainUserListByDomainCmd.Flags().StringSliceVar(&getWindowsDomainUserListByDomainParams.LastLogout, "last-logout", nil, "上次登出时间")
 	GetWindowsDomainUserListByDomainCmd.Flags().IntVar(&getWindowsDomainUserListByDomainParams.Offset, "offset", 0, "偏移量")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetWindowsDomainUserListByDomainCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetWindowsDomainUserListByDomainCmd.Flags().StringVar(&GetWindowsDomainUserListByDomainOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetWindowsDomainUserListByDomainCmd.Flags().StringSliceVar(&getWindowsDomainUserListByDomainParams.PasswordModify, "password-modify", nil, "上次修改密码时间")
 	GetWindowsDomainUserListByDomainCmd.Flags().StringSliceVar(&getWindowsDomainUserListByDomainParams.PrimaryDomainController, "primary-domain-controller", nil, "主域控服务器")
 	GetWindowsDomainUserListByDomainCmd.Flags().BoolVar(&getWindowsDomainUserListByDomainParams.SelectAll, "select-all", false, "是否选中所有")

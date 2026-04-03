@@ -17,6 +17,7 @@ var DeleteSecurityStrategyCmd = &cobra.Command{
 	Short: "删除安全策略",
 	Long:  `删除安全策略`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SecurityStrategyService.DeleteSecurityStrategy", deleteSecurityStrategyParams, &result)

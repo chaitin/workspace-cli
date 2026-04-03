@@ -4,6 +4,7 @@ package suspicious_operation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var markAsReadParams MarkAsReadParams
+var MarkAsReadCustomAttrJSON string
+var MarkAsReadFilterJSON string
 
 var MarkAsReadCmd = &cobra.Command{
 	Use:   "mark_as_read",
 	Short: "标记事件为已读",
 	Long:  `标记事件为已读`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if MarkAsReadCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(MarkAsReadCustomAttrJSON), &markAsReadParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if MarkAsReadFilterJSON != "" {
+			if err := json.Unmarshal([]byte(MarkAsReadFilterJSON), &markAsReadParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SuspiciousOperationService.MarkAsRead", markAsReadParams, &result)
@@ -32,15 +47,13 @@ func init() {
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.Comment, "comment", nil, "用户自定义备注")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.ContainerHashId, "container-hash-id", nil, "容器Id")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	MarkAsReadCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	MarkAsReadCmd.Flags().StringVar(&MarkAsReadCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.Egid, "egid", nil, "有效用户组ID")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.Egname, "egname", nil, "有效用户组名")
 	MarkAsReadCmd.Flags().Float64SliceVar(&markAsReadParams.Euid, "euid", nil, "有效用户ID")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.Euname, "euname", nil, "有效用户名")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	MarkAsReadCmd.Flags().StringVar(&filterJSON, "filter", "", "过滤信息 (JSON, e.g. [{\"host_id\": 122, \"id\": 122, \"net_app\": \"weblogic\", \"rule_name\": \"使用黑客工具\", \"ssh_client_ip\": \"120.12.27.128\", \"ssh_user\": \"root\"}])")
+	MarkAsReadCmd.Flags().StringVar(&MarkAsReadFilterJSON, "filter", "", "过滤信息 (JSON, e.g. [{\"host_id\": 122, \"id\": 122, \"net_app\": \"weblogic\", \"rule_name\": \"使用黑客工具\", \"ssh_client_ip\": \"120.12.27.128\", \"ssh_user\": \"root\"}])")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.Gid, "gid", nil, "用户组ID")
 	MarkAsReadCmd.Flags().Float64SliceVar(&markAsReadParams.Gids, "gids", nil, "业务组ID")
 	MarkAsReadCmd.Flags().StringSliceVar(&markAsReadParams.Gname, "gname", nil, "用户组名")

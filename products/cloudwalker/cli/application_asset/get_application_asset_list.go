@@ -4,6 +4,7 @@ package application_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getApplicationAssetListParams GetApplicationAssetListParams
+var GetApplicationAssetListCustomAttrJSON string
+var GetApplicationAssetListFilterJSON string
+var GetApplicationAssetListOrderByJSON string
 
 var GetApplicationAssetListCmd = &cobra.Command{
 	Use:   "get_application_asset_list",
 	Short: "根据指定条件获取软件资产的列表",
 	Long:  `根据指定条件获取软件资产的列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetApplicationAssetListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetApplicationAssetListCustomAttrJSON), &getApplicationAssetListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetApplicationAssetListFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetApplicationAssetListFilterJSON), &getApplicationAssetListParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetApplicationAssetListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetApplicationAssetListOrderByJSON), &getApplicationAssetListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ApplicationAssetService.GetApplicationAssetList", getApplicationAssetListParams, &result)
@@ -33,11 +55,9 @@ func init() {
 	GetApplicationAssetListCmd.Flags().StringSliceVar(&getApplicationAssetListParams.Category, "category", nil, "分类")
 	GetApplicationAssetListCmd.Flags().IntVar(&getApplicationAssetListParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetApplicationAssetListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetApplicationAssetListCmd.Flags().StringVar(&GetApplicationAssetListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetApplicationAssetListCmd.Flags().StringVar(&filterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"app\": \"windows_nt\", \"category\": \"系统库\", \"host_id\": 196, \"id\": 190823, \"version\": \"10.0.14393.447\"}])")
+	GetApplicationAssetListCmd.Flags().StringVar(&GetApplicationAssetListFilterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"app\": \"windows_nt\", \"category\": \"系统库\", \"host_id\": 196, \"id\": 190823, \"version\": \"10.0.14393.447\"}])")
 	GetApplicationAssetListCmd.Flags().Float64SliceVar(&getApplicationAssetListParams.Gids, "gids", nil, "业务组 ID 列表")
 	GetApplicationAssetListCmd.Flags().StringSliceVar(&getApplicationAssetListParams.HostComment, "host-comment", nil, "主机备注")
 	GetApplicationAssetListCmd.Flags().Float64SliceVar(&getApplicationAssetListParams.HostId, "host-id", nil, "主机 ID")
@@ -48,8 +68,7 @@ func init() {
 	GetApplicationAssetListCmd.Flags().IntVar(&getApplicationAssetListParams.Offset, "offset", 0, "偏移量")
 	GetApplicationAssetListCmd.Flags().Float64SliceVar(&getApplicationAssetListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetApplicationAssetListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetApplicationAssetListCmd.Flags().StringVar(&GetApplicationAssetListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetApplicationAssetListCmd.Flags().StringSliceVar(&getApplicationAssetListParams.Path, "path", nil, "路径")
 	GetApplicationAssetListCmd.Flags().BoolSliceVar(&getApplicationAssetListParams.Running, "running", nil, "是否正在运行")
 	GetApplicationAssetListCmd.Flags().BoolVar(&getApplicationAssetListParams.SelectAll, "select-all", false, "是否选中所有")

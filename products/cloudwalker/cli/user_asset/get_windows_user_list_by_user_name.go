@@ -4,6 +4,7 @@ package user_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getWindowsUserListByUserNameParams GetWindowsUserListByUserNameParams
+var GetWindowsUserListByUserNameCustomAttrJSON string
+var GetWindowsUserListByUserNameFilterJSON string
+var GetWindowsUserListByUserNameOrderByJSON string
 
 var GetWindowsUserListByUserNameCmd = &cobra.Command{
 	Use:   "get_windows_user_list_by_user_name",
 	Short: "取 windows 用户列表，按用户名聚合",
 	Long:  `取 windows 用户列表，按用户名聚合`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetWindowsUserListByUserNameCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetWindowsUserListByUserNameCustomAttrJSON), &getWindowsUserListByUserNameParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetWindowsUserListByUserNameFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetWindowsUserListByUserNameFilterJSON), &getWindowsUserListByUserNameParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetWindowsUserListByUserNameOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetWindowsUserListByUserNameOrderByJSON), &getWindowsUserListByUserNameParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "UserAssetService.GetWindowsUserListByUserName", getWindowsUserListByUserNameParams, &result)
@@ -31,12 +53,10 @@ var GetWindowsUserListByUserNameCmd = &cobra.Command{
 func init() {
 	GetWindowsUserListByUserNameCmd.Flags().IntVar(&getWindowsUserListByUserNameParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetWindowsUserListByUserNameCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetWindowsUserListByUserNameCmd.Flags().StringVar(&GetWindowsUserListByUserNameCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetWindowsUserListByUserNameCmd.Flags().BoolSliceVar(&getWindowsUserListByUserNameParams.Enabled, "enabled", nil, "是否启用，true代表启用，false代表禁用")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetWindowsUserListByUserNameCmd.Flags().StringVar(&filterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"host_id\": 1, \"id\": 123, \"username\": \"test222\"}])")
+	GetWindowsUserListByUserNameCmd.Flags().StringVar(&GetWindowsUserListByUserNameFilterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"host_id\": 1, \"id\": 123, \"username\": \"test222\"}])")
 	GetWindowsUserListByUserNameCmd.Flags().Float64SliceVar(&getWindowsUserListByUserNameParams.Gids, "gids", nil, "业务组")
 	GetWindowsUserListByUserNameCmd.Flags().StringSliceVar(&getWindowsUserListByUserNameParams.HostComment, "host-comment", nil, "主机备注")
 	GetWindowsUserListByUserNameCmd.Flags().Float64SliceVar(&getWindowsUserListByUserNameParams.HostId, "host-id", nil, "主机ID, 用于主机详情页面")
@@ -49,8 +69,7 @@ func init() {
 	GetWindowsUserListByUserNameCmd.Flags().IntVar(&getWindowsUserListByUserNameParams.Offset, "offset", 0, "偏移量")
 	GetWindowsUserListByUserNameCmd.Flags().Float64SliceVar(&getWindowsUserListByUserNameParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetWindowsUserListByUserNameCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetWindowsUserListByUserNameCmd.Flags().StringVar(&GetWindowsUserListByUserNameOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetWindowsUserListByUserNameCmd.Flags().StringSliceVar(&getWindowsUserListByUserNameParams.PasswordModify, "password-modify", nil, "上次修改密码时间")
 	GetWindowsUserListByUserNameCmd.Flags().BoolVar(&getWindowsUserListByUserNameParams.SelectAll, "select-all", false, "是否选中所有")
 	GetWindowsUserListByUserNameCmd.Flags().Float64SliceVar(&getWindowsUserListByUserNameParams.Sid, "sid", nil, "SID")

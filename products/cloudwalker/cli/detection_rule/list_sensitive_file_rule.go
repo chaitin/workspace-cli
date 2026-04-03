@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listSensitiveFileRuleParams ListSensitiveFileRuleParams
+var ListSensitiveFileRuleCustomAttrJSON string
 
 var ListSensitiveFileRuleCmd = &cobra.Command{
 	Use:   "list_sensitive_file_rule",
 	Short: "获取敏感文件检测规则列表",
 	Long:  `获取敏感文件检测规则列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListSensitiveFileRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListSensitiveFileRuleCustomAttrJSON), &listSensitiveFileRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.ListSensitiveFileRule", listSensitiveFileRuleParams, &result)
@@ -31,8 +39,7 @@ var ListSensitiveFileRuleCmd = &cobra.Command{
 func init() {
 	ListSensitiveFileRuleCmd.Flags().IntVar(&listSensitiveFileRuleParams.Count, "count", 20, "每页记录数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListSensitiveFileRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListSensitiveFileRuleCmd.Flags().StringVar(&ListSensitiveFileRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListSensitiveFileRuleCmd.Flags().BoolVar(&listSensitiveFileRuleParams.Enable, "enable", false, "是否启用")
 	ListSensitiveFileRuleCmd.Flags().StringSliceVar(&listSensitiveFileRuleParams.HostComment, "host-comment", nil, "主机备注")
 	ListSensitiveFileRuleCmd.Flags().Float64SliceVar(&listSensitiveFileRuleParams.HostId, "host-id", nil, "主机ID")

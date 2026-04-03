@@ -4,6 +4,7 @@ package whitelist
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enablementWhitelistParams EnablementWhitelistParams
+var EnablementWhitelistFilterJSON string
 
 var EnablementWhitelistCmd = &cobra.Command{
 	Use:   "enablement_whitelist",
 	Short: "启禁用事件加白规则",
 	Long:  `启禁用事件加白规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnablementWhitelistFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EnablementWhitelistFilterJSON), &enablementWhitelistParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WhitelistService.EnablementWhitelist", enablementWhitelistParams, &result)
@@ -31,8 +39,7 @@ var EnablementWhitelistCmd = &cobra.Command{
 func init() {
 	EnablementWhitelistCmd.Flags().BoolVar(&enablementWhitelistParams.Enable, "enable", false, "是否启用")
 	// filter is object type, use JSON string
-	var filterJSON string
-	EnablementWhitelistCmd.Flags().StringVar(&filterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"created_at\": [\"\"], \"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": true, \"...\": \"...\"})")
+	EnablementWhitelistCmd.Flags().StringVar(&EnablementWhitelistFilterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"created_at\": [\"\"], \"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": true, \"...\": \"...\"})")
 }
 
 // EnablementWhitelistParams 请求参数

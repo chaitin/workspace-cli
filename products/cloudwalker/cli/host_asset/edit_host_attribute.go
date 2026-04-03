@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var editHostAttributeParams EditHostAttributeParams
+var EditHostAttributeAttributesJSON string
 
 var EditHostAttributeCmd = &cobra.Command{
 	Use:   "edit_host_attribute",
 	Short: "编辑主机属性信息",
 	Long:  `编辑主机属性信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditHostAttributeAttributesJSON != "" {
+			if err := json.Unmarshal([]byte(EditHostAttributeAttributesJSON), &editHostAttributeParams.Attributes); err != nil {
+				cmd.PrintErrln("Error parsing attributes:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.EditHostAttribute", editHostAttributeParams, &result)
@@ -30,8 +38,7 @@ var EditHostAttributeCmd = &cobra.Command{
 
 func init() {
 	// attributes is complex type []map[string]interface{}, use JSON string
-	var attributesJSON string
-	EditHostAttributeCmd.Flags().StringVar(&attributesJSON, "attributes", "", "attributes (JSON, e.g. [{\"attr_name\": \"\", \"attr_type\": \"\", \"attr_value\": [\"\"]}])")
+	EditHostAttributeCmd.Flags().StringVar(&EditHostAttributeAttributesJSON, "attributes", "", "attributes (JSON, e.g. [{\"attr_name\": \"\", \"attr_type\": \"\", \"attr_value\": [\"\"]}])")
 	EditHostAttributeCmd.Flags().Float64Var(&editHostAttributeParams.HostId, "host-id", 0, "主机 ID")
 }
 

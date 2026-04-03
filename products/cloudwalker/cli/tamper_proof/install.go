@@ -17,6 +17,7 @@ var InstallCmd = &cobra.Command{
 	Short: "给主机安装防篡改模块",
 	Long:  `给主机安装防篡改模块`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.Install", installParams, &result)

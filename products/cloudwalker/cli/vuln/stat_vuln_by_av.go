@@ -4,6 +4,7 @@ package vuln
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statVulnByAvParams StatVulnByAvParams
+var StatVulnByAvCustomAttrJSON string
 
 var StatVulnByAvCmd = &cobra.Command{
 	Use:   "stat_vuln_by_av",
 	Short: "漏洞的攻击途径分布",
 	Long:  `漏洞的攻击途径分布`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatVulnByAvCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatVulnByAvCustomAttrJSON), &statVulnByAvParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "VulnService.StatVulnByAV", statVulnByAvParams, &result)
@@ -44,8 +52,7 @@ func init() {
 	StatVulnByAvCmd.Flags().StringSliceVar(&statVulnByAvParams.Confidentiality, "confidentiality", nil, "机密性影响")
 	StatVulnByAvCmd.Flags().StringSliceVar(&statVulnByAvParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatVulnByAvCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatVulnByAvCmd.Flags().StringVar(&StatVulnByAvCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatVulnByAvCmd.Flags().StringSliceVar(&statVulnByAvParams.Cve, "cve", nil, "CVE 编号")
 	StatVulnByAvCmd.Flags().StringSliceVar(&statVulnByAvParams.CvssScore, "cvss-score", nil, "CVSS 分数")
 	StatVulnByAvCmd.Flags().StringSliceVar(&statVulnByAvParams.Cwe, "cwe", nil, "CWE 编号")

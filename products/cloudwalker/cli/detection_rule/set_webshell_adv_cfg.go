@@ -17,6 +17,7 @@ var SetWebshellAdvCfgCmd = &cobra.Command{
 	Short: "设置 Webshell 高级配置",
 	Long:  `设置 Webshell 高级配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.SetWebshellAdvCfg", setWebshellAdvCfgParams, &result)

@@ -15,6 +15,7 @@ var GetOsNameCmd = &cobra.Command{
 	Short: "获取所有操作系统",
 	Long:  `获取所有操作系统`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetOsName", nil, &result)

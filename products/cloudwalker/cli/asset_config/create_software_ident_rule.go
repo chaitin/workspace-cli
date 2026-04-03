@@ -4,6 +4,7 @@ package asset_config
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var createSoftwareIdentRuleParams CreateSoftwareIdentRuleParams
+var CreateSoftwareIdentRuleFilePatternJSON string
+var CreateSoftwareIdentRuleProcessPatternJSON string
+var CreateSoftwareIdentRuleVersionPatternJSON string
 
 var CreateSoftwareIdentRuleCmd = &cobra.Command{
 	Use:   "create_software_ident_rule",
 	Short: "创建软件识别规则",
 	Long:  `创建软件识别规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateSoftwareIdentRuleFilePatternJSON != "" {
+			if err := json.Unmarshal([]byte(CreateSoftwareIdentRuleFilePatternJSON), &createSoftwareIdentRuleParams.FilePattern); err != nil {
+				cmd.PrintErrln("Error parsing file-pattern:", err)
+				return
+			}
+		}
+		if CreateSoftwareIdentRuleProcessPatternJSON != "" {
+			if err := json.Unmarshal([]byte(CreateSoftwareIdentRuleProcessPatternJSON), &createSoftwareIdentRuleParams.ProcessPattern); err != nil {
+				cmd.PrintErrln("Error parsing process-pattern:", err)
+				return
+			}
+		}
+		if CreateSoftwareIdentRuleVersionPatternJSON != "" {
+			if err := json.Unmarshal([]byte(CreateSoftwareIdentRuleVersionPatternJSON), &createSoftwareIdentRuleParams.VersionPattern); err != nil {
+				cmd.PrintErrln("Error parsing version-pattern:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AssetConfigService.CreateSoftwareIdentRule", createSoftwareIdentRuleParams, &result)
@@ -35,19 +57,16 @@ func init() {
 	CreateSoftwareIdentRuleCmd.Flags().StringVar(&createSoftwareIdentRuleParams.Description, "description", "", "软件描述")
 	CreateSoftwareIdentRuleCmd.Flags().IntVar(&createSoftwareIdentRuleParams.DetectType, "detect-type", 0, "检测类型 1:采集进程匹配 2:读取文件匹配")
 	// file_pattern is object type, use JSON string
-	var filePatternJSON string
-	CreateSoftwareIdentRuleCmd.Flags().StringVar(&filePatternJSON, "file-pattern", "", "file_pattern (JSON, e.g. {\"path\": [\"\"], \"regex\": \"\"})")
+	CreateSoftwareIdentRuleCmd.Flags().StringVar(&CreateSoftwareIdentRuleFilePatternJSON, "file-pattern", "", "file_pattern (JSON, e.g. {\"path\": [\"\"], \"regex\": \"\"})")
 	CreateSoftwareIdentRuleCmd.Flags().BoolVar(&createSoftwareIdentRuleParams.Global, "global", false, "是否绑定全局探针")
 	CreateSoftwareIdentRuleCmd.Flags().IntVar(&createSoftwareIdentRuleParams.Platform, "platform", 0, "适用平台 1:windows 2:linux 5:all")
 	// process_pattern is object type, use JSON string
-	var processPatternJSON string
-	CreateSoftwareIdentRuleCmd.Flags().StringVar(&processPatternJSON, "process-pattern", "", "process_pattern (JSON, e.g. {\"parent_process_cmd\": {\"operate\": 0, \"value\": [\"\"]}, \"parent_process_name\": {\"operate\": 0, \"value\": [\"\"]}, \"process_cmd\": {\"operate\": 0, \"value\": [\"\"]}, \"process_name\": {\"operate\": 0, \"value\": [\"\"]}})")
+	CreateSoftwareIdentRuleCmd.Flags().StringVar(&CreateSoftwareIdentRuleProcessPatternJSON, "process-pattern", "", "process_pattern (JSON, e.g. {\"parent_process_cmd\": {\"operate\": 0, \"value\": [\"\"]}, \"parent_process_name\": {\"operate\": 0, \"value\": [\"\"]}, \"process_cmd\": {\"operate\": 0, \"value\": [\"\"]}, \"process_name\": {\"operate\": 0, \"value\": [\"\"]}})")
 	CreateSoftwareIdentRuleCmd.Flags().StringVar(&createSoftwareIdentRuleParams.Provider, "provider", "", "提供厂商")
 	CreateSoftwareIdentRuleCmd.Flags().StringVar(&createSoftwareIdentRuleParams.RuleName, "rule-name", "", "规则名称")
 	CreateSoftwareIdentRuleCmd.Flags().StringVar(&createSoftwareIdentRuleParams.SoftwareName, "software-name", "", "软件名称")
 	// version_pattern is object type, use JSON string
-	var versionPatternJSON string
-	CreateSoftwareIdentRuleCmd.Flags().StringVar(&versionPatternJSON, "version-pattern", "", "version_pattern (JSON, e.g. {\"path\": [\"\"], \"regex\": \"\"})")
+	CreateSoftwareIdentRuleCmd.Flags().StringVar(&CreateSoftwareIdentRuleVersionPatternJSON, "version-pattern", "", "version_pattern (JSON, e.g. {\"path\": [\"\"], \"regex\": \"\"})")
 }
 
 // CreateSoftwareIdentRuleParams 请求参数

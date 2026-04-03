@@ -4,6 +4,7 @@ package abnormal_login_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var generateEventFirewallRuleParams GenerateEventFirewallRuleParams
+var GenerateEventFirewallRuleBlockDurationsJSON string
+var GenerateEventFirewallRuleCustomAttrJSON string
 
 var GenerateEventFirewallRuleCmd = &cobra.Command{
 	Use:   "generate_event_firewall_rule",
 	Short: "根据所选事件生成网络阻断规则",
 	Long:  `根据所选事件生成网络阻断规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GenerateEventFirewallRuleBlockDurationsJSON != "" {
+			if err := json.Unmarshal([]byte(GenerateEventFirewallRuleBlockDurationsJSON), &generateEventFirewallRuleParams.BlockDurations); err != nil {
+				cmd.PrintErrln("Error parsing block-durations:", err)
+				return
+			}
+		}
+		if GenerateEventFirewallRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GenerateEventFirewallRuleCustomAttrJSON), &generateEventFirewallRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AbnormalLoginEventService.GenerateEventFirewallRule", generateEventFirewallRuleParams, &result)
@@ -31,13 +46,11 @@ var GenerateEventFirewallRuleCmd = &cobra.Command{
 func init() {
 	GenerateEventFirewallRuleCmd.Flags().StringSliceVar(&generateEventFirewallRuleParams.AuthType, "auth-type", nil, "认证类型")
 	// block_durations is object type, use JSON string
-	var blockDurationsJSON string
-	GenerateEventFirewallRuleCmd.Flags().StringVar(&blockDurationsJSON, "block-durations", "", "按风险等级设置阻断时间 (JSON, e.g. {\"level_critical\": 600, \"level_high\": 60, \"level_low\": 5, \"level_medium\": 20})")
+	GenerateEventFirewallRuleCmd.Flags().StringVar(&GenerateEventFirewallRuleBlockDurationsJSON, "block-durations", "", "按风险等级设置阻断时间 (JSON, e.g. {\"level_critical\": 600, \"level_high\": 60, \"level_low\": 5, \"level_medium\": 20})")
 	GenerateEventFirewallRuleCmd.Flags().StringSliceVar(&generateEventFirewallRuleParams.Comment, "comment", nil, "用户自定义备注")
 	GenerateEventFirewallRuleCmd.Flags().StringSliceVar(&generateEventFirewallRuleParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GenerateEventFirewallRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GenerateEventFirewallRuleCmd.Flags().StringVar(&GenerateEventFirewallRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GenerateEventFirewallRuleCmd.Flags().Float64SliceVar(&generateEventFirewallRuleParams.Gids, "gids", nil, "业务组 ID")
 	GenerateEventFirewallRuleCmd.Flags().StringSliceVar(&generateEventFirewallRuleParams.HostComment, "host-comment", nil, "主机备注")
 	GenerateEventFirewallRuleCmd.Flags().Float64SliceVar(&generateEventFirewallRuleParams.HostId, "host-id", nil, "主机 ID")

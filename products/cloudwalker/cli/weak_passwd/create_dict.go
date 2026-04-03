@@ -4,6 +4,7 @@ package weak_passwd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var createDictParams CreateDictParams
+var CreateDictParamsJSON string
 
 var CreateDictCmd = &cobra.Command{
 	Use:   "create_dict",
 	Short: "创建弱口令字典",
 	Long:  `创建弱口令字典`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateDictParamsJSON != "" {
+			if err := json.Unmarshal([]byte(CreateDictParamsJSON), &createDictParams.Params); err != nil {
+				cmd.PrintErrln("Error parsing params:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.CreateDict", createDictParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	CreateDictCmd.Flags().StringSliceVar(&createDictParams.Dict, "dict", nil, "字典，最多5000条")
 	CreateDictCmd.Flags().StringVar(&createDictParams.Name, "name", "", "字典名称")
 	// params is complex type []map[string]interface{}, use JSON string
-	var paramsJSON string
-	CreateDictCmd.Flags().StringVar(&paramsJSON, "params", "", "字典参数 (JSON, e.g. [{\"description\": \"描述\", \"is_default\": false, \"name\": \"test\", \"value\": \"1\"}])")
+	CreateDictCmd.Flags().StringVar(&CreateDictParamsJSON, "params", "", "字典参数 (JSON, e.g. [{\"description\": \"描述\", \"is_default\": false, \"name\": \"test\", \"value\": \"1\"}])")
 	CreateDictCmd.Flags().StringSliceVar(&createDictParams.Prefix, "prefix", nil, "前缀，最多3条")
 	CreateDictCmd.Flags().StringSliceVar(&createDictParams.Suffix, "suffix", nil, "后缀，最多3条")
 }

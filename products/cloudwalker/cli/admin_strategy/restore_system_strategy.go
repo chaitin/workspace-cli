@@ -15,6 +15,7 @@ var RestoreSystemStrategyCmd = &cobra.Command{
 	Short: "恢复系统默认策略",
 	Long:  `恢复系统默认策略`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AdminStrategyService.RestoreSystemStrategy", nil, &result)

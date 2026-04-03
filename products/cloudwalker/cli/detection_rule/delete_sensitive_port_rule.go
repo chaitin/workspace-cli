@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteSensitivePortRuleParams DeleteSensitivePortRuleParams
+var DeleteSensitivePortRuleCustomAttrJSON string
 
 var DeleteSensitivePortRuleCmd = &cobra.Command{
 	Use:   "delete_sensitive_port_rule",
 	Short: "删除高危端口检测规则",
 	Long:  `删除高危端口检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteSensitivePortRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteSensitivePortRuleCustomAttrJSON), &deleteSensitivePortRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.DeleteSensitivePortRule", deleteSensitivePortRuleParams, &result)
@@ -30,8 +38,7 @@ var DeleteSensitivePortRuleCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteSensitivePortRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteSensitivePortRuleCmd.Flags().StringVar(&DeleteSensitivePortRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteSensitivePortRuleCmd.Flags().BoolVar(&deleteSensitivePortRuleParams.Enable, "enable", false, "是否启用")
 	DeleteSensitivePortRuleCmd.Flags().StringSliceVar(&deleteSensitivePortRuleParams.HostComment, "host-comment", nil, "主机备注")
 	DeleteSensitivePortRuleCmd.Flags().Float64SliceVar(&deleteSensitivePortRuleParams.HostId, "host-id", nil, "主机ID")

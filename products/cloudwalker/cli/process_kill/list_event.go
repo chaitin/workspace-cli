@@ -4,6 +4,7 @@ package process_kill
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var listEventParams ListEventParams
+var ListEventCustomAttrJSON string
+var ListEventOrderByJSON string
 
 var ListEventCmd = &cobra.Command{
 	Use:   "list_event",
 	Short: "获取事件列表",
 	Long:  `获取事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListEventCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListEventCustomAttrJSON), &listEventParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if ListEventOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(ListEventOrderByJSON), &listEventParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ProcessKillService.ListEvent", listEventParams, &result)
@@ -31,8 +46,7 @@ var ListEventCmd = &cobra.Command{
 func init() {
 	ListEventCmd.Flags().IntVar(&listEventParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListEventCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListEventCmd.Flags().StringVar(&ListEventCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListEventCmd.Flags().Float64SliceVar(&listEventParams.EventId, "event-id", nil, "事件 ID")
 	ListEventCmd.Flags().Float64SliceVar(&listEventParams.EventType, "event-type", nil, "事件类型")
 	ListEventCmd.Flags().Float64SliceVar(&listEventParams.Gids, "gids", nil, "主机业务组 ID")
@@ -46,8 +60,7 @@ func init() {
 	ListEventCmd.Flags().StringSliceVar(&listEventParams.OperateTime, "operate-time", nil, "阻断执行时间")
 	ListEventCmd.Flags().StringSliceVar(&listEventParams.Operator, "operator", nil, "处理人")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	ListEventCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	ListEventCmd.Flags().StringVar(&ListEventOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	ListEventCmd.Flags().StringSliceVar(&listEventParams.ProcessName, "process-name", nil, "进程名称")
 	ListEventCmd.Flags().StringSliceVar(&listEventParams.Status, "status", nil, "阻断状态")
 }

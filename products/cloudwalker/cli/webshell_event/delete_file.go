@@ -4,6 +4,7 @@ package webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var deleteFileParams DeleteFileParams
+var DeleteFileCustomAttrJSON string
+var DeleteFileSelectJSON string
 
 var DeleteFileCmd = &cobra.Command{
 	Use:   "delete_file",
 	Short: "删除文件",
 	Long:  `删除文件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteFileCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteFileCustomAttrJSON), &deleteFileParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if DeleteFileSelectJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteFileSelectJSON), &deleteFileParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.DeleteFile", deleteFileParams, &result)
@@ -32,8 +47,7 @@ func init() {
 	DeleteFileCmd.Flags().StringSliceVar(&deleteFileParams.Comment, "comment", nil, "用户自定义备注")
 	DeleteFileCmd.Flags().StringSliceVar(&deleteFileParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteFileCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteFileCmd.Flags().StringVar(&DeleteFileCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteFileCmd.Flags().StringSliceVar(&deleteFileParams.Domain, "domain", nil, "域名")
 	DeleteFileCmd.Flags().StringSliceVar(&deleteFileParams.FileName, "file-name", nil, "文件名")
 	DeleteFileCmd.Flags().StringSliceVar(&deleteFileParams.FilePath, "file-path", nil, "文件路径")
@@ -51,8 +65,7 @@ func init() {
 	DeleteFileCmd.Flags().Float64SliceVar(&deleteFileParams.Oid, "oid", nil, "机构 ID")
 	DeleteFileCmd.Flags().Float64SliceVar(&deleteFileParams.PlanId, "plan-id", nil, "任务 id")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	DeleteFileCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
+	DeleteFileCmd.Flags().StringVar(&DeleteFileSelectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
 	DeleteFileCmd.Flags().BoolVar(&deleteFileParams.SelectAll, "select-all", false, "是否全选")
 	DeleteFileCmd.Flags().Float64SliceVar(&deleteFileParams.StatEventId, "stat-event-id", nil, "统计事件 ID")
 	DeleteFileCmd.Flags().IntSliceVar(&deleteFileParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

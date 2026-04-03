@@ -4,6 +4,7 @@ package network_reject
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var releaseRejectParams ReleaseRejectParams
+var ReleaseRejectCustomAttrJSON string
 
 var ReleaseRejectCmd = &cobra.Command{
 	Use:   "release_reject",
 	Short: "解除阻断",
 	Long:  `解除阻断`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ReleaseRejectCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ReleaseRejectCustomAttrJSON), &releaseRejectParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NetworkRejectService.ReleaseReject", releaseRejectParams, &result)
@@ -30,8 +38,7 @@ var ReleaseRejectCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ReleaseRejectCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ReleaseRejectCmd.Flags().StringVar(&ReleaseRejectCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ReleaseRejectCmd.Flags().StringSliceVar(&releaseRejectParams.ExpireTime, "expire-time", nil, "阻断失效时间")
 	ReleaseRejectCmd.Flags().StringSliceVar(&releaseRejectParams.ExposedIp, "exposed-ip", nil, "主机外网 IP")
 	ReleaseRejectCmd.Flags().Float64SliceVar(&releaseRejectParams.Gids, "gids", nil, "主机业务组 ID")

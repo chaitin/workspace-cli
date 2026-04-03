@@ -17,6 +17,7 @@ var UpdateCredentialCmd = &cobra.Command{
 	Short: "编辑凭证",
 	Long:  `编辑凭证`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.UpdateCredential", updateCredentialParams, &result)

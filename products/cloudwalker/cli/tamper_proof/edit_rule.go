@@ -17,6 +17,7 @@ var EditRuleCmd = &cobra.Command{
 	Short: "修改防篡改规则",
 	Long:  `修改防篡改规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.EditRule", editRuleParams, &result)

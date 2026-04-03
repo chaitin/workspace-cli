@@ -4,6 +4,7 @@ package full_command
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getListByHostParams GetListByHostParams
+var GetListByHostCustomAttrJSON string
+var GetListByHostOrderByJSON string
 
 var GetListByHostCmd = &cobra.Command{
 	Use:   "get_list_by_host",
 	Short: "获取按主机聚合的事件列表",
 	Long:  `获取按主机聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetListByHostCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetListByHostCustomAttrJSON), &getListByHostParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetListByHostOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetListByHostOrderByJSON), &getListByHostParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FullCommandService.GetListByHost", getListByHostParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	GetListByHostCmd.Flags().StringSliceVar(&getListByHostParams.Comment, "comment", nil, "用户自定义备注")
 	GetListByHostCmd.Flags().IntVar(&getListByHostParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetListByHostCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetListByHostCmd.Flags().StringVar(&GetListByHostCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetListByHostCmd.Flags().Float64SliceVar(&getListByHostParams.Gids, "gids", nil, "业务组 ID")
 	GetListByHostCmd.Flags().StringSliceVar(&getListByHostParams.HostComment, "host-comment", nil, "主机备注")
 	GetListByHostCmd.Flags().Float64SliceVar(&getListByHostParams.HostId, "host-id", nil, "主机ID, 用于主机详情页面")
@@ -46,8 +60,7 @@ func init() {
 	GetListByHostCmd.Flags().IntVar(&getListByHostParams.Offset, "offset", 0, "偏移量")
 	GetListByHostCmd.Flags().Float64SliceVar(&getListByHostParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetListByHostCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetListByHostCmd.Flags().StringVar(&GetListByHostOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetListByHostCmd.Flags().StringSliceVar(&getListByHostParams.SessionId, "session-id", nil, "会话id")
 	GetListByHostCmd.Flags().StringSliceVar(&getListByHostParams.ShellDuration, "shell-duration", nil, "会话持续时间")
 	GetListByHostCmd.Flags().StringSliceVar(&getListByHostParams.ShellStartedAt, "shell-started-at", nil, "会话启动时间")

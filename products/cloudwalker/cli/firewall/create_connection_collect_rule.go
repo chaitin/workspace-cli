@@ -17,6 +17,7 @@ var CreateConnectionCollectRuleCmd = &cobra.Command{
 	Short: "创建连接采集规则",
 	Long:  `创建连接采集规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.CreateConnectionCollectRule", createConnectionCollectRuleParams, &result)

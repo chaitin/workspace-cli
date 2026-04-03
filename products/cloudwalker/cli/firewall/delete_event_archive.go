@@ -17,6 +17,7 @@ var DeleteEventArchiveCmd = &cobra.Command{
 	Short: "删除归档文件",
 	Long:  `删除归档文件`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.DeleteEventArchive", deleteEventArchiveParams, &result)

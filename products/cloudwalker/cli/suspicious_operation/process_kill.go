@@ -4,6 +4,7 @@ package suspicious_operation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var processKillParams ProcessKillParams
+var ProcessKillCustomAttrJSON string
+var ProcessKillFilterJSON string
 
 var ProcessKillCmd = &cobra.Command{
 	Use:   "process_kill",
 	Short: "进程阻断",
 	Long:  `进程阻断`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ProcessKillCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ProcessKillCustomAttrJSON), &processKillParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if ProcessKillFilterJSON != "" {
+			if err := json.Unmarshal([]byte(ProcessKillFilterJSON), &processKillParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SuspiciousOperationService.ProcessKill", processKillParams, &result)
@@ -32,15 +47,13 @@ func init() {
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.Comment, "comment", nil, "用户自定义备注")
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.ContainerHashId, "container-hash-id", nil, "容器Id")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ProcessKillCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ProcessKillCmd.Flags().StringVar(&ProcessKillCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.Egid, "egid", nil, "有效用户组ID")
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.Egname, "egname", nil, "有效用户组名")
 	ProcessKillCmd.Flags().Float64SliceVar(&processKillParams.Euid, "euid", nil, "有效用户ID")
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.Euname, "euname", nil, "有效用户名")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	ProcessKillCmd.Flags().StringVar(&filterJSON, "filter", "", "过滤信息 (JSON, e.g. [{\"host_id\": 122, \"id\": 122, \"net_app\": \"weblogic\", \"rule_name\": \"使用黑客工具\", \"ssh_client_ip\": \"120.12.27.128\", \"ssh_user\": \"root\"}])")
+	ProcessKillCmd.Flags().StringVar(&ProcessKillFilterJSON, "filter", "", "过滤信息 (JSON, e.g. [{\"host_id\": 122, \"id\": 122, \"net_app\": \"weblogic\", \"rule_name\": \"使用黑客工具\", \"ssh_client_ip\": \"120.12.27.128\", \"ssh_user\": \"root\"}])")
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.Gid, "gid", nil, "用户组ID")
 	ProcessKillCmd.Flags().Float64SliceVar(&processKillParams.Gids, "gids", nil, "业务组ID")
 	ProcessKillCmd.Flags().StringSliceVar(&processKillParams.Gname, "gname", nil, "用户组名")

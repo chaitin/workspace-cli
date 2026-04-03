@@ -17,6 +17,7 @@ var StopPlanCmd = &cobra.Command{
 	Short: "手动停止执行中的任务计划",
 	Long:  `手动停止执行中的任务计划`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.StopPlan", stopPlanParams, &result)

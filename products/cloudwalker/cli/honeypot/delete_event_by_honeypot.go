@@ -4,6 +4,7 @@ package honeypot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteEventByHoneypotParams DeleteEventByHoneypotParams
+var DeleteEventByHoneypotCustomAttrJSON string
 
 var DeleteEventByHoneypotCmd = &cobra.Command{
 	Use:   "delete_event_by_honeypot",
 	Short: "删除所选蜜罐名的事件",
 	Long:  `删除所选蜜罐名的事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteEventByHoneypotCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteEventByHoneypotCustomAttrJSON), &deleteEventByHoneypotParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HoneypotService.DeleteEventByHoneypot", deleteEventByHoneypotParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	DeleteEventByHoneypotCmd.Flags().StringSliceVar(&deleteEventByHoneypotParams.Comment, "comment", nil, "用户自定义备注")
 	DeleteEventByHoneypotCmd.Flags().StringSliceVar(&deleteEventByHoneypotParams.CreatedAt, "created-at", nil, "事件创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteEventByHoneypotCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteEventByHoneypotCmd.Flags().StringVar(&DeleteEventByHoneypotCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteEventByHoneypotCmd.Flags().StringSliceVar(&deleteEventByHoneypotParams.EndTime, "end-time", nil, "攻击结束时间")
 	DeleteEventByHoneypotCmd.Flags().Float64SliceVar(&deleteEventByHoneypotParams.Gids, "gids", nil, "业务组 ID")
 	DeleteEventByHoneypotCmd.Flags().StringSliceVar(&deleteEventByHoneypotParams.HostComment, "host-comment", nil, "主机备注")

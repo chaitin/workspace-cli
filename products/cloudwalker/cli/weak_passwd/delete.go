@@ -4,6 +4,7 @@ package weak_passwd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var deleteParams DeleteParams
+var DeleteCustomAttrJSON string
+var DeleteFilterJSON string
 
 var DeleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "删除弱口令事件",
 	Long:  `删除弱口令事件`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteCustomAttrJSON), &deleteParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if DeleteFilterJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteFilterJSON), &deleteParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.Delete", deleteParams, &result)
@@ -34,11 +49,9 @@ func init() {
 	DeleteCmd.Flags().StringSliceVar(&deleteParams.Comment, "comment", nil, "用户自定义备注")
 	DeleteCmd.Flags().StringSliceVar(&deleteParams.CreatedAt, "created-at", nil, "创建事件")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteCmd.Flags().StringVar(&DeleteCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	DeleteCmd.Flags().StringVar(&filterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 3643, \"id\": 3643, \"password\": \"123456\", \"service\": \"ssh\", \"username\": \"test\"}])")
+	DeleteCmd.Flags().StringVar(&DeleteFilterJSON, "filter", "", "聚合筛选 (JSON, e.g. [{\"host_id\": 3643, \"id\": 3643, \"password\": \"123456\", \"service\": \"ssh\", \"username\": \"test\"}])")
 	DeleteCmd.Flags().Float64SliceVar(&deleteParams.Gids, "gids", nil, "业务组 ID 列表")
 	DeleteCmd.Flags().StringSliceVar(&deleteParams.HostComment, "host-comment", nil, "主机备注")
 	DeleteCmd.Flags().Float64SliceVar(&deleteParams.HostId, "host-id", nil, "主机 ID")

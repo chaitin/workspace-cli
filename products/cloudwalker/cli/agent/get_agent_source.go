@@ -4,6 +4,7 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getAgentSourceParams GetAgentSourceParams
+var GetAgentSourceFilterJSON string
 
 var GetAgentSourceCmd = &cobra.Command{
 	Use:   "get_agent_source",
 	Short: "获取探针事件源状态列表",
 	Long:  `获取探针事件源状态列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetAgentSourceFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetAgentSourceFilterJSON), &getAgentSourceParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentService.GetAgentSource", getAgentSourceParams, &result)
@@ -31,8 +39,7 @@ var GetAgentSourceCmd = &cobra.Command{
 func init() {
 	GetAgentSourceCmd.Flags().IntVar(&getAgentSourceParams.Count, "count", 20, "数量")
 	// filter is object type, use JSON string
-	var filterJSON string
-	GetAgentSourceCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. {\"component\": [\"WebShell\"], \"event_type\": [\"\"], \"host_id\": [1, 2, 3], \"...\": \"...\"})")
+	GetAgentSourceCmd.Flags().StringVar(&GetAgentSourceFilterJSON, "filter", "", "filter (JSON, e.g. {\"component\": [\"WebShell\"], \"event_type\": [\"\"], \"host_id\": [1, 2, 3], \"...\": \"...\"})")
 	GetAgentSourceCmd.Flags().IntVar(&getAgentSourceParams.Offset, "offset", 0, "偏移量")
 }
 

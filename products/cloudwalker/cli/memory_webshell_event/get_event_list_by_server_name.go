@@ -4,6 +4,7 @@ package memory_webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getEventListByServerNameParams GetEventListByServerNameParams
+var GetEventListByServerNameCustomAttrJSON string
+var GetEventListByServerNameOrderByJSON string
+var GetEventListByServerNameSelectJSON string
 
 var GetEventListByServerNameCmd = &cobra.Command{
 	Use:   "get_event_list_by_server_name",
 	Short: "根据服务名获取事件列表",
 	Long:  `根据服务名获取事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListByServerNameCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByServerNameCustomAttrJSON), &getEventListByServerNameParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListByServerNameOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByServerNameOrderByJSON), &getEventListByServerNameParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetEventListByServerNameSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByServerNameSelectJSON), &getEventListByServerNameParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "MemoryWebshellEventService.GetEventListByServerName", getEventListByServerNameParams, &result)
@@ -34,8 +56,7 @@ func init() {
 	GetEventListByServerNameCmd.Flags().IntVar(&getEventListByServerNameParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetEventListByServerNameCmd.Flags().StringSliceVar(&getEventListByServerNameParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListByServerNameCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListByServerNameCmd.Flags().StringVar(&GetEventListByServerNameCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListByServerNameCmd.Flags().Float64SliceVar(&getEventListByServerNameParams.Gids, "gids", nil, "业务组 ID")
 	GetEventListByServerNameCmd.Flags().StringSliceVar(&getEventListByServerNameParams.HostComment, "host-comment", nil, "主机备注")
 	GetEventListByServerNameCmd.Flags().Float64SliceVar(&getEventListByServerNameParams.HostId, "host-id", nil, "主机 ID")
@@ -48,14 +69,12 @@ func init() {
 	GetEventListByServerNameCmd.Flags().IntVar(&getEventListByServerNameParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventListByServerNameCmd.Flags().Float64SliceVar(&getEventListByServerNameParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListByServerNameCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListByServerNameCmd.Flags().StringVar(&GetEventListByServerNameOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListByServerNameCmd.Flags().Float64SliceVar(&getEventListByServerNameParams.Pid, "pid", nil, "进程 ID")
 	GetEventListByServerNameCmd.Flags().Float64SliceVar(&getEventListByServerNameParams.PlanId, "plan-id", nil, "任务 id")
 	GetEventListByServerNameCmd.Flags().StringSliceVar(&getEventListByServerNameParams.ProcessName, "process-name", nil, "进程名称")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetEventListByServerNameCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"class_name\": \".class\", \"host_id\": 162, \"id\": 154, \"server_name\": \"tomcat\"}])")
+	GetEventListByServerNameCmd.Flags().StringVar(&GetEventListByServerNameSelectJSON, "select", "", "select (JSON, e.g. [{\"class_name\": \".class\", \"host_id\": 162, \"id\": 154, \"server_name\": \"tomcat\"}])")
 	GetEventListByServerNameCmd.Flags().BoolVar(&getEventListByServerNameParams.SelectAll, "select-all", false, "是否全选")
 	GetEventListByServerNameCmd.Flags().StringSliceVar(&getEventListByServerNameParams.ServerName, "server-name", nil, "服务名称")
 	GetEventListByServerNameCmd.Flags().Float64SliceVar(&getEventListByServerNameParams.StatEventId, "stat-event-id", nil, "事件统计 ID")

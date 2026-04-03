@@ -15,6 +15,7 @@ var GetSecurityStrategyTreeCmd = &cobra.Command{
 	Short: "获取安全策略树",
 	Long:  `获取安全策略树`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SecurityStrategyService.GetSecurityStrategyTree", nil, &result)

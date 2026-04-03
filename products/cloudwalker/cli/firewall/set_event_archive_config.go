@@ -17,6 +17,7 @@ var SetEventArchiveConfigCmd = &cobra.Command{
 	Short: "设置归档配置",
 	Long:  `设置归档配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.SetEventArchiveConfig", setEventArchiveConfigParams, &result)

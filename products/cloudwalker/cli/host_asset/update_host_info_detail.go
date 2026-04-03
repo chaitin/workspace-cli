@@ -17,6 +17,7 @@ var UpdateHostInfoDetailCmd = &cobra.Command{
 	Short: "立即更新主机详情信息。包含软件信息，硬件信息",
 	Long:  `立即更新主机详情信息。包含软件信息，硬件信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.UpdateHostInfoDetail", updateHostInfoDetailParams, &result)

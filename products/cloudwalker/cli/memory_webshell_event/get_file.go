@@ -17,6 +17,7 @@ var GetFileCmd = &cobra.Command{
 	Short: "获取内存马文件内容",
 	Long:  `获取内存马文件内容`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "MemoryWebshellEventService.GetFile", getFileParams, &result)

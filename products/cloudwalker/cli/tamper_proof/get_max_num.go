@@ -15,6 +15,7 @@ var GetMaxNumCmd = &cobra.Command{
 	Short: "获取最大文件防篡改探针授权数量",
 	Long:  `获取最大文件防篡改探针授权数量`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.GetMaxNum", nil, &result)

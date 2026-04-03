@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var createAbnormalLoginRuleParams CreateAbnormalLoginRuleParams
+var CreateAbnormalLoginRuleGeographicalLocationJSON string
+var CreateAbnormalLoginRuleTimeJSON string
 
 var CreateAbnormalLoginRuleCmd = &cobra.Command{
 	Use:   "create_abnormal_login_rule",
 	Short: "创建异常登陆检测规则",
 	Long:  `创建异常登陆检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateAbnormalLoginRuleGeographicalLocationJSON != "" {
+			if err := json.Unmarshal([]byte(CreateAbnormalLoginRuleGeographicalLocationJSON), &createAbnormalLoginRuleParams.GeographicalLocation); err != nil {
+				cmd.PrintErrln("Error parsing geographical-location:", err)
+				return
+			}
+		}
+		if CreateAbnormalLoginRuleTimeJSON != "" {
+			if err := json.Unmarshal([]byte(CreateAbnormalLoginRuleTimeJSON), &createAbnormalLoginRuleParams.Time); err != nil {
+				cmd.PrintErrln("Error parsing time:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.CreateAbnormalLoginRule", createAbnormalLoginRuleParams, &result)
@@ -35,8 +50,7 @@ func init() {
 	CreateAbnormalLoginRuleCmd.Flags().StringVar(&createAbnormalLoginRuleParams.Category, "category", "", "规则类型")
 	CreateAbnormalLoginRuleCmd.Flags().BoolVar(&createAbnormalLoginRuleParams.Enable, "enable", false, "是否启用")
 	// geographical_location is complex type []map[string]interface{}, use JSON string
-	var geographicalLocationJSON string
-	CreateAbnormalLoginRuleCmd.Flags().StringVar(&geographicalLocationJSON, "geographical-location", "", "地理位置 (JSON, e.g. [{\"city\": [\"深圳市\"], \"country\": \"中国\", \"province\": \"广东省\"}])")
+	CreateAbnormalLoginRuleCmd.Flags().StringVar(&CreateAbnormalLoginRuleGeographicalLocationJSON, "geographical-location", "", "地理位置 (JSON, e.g. [{\"city\": [\"深圳市\"], \"country\": \"中国\", \"province\": \"广东省\"}])")
 	CreateAbnormalLoginRuleCmd.Flags().BoolVar(&createAbnormalLoginRuleParams.Global, "global", false, "是否绑定全局探针")
 	CreateAbnormalLoginRuleCmd.Flags().StringSliceVar(&createAbnormalLoginRuleParams.Ip, "ip", nil, "IP段")
 	CreateAbnormalLoginRuleCmd.Flags().IntVar(&createAbnormalLoginRuleParams.Level, "level", 0, "风险等级(1-低危，2-中危，3-高危，4-严重)")
@@ -44,8 +58,7 @@ func init() {
 	CreateAbnormalLoginRuleCmd.Flags().IntVar(&createAbnormalLoginRuleParams.Priority, "priority", 0, "优先级")
 	CreateAbnormalLoginRuleCmd.Flags().StringVar(&createAbnormalLoginRuleParams.RuleName, "rule-name", "", "规则名称")
 	// time is complex type []map[string]interface{}, use JSON string
-	var timeJSON string
-	CreateAbnormalLoginRuleCmd.Flags().StringVar(&timeJSON, "time", "", "时间段 (JSON, e.g. [{\"start_time\": \"00:00:00\", \"stop_time\": \"23:59:59\", \"weekdays\": [1, 2, 3, 4, 5, 6, 7]}])")
+	CreateAbnormalLoginRuleCmd.Flags().StringVar(&CreateAbnormalLoginRuleTimeJSON, "time", "", "时间段 (JSON, e.g. [{\"start_time\": \"00:00:00\", \"stop_time\": \"23:59:59\", \"weekdays\": [1, 2, 3, 4, 5, 6, 7]}])")
 	CreateAbnormalLoginRuleCmd.Flags().StringSliceVar(&createAbnormalLoginRuleParams.User, "user", nil, "用户")
 }
 

@@ -4,6 +4,7 @@ package firewall
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getTopologyParams GetTopologyParams
+var GetTopologyFilterJSON string
 
 var GetTopologyCmd = &cobra.Command{
 	Use:   "get_topology",
 	Short: "获取网络拓扑",
 	Long:  `获取网络拓扑`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetTopologyFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetTopologyFilterJSON), &getTopologyParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.GetTopology", getTopologyParams, &result)
@@ -30,8 +38,7 @@ var GetTopologyCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	GetTopologyCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选条件 (JSON, e.g. {\"access_count\": 0.0, \"conn_kind\": [0.0], \"conn_type\": [0.0], \"...\": \"...\"})")
+	GetTopologyCmd.Flags().StringVar(&GetTopologyFilterJSON, "filter", "", "筛选条件 (JSON, e.g. {\"access_count\": 0.0, \"conn_kind\": [0.0], \"conn_type\": [0.0], \"...\": \"...\"})")
 }
 
 // GetTopologyParams 请求参数

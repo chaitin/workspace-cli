@@ -4,6 +4,7 @@ package suspicious_operation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getEventListByNetAppParams GetEventListByNetAppParams
+var GetEventListByNetAppCustomAttrJSON string
+var GetEventListByNetAppOrderByJSON string
 
 var GetEventListByNetAppCmd = &cobra.Command{
 	Use:   "get_event_list_by_net_app",
 	Short: "返回按 网络应用 聚合的可疑操作列表",
 	Long:  `返回按 网络应用 聚合的可疑操作列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListByNetAppCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByNetAppCustomAttrJSON), &getEventListByNetAppParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListByNetAppOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByNetAppOrderByJSON), &getEventListByNetAppParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SuspiciousOperationService.GetEventListByNetApp", getEventListByNetAppParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	GetEventListByNetAppCmd.Flags().StringSliceVar(&getEventListByNetAppParams.ContainerHashId, "container-hash-id", nil, "容器Id")
 	GetEventListByNetAppCmd.Flags().IntVar(&getEventListByNetAppParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListByNetAppCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListByNetAppCmd.Flags().StringVar(&GetEventListByNetAppCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListByNetAppCmd.Flags().StringSliceVar(&getEventListByNetAppParams.Egid, "egid", nil, "有效用户组ID")
 	GetEventListByNetAppCmd.Flags().StringSliceVar(&getEventListByNetAppParams.Egname, "egname", nil, "有效用户组名")
 	GetEventListByNetAppCmd.Flags().Float64SliceVar(&getEventListByNetAppParams.Euid, "euid", nil, "有效用户ID")
@@ -54,8 +68,7 @@ func init() {
 	GetEventListByNetAppCmd.Flags().IntVar(&getEventListByNetAppParams.Offset, "offset", 0, "偏移量")
 	GetEventListByNetAppCmd.Flags().Float64SliceVar(&getEventListByNetAppParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListByNetAppCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListByNetAppCmd.Flags().StringVar(&GetEventListByNetAppOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListByNetAppCmd.Flags().StringSliceVar(&getEventListByNetAppParams.RuleName, "rule-name", nil, "规则名称")
 	GetEventListByNetAppCmd.Flags().StringSliceVar(&getEventListByNetAppParams.SessionId, "session-id", nil, "会话ID")
 	GetEventListByNetAppCmd.Flags().StringSliceVar(&getEventListByNetAppParams.SshClientIp, "ssh-client-ip", nil, "ssh登陆地址")

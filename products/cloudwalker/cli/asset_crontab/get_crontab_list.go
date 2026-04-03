@@ -4,6 +4,7 @@ package asset_crontab
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getCrontabListParams GetCrontabListParams
+var GetCrontabListCustomAttrJSON string
 
 var GetCrontabListCmd = &cobra.Command{
 	Use:   "get_crontab_list",
 	Short: "获取任务计划列表",
 	Long:  `获取任务计划列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetCrontabListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetCrontabListCustomAttrJSON), &getCrontabListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AssetCrontabService.GetCrontabList", getCrontabListParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	GetCrontabListCmd.Flags().StringSliceVar(&getCrontabListParams.Command, "command", nil, "命令")
 	GetCrontabListCmd.Flags().IntVar(&getCrontabListParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetCrontabListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetCrontabListCmd.Flags().StringVar(&GetCrontabListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetCrontabListCmd.Flags().StringSliceVar(&getCrontabListParams.Cycle, "cycle", nil, "任务周期")
 	GetCrontabListCmd.Flags().Float64SliceVar(&getCrontabListParams.Gids, "gids", nil, "业务组 ID 列表")
 	GetCrontabListCmd.Flags().StringSliceVar(&getCrontabListParams.HostComment, "host-comment", nil, "主机备注")

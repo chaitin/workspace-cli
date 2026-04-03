@@ -4,6 +4,7 @@ package tamper_proof
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getHostListParams GetHostListParams
+var GetHostListFilterJSON string
 
 var GetHostListCmd = &cobra.Command{
 	Use:   "get_host_list",
 	Short: "开启文件防篡改的主机列表",
 	Long:  `开启文件防篡改的主机列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetHostListFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostListFilterJSON), &getHostListParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.GetHostList", getHostListParams, &result)
@@ -31,8 +39,7 @@ var GetHostListCmd = &cobra.Command{
 func init() {
 	GetHostListCmd.Flags().IntVar(&getHostListParams.Count, "count", 20, "返回的主机的数量")
 	// filter is object type, use JSON string
-	var filterJSON string
-	GetHostListCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. {\"capacity_enhancement_drive_state\": [\"\"], \"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"exposed_ip\": [\"\"], \"...\": \"...\"})")
+	GetHostListCmd.Flags().StringVar(&GetHostListFilterJSON, "filter", "", "filter (JSON, e.g. {\"capacity_enhancement_drive_state\": [\"\"], \"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"exposed_ip\": [\"\"], \"...\": \"...\"})")
 	GetHostListCmd.Flags().IntVar(&getHostListParams.Offset, "offset", 0, "返回的主机的偏移值")
 }
 

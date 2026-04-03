@@ -4,6 +4,7 @@ package honeypot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var editStateBySrcIpParams EditStateBySrcIpParams
+var EditStateBySrcIpCustomAttrJSON string
 
 var EditStateBySrcIpCmd = &cobra.Command{
 	Use:   "edit_state_by_src_ip",
 	Short: "改变所选源 IP 事件的处置状态",
 	Long:  `改变所选源 IP 事件的处置状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditStateBySrcIpCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditStateBySrcIpCustomAttrJSON), &editStateBySrcIpParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HoneypotService.EditStateBySrcIP", editStateBySrcIpParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	EditStateBySrcIpCmd.Flags().StringSliceVar(&editStateBySrcIpParams.Comment, "comment", nil, "用户自定义备注")
 	EditStateBySrcIpCmd.Flags().StringSliceVar(&editStateBySrcIpParams.CreatedAt, "created-at", nil, "事件创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditStateBySrcIpCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditStateBySrcIpCmd.Flags().StringVar(&EditStateBySrcIpCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditStateBySrcIpCmd.Flags().StringSliceVar(&editStateBySrcIpParams.EndTime, "end-time", nil, "攻击结束时间")
 	EditStateBySrcIpCmd.Flags().Float64SliceVar(&editStateBySrcIpParams.Gids, "gids", nil, "业务组 ID")
 	EditStateBySrcIpCmd.Flags().StringSliceVar(&editStateBySrcIpParams.HostComment, "host-comment", nil, "主机备注")

@@ -4,6 +4,7 @@ package anti_ransomware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var addRuleParams AddRuleParams
+var AddRuleCustomDecoyFileConfJSON string
 
 var AddRuleCmd = &cobra.Command{
 	Use:   "add_rule",
 	Short: "添加规则",
 	Long:  `添加规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if AddRuleCustomDecoyFileConfJSON != "" {
+			if err := json.Unmarshal([]byte(AddRuleCustomDecoyFileConfJSON), &addRuleParams.CustomDecoyFileConf); err != nil {
+				cmd.PrintErrln("Error parsing custom-decoy-file-conf:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AntiRansomwareService.AddRule", addRuleParams, &result)
@@ -32,8 +40,7 @@ func init() {
 	AddRuleCmd.Flags().IntSliceVar(&addRuleParams.AgentRange, "agent-range", nil, "应用的主机列表")
 	AddRuleCmd.Flags().IntSliceVar(&addRuleParams.BusinessGroupRange, "business-group-range", nil, "应用的业务组列表")
 	// custom_decoy_file_conf is complex type []map[string]interface{}, use JSON string
-	var customDecoyFileConfJSON string
-	AddRuleCmd.Flags().StringVar(&customDecoyFileConfJSON, "custom-decoy-file-conf", "", "自定义诱饵配置 (JSON, e.g. [{\"files\": [\"/tmp/1.txt\"], \"size\": {\"max\": 1, \"min\": 1, \"unit\": \"KB\"}}])")
+	AddRuleCmd.Flags().StringVar(&AddRuleCustomDecoyFileConfJSON, "custom-decoy-file-conf", "", "自定义诱饵配置 (JSON, e.g. [{\"files\": [\"/tmp/1.txt\"], \"size\": {\"max\": 1, \"min\": 1, \"unit\": \"KB\"}}])")
 	AddRuleCmd.Flags().IntVar(&addRuleParams.DecoyFileMode, "decoy-file-mode", 0, "诱饵文件模式 0: 系统默认配置 1: 自定义配置")
 	AddRuleCmd.Flags().StringSliceVar(&addRuleParams.Dir, "dir", nil, "诱饵目录")
 	AddRuleCmd.Flags().BoolVar(&addRuleParams.Enabled, "enabled", false, "是否启用")

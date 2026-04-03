@@ -17,6 +17,7 @@ var UninstallCmd = &cobra.Command{
 	Short: "给主机拆卸防篡改模块",
 	Long:  `给主机拆卸防篡改模块`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.Uninstall", uninstallParams, &result)

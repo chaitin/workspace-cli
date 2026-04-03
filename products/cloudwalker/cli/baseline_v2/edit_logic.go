@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editLogicParams EditLogicParams
+var EditLogicCheckJSON string
+var EditLogicRequireJSON string
 
 var EditLogicCmd = &cobra.Command{
 	Use:   "edit_logic",
 	Short: "编辑核查逻辑",
 	Long:  `编辑核查逻辑`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditLogicCheckJSON != "" {
+			if err := json.Unmarshal([]byte(EditLogicCheckJSON), &editLogicParams.Check); err != nil {
+				cmd.PrintErrln("Error parsing check:", err)
+				return
+			}
+		}
+		if EditLogicRequireJSON != "" {
+			if err := json.Unmarshal([]byte(EditLogicRequireJSON), &editLogicParams.Require); err != nil {
+				cmd.PrintErrln("Error parsing require:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.EditLogic", editLogicParams, &result)
@@ -31,8 +46,7 @@ var EditLogicCmd = &cobra.Command{
 func init() {
 	EditLogicCmd.Flags().StringVar(&editLogicParams.Audit, "audit", "", "核查原理")
 	// check is object type, use JSON string
-	var checkJSON string
-	EditLogicCmd.Flags().StringVar(&checkJSON, "check", "", "check (JSON, e.g. {\"check_schema\": \"\", \"items\": [{\"check\": {\"action\": \"...\", \"args\": \"...\"}, \"read_text\": {\"action\": \"...\", \"args\": \"...\"}}]})")
+	EditLogicCmd.Flags().StringVar(&EditLogicCheckJSON, "check", "", "check (JSON, e.g. {\"check_schema\": \"\", \"items\": [{\"check\": {\"action\": \"...\", \"args\": \"...\"}, \"read_text\": {\"action\": \"...\", \"args\": \"...\"}}]})")
 	EditLogicCmd.Flags().StringVar(&editLogicParams.Description, "description", "", "简短描述")
 	EditLogicCmd.Flags().StringVar(&editLogicParams.Extra, "extra", "", "其他说明")
 	EditLogicCmd.Flags().StringVar(&editLogicParams.Id, "id", "", "ID")
@@ -40,8 +54,7 @@ func init() {
 	EditLogicCmd.Flags().StringVar(&editLogicParams.Name, "name", "", "名称")
 	EditLogicCmd.Flags().StringVar(&editLogicParams.Remediation, "remediation", "", "解决方案")
 	// require is complex type []map[string]interface{}, use JSON string
-	var requireJSON string
-	EditLogicCmd.Flags().StringVar(&requireJSON, "require", "", "此核查逻辑要求的主机主机类型， 比如只能在 Linux-Ubuntu-20.04 上执行 (JSON, e.g. [{\"all\": true, \"enum\": [\"x86_64\", \"arm32\"], \"pattern\": \"\", \"type\": \"os_type\"}])")
+	EditLogicCmd.Flags().StringVar(&EditLogicRequireJSON, "require", "", "此核查逻辑要求的主机主机类型， 比如只能在 Linux-Ubuntu-20.04 上执行 (JSON, e.g. [{\"all\": true, \"enum\": [\"x86_64\", \"arm32\"], \"pattern\": \"\", \"type\": \"os_type\"}])")
 	EditLogicCmd.Flags().StringVar(&editLogicParams.Risk, "risk", "", "风险描述")
 	EditLogicCmd.Flags().StringSliceVar(&editLogicParams.Tags, "tags", nil, "TAG")
 }

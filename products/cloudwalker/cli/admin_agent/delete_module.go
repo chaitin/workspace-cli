@@ -4,6 +4,7 @@ package admin_agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var deleteModuleParams DeleteModuleParams
+var DeleteModuleFilterJSON string
+var DeleteModuleSelectFilterJSON string
 
 var DeleteModuleCmd = &cobra.Command{
 	Use:   "delete_module",
 	Short: "删除模块",
 	Long:  `删除模块`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteModuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteModuleFilterJSON), &deleteModuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if DeleteModuleSelectFilterJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteModuleSelectFilterJSON), &deleteModuleParams.SelectFilter); err != nil {
+				cmd.PrintErrln("Error parsing select-filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AdminAgentService.DeleteModule", deleteModuleParams, &result)
@@ -30,11 +45,9 @@ var DeleteModuleCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	DeleteModuleCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"applied\": [\"true\"], \"arch\": [\"amd64\"], \"distributor_os_release\": [\"Ubuntu linux 22.04\"], \"...\": \"...\"})")
+	DeleteModuleCmd.Flags().StringVar(&DeleteModuleFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"applied\": [\"true\"], \"arch\": [\"amd64\"], \"distributor_os_release\": [\"Ubuntu linux 22.04\"], \"...\": \"...\"})")
 	// select_filter is object type, use JSON string
-	var selectFilterJSON string
-	DeleteModuleCmd.Flags().StringVar(&selectFilterJSON, "select-filter", "", "是否全选&模块ID (JSON, e.g. {\"select\": [{\"id\": 0}], \"select_all\": true})")
+	DeleteModuleCmd.Flags().StringVar(&DeleteModuleSelectFilterJSON, "select-filter", "", "是否全选&模块ID (JSON, e.g. {\"select\": [{\"id\": 0}], \"select_all\": true})")
 }
 
 // DeleteModuleParams 请求参数

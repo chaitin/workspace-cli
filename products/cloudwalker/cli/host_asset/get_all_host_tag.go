@@ -17,6 +17,7 @@ var GetAllHostTagCmd = &cobra.Command{
 	Short: "获取所有已有标签",
 	Long:  `获取所有已有标签`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetAllHostTag", getAllHostTagParams, &result)

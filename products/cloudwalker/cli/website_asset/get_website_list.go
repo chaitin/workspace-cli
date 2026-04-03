@@ -4,6 +4,7 @@ package website_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getWebsiteListParams GetWebsiteListParams
+var GetWebsiteListCustomAttrJSON string
+var GetWebsiteListOrderByJSON string
 
 var GetWebsiteListCmd = &cobra.Command{
 	Use:   "get_website_list",
 	Short: "获取站点资产列表",
 	Long:  `获取站点资产列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetWebsiteListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetWebsiteListCustomAttrJSON), &getWebsiteListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetWebsiteListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetWebsiteListOrderByJSON), &getWebsiteListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebsiteAssetService.GetWebsiteList", getWebsiteListParams, &result)
@@ -31,8 +46,7 @@ var GetWebsiteListCmd = &cobra.Command{
 func init() {
 	GetWebsiteListCmd.Flags().IntVar(&getWebsiteListParams.Count, "count", 20, "数据量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetWebsiteListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetWebsiteListCmd.Flags().StringVar(&GetWebsiteListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetWebsiteListCmd.Flags().StringSliceVar(&getWebsiteListParams.Dir, "dir", nil, "路径")
 	GetWebsiteListCmd.Flags().StringSliceVar(&getWebsiteListParams.Domain, "domain", nil, "域名")
 	GetWebsiteListCmd.Flags().StringSliceVar(&getWebsiteListParams.Engine, "engine", nil, "服务")
@@ -45,8 +59,7 @@ func init() {
 	GetWebsiteListCmd.Flags().StringSliceVar(&getWebsiteListParams.HostTags, "host-tags", nil, "主机标签")
 	GetWebsiteListCmd.Flags().IntVar(&getWebsiteListParams.Offset, "offset", 0, "偏移量")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetWebsiteListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetWebsiteListCmd.Flags().StringVar(&GetWebsiteListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetWebsiteListCmd.Flags().Float64SliceVar(&getWebsiteListParams.Pid, "pid", nil, "进程 id")
 	GetWebsiteListCmd.Flags().StringSliceVar(&getWebsiteListParams.Pname, "pname", nil, "进程名")
 	GetWebsiteListCmd.Flags().StringSliceVar(&getWebsiteListParams.Port, "port", nil, "端口数字范围")

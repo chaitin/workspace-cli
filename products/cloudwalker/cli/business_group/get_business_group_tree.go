@@ -15,6 +15,7 @@ var GetBusinessGroupTreeCmd = &cobra.Command{
 	Short: "获取业务组列表",
 	Long:  `获取业务组列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BusinessGroupService.GetBusinessGroupTree", nil, &result)

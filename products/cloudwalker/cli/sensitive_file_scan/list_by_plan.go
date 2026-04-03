@@ -17,6 +17,7 @@ var ListByPlanCmd = &cobra.Command{
 	Short: "根据PlanId筛选条件获取文件完整性检测结果事件列表",
 	Long:  `根据PlanId筛选条件获取文件完整性检测结果事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitiveFileScanService.ListByPlan", listByPlanParams, &result)

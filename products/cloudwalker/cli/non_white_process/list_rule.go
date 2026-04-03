@@ -4,6 +4,7 @@ package non_white_process
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listRuleParams ListRuleParams
+var ListRuleCustomAttrJSON string
 
 var ListRuleCmd = &cobra.Command{
 	Use:   "list_rule",
 	Short: "获取命令白名单规则",
 	Long:  `获取命令白名单规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListRuleCustomAttrJSON), &listRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NonWhiteProcessService.ListRule", listRuleParams, &result)
@@ -31,8 +39,7 @@ var ListRuleCmd = &cobra.Command{
 func init() {
 	ListRuleCmd.Flags().IntVar(&listRuleParams.Count, "count", 20, "每页记录数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListRuleCmd.Flags().StringVar(&ListRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListRuleCmd.Flags().StringSliceVar(&listRuleParams.HostComment, "host-comment", nil, "主机备注")
 	ListRuleCmd.Flags().Float64SliceVar(&listRuleParams.HostId, "host-id", nil, "主机ID")
 	ListRuleCmd.Flags().StringSliceVar(&listRuleParams.HostIp, "host-ip", nil, "主机IP")

@@ -4,6 +4,7 @@ package network_reject
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var listEventParams ListEventParams
+var ListEventCustomAttrJSON string
+var ListEventOrderByJSON string
 
 var ListEventCmd = &cobra.Command{
 	Use:   "list_event",
 	Short: "获取事件列表",
 	Long:  `获取事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListEventCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListEventCustomAttrJSON), &listEventParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if ListEventOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(ListEventOrderByJSON), &listEventParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "NetworkRejectService.ListEvent", listEventParams, &result)
@@ -31,8 +46,7 @@ var ListEventCmd = &cobra.Command{
 func init() {
 	ListEventCmd.Flags().IntVar(&listEventParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListEventCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListEventCmd.Flags().StringVar(&ListEventCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListEventCmd.Flags().StringSliceVar(&listEventParams.ExpireTime, "expire-time", nil, "阻断失效时间")
 	ListEventCmd.Flags().StringSliceVar(&listEventParams.ExposedIp, "exposed-ip", nil, "主机外网 IP")
 	ListEventCmd.Flags().Float64SliceVar(&listEventParams.Gids, "gids", nil, "主机业务组 ID")
@@ -46,8 +60,7 @@ func init() {
 	ListEventCmd.Flags().StringSliceVar(&listEventParams.OperateTime, "operate-time", nil, "阻断执行时间")
 	ListEventCmd.Flags().StringSliceVar(&listEventParams.Operator, "operator", nil, "处理人")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	ListEventCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	ListEventCmd.Flags().StringVar(&ListEventOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	ListEventCmd.Flags().Float64SliceVar(&listEventParams.RejectDirect, "reject-direct", nil, "阻断方向，1入方向，2出方向")
 	ListEventCmd.Flags().Float64SliceVar(&listEventParams.RejectStatus, "reject-status", nil, "阻断状态，1已阻断，2阻断过期，3解除阻断")
 	ListEventCmd.Flags().StringSliceVar(&listEventParams.SourceIp, "source-ip", nil, "阻断源 IP")

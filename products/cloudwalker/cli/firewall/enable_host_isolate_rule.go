@@ -4,6 +4,7 @@ package firewall
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enableHostIsolateRuleParams EnableHostIsolateRuleParams
+var EnableHostIsolateRuleFilterJSON string
 
 var EnableHostIsolateRuleCmd = &cobra.Command{
 	Use:   "enable_host_isolate_rule",
 	Short: "启禁用隔离失陷主机",
 	Long:  `启禁用隔离失陷主机`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnableHostIsolateRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EnableHostIsolateRuleFilterJSON), &enableHostIsolateRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.EnableHostIsolateRule", enableHostIsolateRuleParams, &result)
@@ -30,8 +38,7 @@ var EnableHostIsolateRuleCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	EnableHostIsolateRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"created_at\": [\"\"], \"enable\": true, \"host_group\": [1], \"...\": \"...\"})")
+	EnableHostIsolateRuleCmd.Flags().StringVar(&EnableHostIsolateRuleFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"created_at\": [\"\"], \"enable\": true, \"host_group\": [1], \"...\": \"...\"})")
 	EnableHostIsolateRuleCmd.Flags().BoolVar(&enableHostIsolateRuleParams.NewEnable, "new-enable", false, "是否开启规则")
 }
 

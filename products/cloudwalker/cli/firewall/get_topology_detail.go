@@ -4,6 +4,7 @@ package firewall
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getTopologyDetailParams GetTopologyDetailParams
+var GetTopologyDetailFilterJSON string
+var GetTopologyDetailPageJSON string
 
 var GetTopologyDetailCmd = &cobra.Command{
 	Use:   "get_topology_detail",
 	Short: "获取网络拓扑连接详情",
 	Long:  `获取网络拓扑连接详情`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetTopologyDetailFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetTopologyDetailFilterJSON), &getTopologyDetailParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetTopologyDetailPageJSON != "" {
+			if err := json.Unmarshal([]byte(GetTopologyDetailPageJSON), &getTopologyDetailParams.Page); err != nil {
+				cmd.PrintErrln("Error parsing page:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.GetTopologyDetail", getTopologyDetailParams, &result)
@@ -30,11 +45,9 @@ var GetTopologyDetailCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	GetTopologyDetailCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选条件 (JSON, e.g. {\"conn_type\": [0.0], \"dest\": {\"cidr\": \"\", \"group_id\": 0.0, \"group_name\": \"\", \"host_id\": 0.0, \"host_status\": \"\", \"host_tag\": [0.0], \"type\": 0.0}, \"dest_cidr\": [\"\"], \"...\": \"...\"})")
+	GetTopologyDetailCmd.Flags().StringVar(&GetTopologyDetailFilterJSON, "filter", "", "筛选条件 (JSON, e.g. {\"conn_type\": [0.0], \"dest\": {\"cidr\": \"\", \"group_id\": 0.0, \"group_name\": \"\", \"host_id\": 0.0, \"host_status\": \"\", \"host_tag\": [0.0], \"type\": 0.0}, \"dest_cidr\": [\"\"], \"...\": \"...\"})")
 	// page is object type, use JSON string
-	var pageJSON string
-	GetTopologyDetailCmd.Flags().StringVar(&pageJSON, "page", "", "分页参数 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
+	GetTopologyDetailCmd.Flags().StringVar(&GetTopologyDetailPageJSON, "page", "", "分页参数 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
 }
 
 // GetTopologyDetailParams 请求参数

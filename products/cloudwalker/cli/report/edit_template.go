@@ -17,6 +17,7 @@ var EditTemplateCmd = &cobra.Command{
 	Short: "编辑模板",
 	Long:  `编辑模板`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ReportService.EditTemplate", editTemplateParams, &result)

@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var generateInstallInstallerParams GenerateInstallInstallerParams
+var GenerateInstallInstallerOsConfigJSON string
+var GenerateInstallInstallerProxyConfigJSON string
 
 var GenerateInstallInstallerCmd = &cobra.Command{
 	Use:   "generate_install_installer",
 	Short: "生成探针安装包",
 	Long:  `生成探针安装包`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GenerateInstallInstallerOsConfigJSON != "" {
+			if err := json.Unmarshal([]byte(GenerateInstallInstallerOsConfigJSON), &generateInstallInstallerParams.OsConfig); err != nil {
+				cmd.PrintErrln("Error parsing os-config:", err)
+				return
+			}
+		}
+		if GenerateInstallInstallerProxyConfigJSON != "" {
+			if err := json.Unmarshal([]byte(GenerateInstallInstallerProxyConfigJSON), &generateInstallInstallerParams.ProxyConfig); err != nil {
+				cmd.PrintErrln("Error parsing proxy-config:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GenerateInstallInstaller", generateInstallInstallerParams, &result)
@@ -38,11 +53,9 @@ func init() {
 	GenerateInstallInstallerCmd.Flags().StringVar(&generateInstallInstallerParams.KernelSemver, "kernel-semver", "", "kernel_semver")
 	GenerateInstallInstallerCmd.Flags().BoolVar(&generateInstallInstallerParams.ManualDownload, "manual-download", false, "手动下载脚本")
 	// os_config is object type, use JSON string
-	var osConfigJSON string
-	GenerateInstallInstallerCmd.Flags().StringVar(&osConfigJSON, "os-config", "", "操作系统配置 (JSON, e.g. {\"linux_config\": {\"privilege_escape_method\": \"none\"}, \"os\": \"linux\", \"win_config\": {\"shell_type\": \"cmd\"}})")
+	GenerateInstallInstallerCmd.Flags().StringVar(&GenerateInstallInstallerOsConfigJSON, "os-config", "", "操作系统配置 (JSON, e.g. {\"linux_config\": {\"privilege_escape_method\": \"none\"}, \"os\": \"linux\", \"win_config\": {\"shell_type\": \"cmd\"}})")
 	// proxy_config is object type, use JSON string
-	var proxyConfigJSON string
-	GenerateInstallInstallerCmd.Flags().StringVar(&proxyConfigJSON, "proxy-config", "", "代理配置 (JSON, e.g. {\"host\": \"127.0.0.1\", \"password\": \"123456\", \"port\": 3306, \"type\": \"none\", \"username\": \"root\"})")
+	GenerateInstallInstallerCmd.Flags().StringVar(&GenerateInstallInstallerProxyConfigJSON, "proxy-config", "", "代理配置 (JSON, e.g. {\"host\": \"127.0.0.1\", \"password\": \"123456\", \"port\": 3306, \"type\": \"none\", \"username\": \"root\"})")
 	GenerateInstallInstallerCmd.Flags().StringVar(&generateInstallInstallerParams.RemoteHost, "remote-host", "", "远端服务器地址")
 	GenerateInstallInstallerCmd.Flags().IntVar(&generateInstallInstallerParams.TokenTtl, "token-ttl", 0, "token过期时间(秒)")
 }

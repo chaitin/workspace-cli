@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var addAttributesParams AddAttributesParams
+var AddAttributesAttributesJSON string
 
 var AddAttributesCmd = &cobra.Command{
 	Use:   "add_attributes",
 	Short: "增加主机属性字段",
 	Long:  `增加主机属性字段`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if AddAttributesAttributesJSON != "" {
+			if err := json.Unmarshal([]byte(AddAttributesAttributesJSON), &addAttributesParams.Attributes); err != nil {
+				cmd.PrintErrln("Error parsing attributes:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.AddAttributes", addAttributesParams, &result)
@@ -30,8 +38,7 @@ var AddAttributesCmd = &cobra.Command{
 
 func init() {
 	// attributes is complex type []map[string]interface{}, use JSON string
-	var attributesJSON string
-	AddAttributesCmd.Flags().StringVar(&attributesJSON, "attributes", "", "增加的属性字段 (JSON, e.g. [{\"name\": \"部门\"}])")
+	AddAttributesCmd.Flags().StringVar(&AddAttributesAttributesJSON, "attributes", "", "增加的属性字段 (JSON, e.g. [{\"name\": \"部门\"}])")
 }
 
 // AddAttributesParams 请求参数

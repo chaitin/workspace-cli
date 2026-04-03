@@ -4,6 +4,7 @@ package event_stat
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getListParams GetListParams
+var GetListCustomAttrJSON string
+var GetListPageJSON string
 
 var GetListCmd = &cobra.Command{
 	Use:   "get_list",
 	Short: "获取事件列表",
 	Long:  `获取事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetListCustomAttrJSON), &getListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetListPageJSON != "" {
+			if err := json.Unmarshal([]byte(GetListPageJSON), &getListParams.Page); err != nil {
+				cmd.PrintErrln("Error parsing page:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EventStatService.GetList", getListParams, &result)
@@ -30,8 +45,7 @@ var GetListCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetListCmd.Flags().StringVar(&GetListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetListCmd.Flags().StringSliceVar(&getListParams.EventType, "event-type", nil, "事件类型")
 	GetListCmd.Flags().StringSliceVar(&getListParams.Filename, "filename", nil, "相关文件名")
 	GetListCmd.Flags().Float64SliceVar(&getListParams.Gids, "gids", nil, "业务组 ID")
@@ -45,8 +59,7 @@ func init() {
 	GetListCmd.Flags().IntSliceVar(&getListParams.Level, "level", nil, "事件等级(1-低危，2-中危，3-高危，4-严重)")
 	GetListCmd.Flags().Float64SliceVar(&getListParams.Oid, "oid", nil, "机构 ID")
 	// page is object type, use JSON string
-	var pageJSON string
-	GetListCmd.Flags().StringVar(&pageJSON, "page", "", "分页器 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
+	GetListCmd.Flags().StringVar(&GetListPageJSON, "page", "", "分页器 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
 	GetListCmd.Flags().StringSliceVar(&getListParams.ProcessName, "process-name", nil, "相关进程名")
 	GetListCmd.Flags().BoolVar(&getListParams.Risky, "risky", false, "是否有风险")
 	GetListCmd.Flags().StringSliceVar(&getListParams.SourceIp, "source-ip", nil, "攻击源 IP")

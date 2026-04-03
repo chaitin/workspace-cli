@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var editAttributesParams EditAttributesParams
+var EditAttributesAttributesJSON string
 
 var EditAttributesCmd = &cobra.Command{
 	Use:   "edit_attributes",
 	Short: "编辑主机属性字段",
 	Long:  `编辑主机属性字段`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditAttributesAttributesJSON != "" {
+			if err := json.Unmarshal([]byte(EditAttributesAttributesJSON), &editAttributesParams.Attributes); err != nil {
+				cmd.PrintErrln("Error parsing attributes:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.EditAttributes", editAttributesParams, &result)
@@ -30,8 +38,7 @@ var EditAttributesCmd = &cobra.Command{
 
 func init() {
 	// attributes is complex type []map[string]interface{}, use JSON string
-	var attributesJSON string
-	EditAttributesCmd.Flags().StringVar(&attributesJSON, "attributes", "", "修改的属性字段 (JSON, e.g. [{\"name\": \"部门\", \"old_name\": \"负责人\"}])")
+	EditAttributesCmd.Flags().StringVar(&EditAttributesAttributesJSON, "attributes", "", "修改的属性字段 (JSON, e.g. [{\"name\": \"部门\", \"old_name\": \"负责人\"}])")
 }
 
 // EditAttributesParams 请求参数

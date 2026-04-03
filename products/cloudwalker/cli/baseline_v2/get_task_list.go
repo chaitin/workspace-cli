@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getTaskListParams GetTaskListParams
+var GetTaskListCustomAttrJSON string
+var GetTaskListOrderByJSON string
 
 var GetTaskListCmd = &cobra.Command{
 	Use:   "get_task_list",
 	Short: "获取核查任务列表",
 	Long:  `获取核查任务列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetTaskListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetTaskListCustomAttrJSON), &getTaskListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetTaskListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetTaskListOrderByJSON), &getTaskListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.GetTaskList", getTaskListParams, &result)
@@ -32,8 +47,7 @@ func init() {
 	GetTaskListCmd.Flags().IntVar(&getTaskListParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetTaskListCmd.Flags().StringSliceVar(&getTaskListParams.CreatedAt, "created-at", nil, "任务创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetTaskListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetTaskListCmd.Flags().StringVar(&GetTaskListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetTaskListCmd.Flags().BoolVar(&getTaskListParams.Enable, "enable", false, "是否启用")
 	GetTaskListCmd.Flags().StringSliceVar(&getTaskListParams.FinishedAt, "finished-at", nil, "任务结束时间")
 	GetTaskListCmd.Flags().Float64SliceVar(&getTaskListParams.Gids, "gids", nil, "业务组 ID")
@@ -46,8 +60,7 @@ func init() {
 	GetTaskListCmd.Flags().StringSliceVar(&getTaskListParams.ItemName, "item-name", nil, "核查项名称")
 	GetTaskListCmd.Flags().IntVar(&getTaskListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetTaskListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetTaskListCmd.Flags().StringVar(&GetTaskListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetTaskListCmd.Flags().StringSliceVar(&getTaskListParams.SetName, "set-name", nil, "核查策略名称")
 	GetTaskListCmd.Flags().StringSliceVar(&getTaskListParams.StartedAt, "started-at", nil, "任务运行时间")
 	GetTaskListCmd.Flags().StringSliceVar(&getTaskListParams.Tag, "tag", nil, "TAG")

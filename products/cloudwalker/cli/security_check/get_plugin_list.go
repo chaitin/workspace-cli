@@ -17,6 +17,7 @@ var GetPluginListCmd = &cobra.Command{
 	Short: "获取检测插件更新状态",
 	Long:  `获取检测插件更新状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SecurityCheckService.GetPluginList", getPluginListParams, &result)

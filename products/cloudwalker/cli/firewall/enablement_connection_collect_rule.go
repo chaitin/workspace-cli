@@ -4,6 +4,7 @@ package firewall
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enablementConnectionCollectRuleParams EnablementConnectionCollectRuleParams
+var EnablementConnectionCollectRuleFilterJSON string
 
 var EnablementConnectionCollectRuleCmd = &cobra.Command{
 	Use:   "enablement_connection_collect_rule",
 	Short: "启用禁用连接采集规则",
 	Long:  `启用禁用连接采集规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnablementConnectionCollectRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EnablementConnectionCollectRuleFilterJSON), &enablementConnectionCollectRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.EnablementConnectionCollectRule", enablementConnectionCollectRuleParams, &result)
@@ -31,8 +39,7 @@ var EnablementConnectionCollectRuleCmd = &cobra.Command{
 func init() {
 	EnablementConnectionCollectRuleCmd.Flags().BoolVar(&enablementConnectionCollectRuleParams.Enable, "enable", false, "是否启用")
 	// filter is object type, use JSON string
-	var filterJSON string
-	EnablementConnectionCollectRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选条件 (JSON, e.g. {\"created_at\": [\"xxxxxxxxx\"], \"enable\": true, \"host_ip\": [\"192.168.1.1\"], \"...\": \"...\"})")
+	EnablementConnectionCollectRuleCmd.Flags().StringVar(&EnablementConnectionCollectRuleFilterJSON, "filter", "", "筛选条件 (JSON, e.g. {\"created_at\": [\"xxxxxxxxx\"], \"enable\": true, \"host_ip\": [\"192.168.1.1\"], \"...\": \"...\"})")
 	EnablementConnectionCollectRuleCmd.Flags().BoolVar(&enablementConnectionCollectRuleParams.SelectAll, "select-all", false, "是否全选")
 }
 

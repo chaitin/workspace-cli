@@ -4,6 +4,7 @@ package asset_config
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var resetAssetCollectConfigParams ResetAssetCollectConfigParams
+var ResetAssetCollectConfigRuleJSON string
 
 var ResetAssetCollectConfigCmd = &cobra.Command{
 	Use:   "reset_asset_collect_config",
 	Short: "重置资产采集设置",
 	Long:  `重置资产采集设置`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ResetAssetCollectConfigRuleJSON != "" {
+			if err := json.Unmarshal([]byte(ResetAssetCollectConfigRuleJSON), &resetAssetCollectConfigParams.Rule); err != nil {
+				cmd.PrintErrln("Error parsing rule:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AssetConfigService.ResetAssetCollectConfig", resetAssetCollectConfigParams, &result)
@@ -30,8 +38,7 @@ var ResetAssetCollectConfigCmd = &cobra.Command{
 
 func init() {
 	// rule is complex type []map[string]interface{}, use JSON string
-	var ruleJSON string
-	ResetAssetCollectConfigCmd.Flags().StringVar(&ruleJSON, "rule", "", "重置规则，未提交的规则将重置为默认值 (JSON, e.g. [{\"enable\": false, \"interval\": 0, \"type\": \"\"}])")
+	ResetAssetCollectConfigCmd.Flags().StringVar(&ResetAssetCollectConfigRuleJSON, "rule", "", "重置规则，未提交的规则将重置为默认值 (JSON, e.g. [{\"enable\": false, \"interval\": 0, \"type\": \"\"}])")
 }
 
 // ResetAssetCollectConfigParams 请求参数

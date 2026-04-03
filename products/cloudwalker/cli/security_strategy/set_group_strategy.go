@@ -17,6 +17,7 @@ var SetGroupStrategyCmd = &cobra.Command{
 	Short: "设置业务组的安全策略",
 	Long:  `设置业务组的安全策略`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SecurityStrategyService.SetGroupStrategy", setGroupStrategyParams, &result)

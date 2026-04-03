@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var createItemParams CreateItemParams
+var CreateItemItemsJSON string
 
 var CreateItemCmd = &cobra.Command{
 	Use:   "create_item",
 	Short: "导入新的核查项",
 	Long:  `导入新的核查项`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateItemItemsJSON != "" {
+			if err := json.Unmarshal([]byte(CreateItemItemsJSON), &createItemParams.Items); err != nil {
+				cmd.PrintErrln("Error parsing items:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.CreateItem", createItemParams, &result)
@@ -30,8 +38,7 @@ var CreateItemCmd = &cobra.Command{
 
 func init() {
 	// items is complex type []map[string]interface{}, use JSON string
-	var itemsJSON string
-	CreateItemCmd.Flags().StringVar(&itemsJSON, "items", "", "要新增的核查项 (JSON, e.g. [{\"args\": \"\", \"logic_id\": \"754821f3-06db-455f-9d58-89421216fcf2\"}])")
+	CreateItemCmd.Flags().StringVar(&CreateItemItemsJSON, "items", "", "要新增的核查项 (JSON, e.g. [{\"args\": \"\", \"logic_id\": \"754821f3-06db-455f-9d58-89421216fcf2\"}])")
 	CreateItemCmd.Flags().StringVar(&createItemParams.SetId, "set-id", "", "核查策略 ID")
 }
 

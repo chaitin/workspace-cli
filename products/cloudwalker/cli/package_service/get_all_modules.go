@@ -15,6 +15,7 @@ var GetAllModulesCmd = &cobra.Command{
 	Short: "获取所有模块",
 	Long:  `获取所有模块`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PackageService.GetAllModules", nil, &result)

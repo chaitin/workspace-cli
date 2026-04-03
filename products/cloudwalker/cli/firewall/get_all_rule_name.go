@@ -15,6 +15,7 @@ var GetAllRuleNameCmd = &cobra.Command{
 	Short: "获取全部规则信息",
 	Long:  `获取全部规则信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.GetAllRuleName", nil, &result)

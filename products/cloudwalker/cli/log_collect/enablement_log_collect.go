@@ -4,6 +4,7 @@ package log_collect
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enablementLogCollectParams EnablementLogCollectParams
+var EnablementLogCollectFilterJSON string
 
 var EnablementLogCollectCmd = &cobra.Command{
 	Use:   "enablement_log_collect",
 	Short: "启禁用日志采集规则",
 	Long:  `启禁用日志采集规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnablementLogCollectFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EnablementLogCollectFilterJSON), &enablementLogCollectParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "LogCollectService.EnablementLogCollect", enablementLogCollectParams, &result)
@@ -31,8 +39,7 @@ var EnablementLogCollectCmd = &cobra.Command{
 func init() {
 	EnablementLogCollectCmd.Flags().BoolVar(&enablementLogCollectParams.Enable, "enable", false, "是否启用")
 	// filter is object type, use JSON string
-	var filterJSON string
-	EnablementLogCollectCmd.Flags().StringVar(&filterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"id\": [\"\"]})")
+	EnablementLogCollectCmd.Flags().StringVar(&EnablementLogCollectFilterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"id\": [\"\"]})")
 }
 
 // EnablementLogCollectParams 请求参数

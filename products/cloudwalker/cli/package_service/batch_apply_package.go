@@ -17,6 +17,7 @@ var BatchApplyPackageCmd = &cobra.Command{
 	Short: "批量应用升级包",
 	Long:  `批量应用升级包`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PackageService.BatchApplyPackage", batchApplyPackageParams, &result)

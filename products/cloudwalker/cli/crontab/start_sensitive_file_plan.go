@@ -17,6 +17,7 @@ var StartSensitiveFilePlanCmd = &cobra.Command{
 	Short: "手动开始文件完整行扫描检查任务",
 	Long:  `手动开始文件完整行扫描检查任务`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.StartSensitiveFilePlan", startSensitiveFilePlanParams, &result)

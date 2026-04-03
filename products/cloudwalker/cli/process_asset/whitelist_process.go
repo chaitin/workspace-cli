@@ -4,6 +4,7 @@ package process_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var whitelistProcessParams WhitelistProcessParams
+var WhitelistProcessCustomAttrJSON string
+var WhitelistProcessFilterJSON string
 
 var WhitelistProcessCmd = &cobra.Command{
 	Use:   "whitelist_process",
 	Short: "给进程加白名单",
 	Long:  `给进程加白名单`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if WhitelistProcessCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(WhitelistProcessCustomAttrJSON), &whitelistProcessParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if WhitelistProcessFilterJSON != "" {
+			if err := json.Unmarshal([]byte(WhitelistProcessFilterJSON), &whitelistProcessParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ProcessAssetService.WhitelistProcess", whitelistProcessParams, &result)
@@ -34,8 +49,7 @@ func init() {
 	WhitelistProcessCmd.Flags().StringSliceVar(&whitelistProcessParams.Cmdline, "cmdline", nil, "命令行参数")
 	WhitelistProcessCmd.Flags().StringSliceVar(&whitelistProcessParams.Container, "container", nil, "相关容器ID")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	WhitelistProcessCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	WhitelistProcessCmd.Flags().StringVar(&WhitelistProcessCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	WhitelistProcessCmd.Flags().StringSliceVar(&whitelistProcessParams.EffectiveGroup, "effective-group", nil, "进程所属有效用户组")
 	WhitelistProcessCmd.Flags().StringSliceVar(&whitelistProcessParams.EffectiveUser, "effective-user", nil, "进程所属有效用户")
 	WhitelistProcessCmd.Flags().Float64SliceVar(&whitelistProcessParams.Egid, "egid", nil, "进程所属有效用户组id")
@@ -45,8 +59,7 @@ func init() {
 	WhitelistProcessCmd.Flags().StringSliceVar(&whitelistProcessParams.FileChangeTime, "file-change-time", nil, "文件属性修改时间")
 	WhitelistProcessCmd.Flags().StringSliceVar(&whitelistProcessParams.FileModifyTime, "file-modify-time", nil, "文件内容修改时间")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	WhitelistProcessCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. [{\"effective_user\": \"System\", \"host_id\": 196, \"id\": 85521, \"name\": \"winlogon.exe\", \"path\": \"C:\\Windows\\System32\\winlogon.exe\"}])")
+	WhitelistProcessCmd.Flags().StringVar(&WhitelistProcessFilterJSON, "filter", "", "filter (JSON, e.g. [{\"effective_user\": \"System\", \"host_id\": 196, \"id\": 85521, \"name\": \"winlogon.exe\", \"path\": \"C:\\Windows\\System32\\winlogon.exe\"}])")
 	WhitelistProcessCmd.Flags().Float64SliceVar(&whitelistProcessParams.Gid, "gid", nil, "进程所属组id")
 	WhitelistProcessCmd.Flags().Float64SliceVar(&whitelistProcessParams.Gids, "gids", nil, "业务组 ID 列表")
 	WhitelistProcessCmd.Flags().StringSliceVar(&whitelistProcessParams.Group, "group", nil, "进程所属组")

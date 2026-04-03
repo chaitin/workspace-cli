@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getHostAssetListParams GetHostAssetListParams
+var GetHostAssetListCustomAttrJSON string
+var GetHostAssetListOrderByJSON string
 
 var GetHostAssetListCmd = &cobra.Command{
 	Use:   "get_host_asset_list",
 	Short: "获取主机资产列表信息",
 	Long:  `获取主机资产列表信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetHostAssetListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostAssetListCustomAttrJSON), &getHostAssetListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetHostAssetListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetHostAssetListOrderByJSON), &getHostAssetListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetHostAssetList", getHostAssetListParams, &result)
@@ -41,8 +56,7 @@ func init() {
 	GetHostAssetListCmd.Flags().StringSliceVar(&getHostAssetListParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	GetHostAssetListCmd.Flags().StringSliceVar(&getHostAssetListParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetHostAssetListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetHostAssetListCmd.Flags().StringVar(&GetHostAssetListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetHostAssetListCmd.Flags().BoolVar(&getHostAssetListParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	GetHostAssetListCmd.Flags().BoolVar(&getHostAssetListParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	GetHostAssetListCmd.Flags().StringSliceVar(&getHostAssetListParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")
@@ -68,8 +82,7 @@ func init() {
 	GetHostAssetListCmd.Flags().IntVar(&getHostAssetListParams.Offset, "offset", 0, " 偏移量")
 	GetHostAssetListCmd.Flags().Float64SliceVar(&getHostAssetListParams.Oid, "oid", nil, "组织 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetHostAssetListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetHostAssetListCmd.Flags().StringVar(&GetHostAssetListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetHostAssetListCmd.Flags().StringSliceVar(&getHostAssetListParams.OrgName, "org-name", nil, "组织名称")
 	GetHostAssetListCmd.Flags().StringSliceVar(&getHostAssetListParams.Os, "os", nil, "主机操作系统")
 	GetHostAssetListCmd.Flags().StringSliceVar(&getHostAssetListParams.OsReleaseVersion, "os-release-version", nil, "系统版本")

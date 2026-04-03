@@ -4,6 +4,7 @@ package application_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var deleteApplicationParams DeleteApplicationParams
+var DeleteApplicationCustomAttrJSON string
+var DeleteApplicationFilterJSON string
 
 var DeleteApplicationCmd = &cobra.Command{
 	Use:   "delete_application",
 	Short: "删除软件资产",
 	Long:  `删除软件资产`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteApplicationCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteApplicationCustomAttrJSON), &deleteApplicationParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if DeleteApplicationFilterJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteApplicationFilterJSON), &deleteApplicationParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ApplicationAssetService.DeleteApplication", deleteApplicationParams, &result)
@@ -32,11 +47,9 @@ func init() {
 	DeleteApplicationCmd.Flags().StringSliceVar(&deleteApplicationParams.App, "app", nil, "软件")
 	DeleteApplicationCmd.Flags().StringSliceVar(&deleteApplicationParams.Category, "category", nil, "分类")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteApplicationCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteApplicationCmd.Flags().StringVar(&DeleteApplicationCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	DeleteApplicationCmd.Flags().StringVar(&filterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"app\": \"windows_nt\", \"category\": \"系统库\", \"host_id\": 196, \"id\": 190823, \"version\": \"10.0.14393.447\"}])")
+	DeleteApplicationCmd.Flags().StringVar(&DeleteApplicationFilterJSON, "filter", "", "已选中的项目 (JSON, e.g. [{\"app\": \"windows_nt\", \"category\": \"系统库\", \"host_id\": 196, \"id\": 190823, \"version\": \"10.0.14393.447\"}])")
 	DeleteApplicationCmd.Flags().Float64SliceVar(&deleteApplicationParams.Gids, "gids", nil, "业务组 ID 列表")
 	DeleteApplicationCmd.Flags().StringSliceVar(&deleteApplicationParams.HostComment, "host-comment", nil, "主机备注")
 	DeleteApplicationCmd.Flags().Float64SliceVar(&deleteApplicationParams.HostId, "host-id", nil, "主机 ID")

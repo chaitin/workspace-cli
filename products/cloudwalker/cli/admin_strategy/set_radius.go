@@ -17,6 +17,7 @@ var SetRadiusCmd = &cobra.Command{
 	Short: "设置Radius",
 	Long:  `设置Radius`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AdminStrategyService.SetRadius", setRadiusParams, &result)

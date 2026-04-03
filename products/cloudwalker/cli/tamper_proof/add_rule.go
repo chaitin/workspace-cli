@@ -17,6 +17,7 @@ var AddRuleCmd = &cobra.Command{
 	Short: "添加规则",
 	Long:  `添加规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.AddRule", addRuleParams, &result)

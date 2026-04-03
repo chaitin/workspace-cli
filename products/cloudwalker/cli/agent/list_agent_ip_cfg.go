@@ -4,6 +4,7 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listAgentIpCfgParams ListAgentIpCfgParams
+var ListAgentIpCfgCustomAttrJSON string
 
 var ListAgentIpCfgCmd = &cobra.Command{
 	Use:   "list_agent_ip_cfg",
 	Short: "获取探针自定义 IP 配置",
 	Long:  `获取探针自定义 IP 配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListAgentIpCfgCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListAgentIpCfgCustomAttrJSON), &listAgentIpCfgParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentService.ListAgentIPCfg", listAgentIpCfgParams, &result)
@@ -31,8 +39,7 @@ var ListAgentIpCfgCmd = &cobra.Command{
 func init() {
 	ListAgentIpCfgCmd.Flags().IntVar(&listAgentIpCfgParams.Count, "count", 20, "每页记录数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListAgentIpCfgCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListAgentIpCfgCmd.Flags().StringVar(&ListAgentIpCfgCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListAgentIpCfgCmd.Flags().BoolSliceVar(&listAgentIpCfgParams.Enable, "enable", nil, "是否启用")
 	ListAgentIpCfgCmd.Flags().StringSliceVar(&listAgentIpCfgParams.HostComment, "host-comment", nil, "主机备注")
 	ListAgentIpCfgCmd.Flags().Float64SliceVar(&listAgentIpCfgParams.HostId, "host-id", nil, "主机ID")

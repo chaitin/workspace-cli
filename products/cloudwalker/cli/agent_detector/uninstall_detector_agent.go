@@ -4,6 +4,7 @@ package agent_detector
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var uninstallDetectorAgentParams UninstallDetectorAgentParams
+var UninstallDetectorAgentCustomAttrJSON string
 
 var UninstallDetectorAgentCmd = &cobra.Command{
 	Use:   "uninstall_detector_agent",
 	Short: "卸载检测探针",
 	Long:  `卸载检测探针`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if UninstallDetectorAgentCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(UninstallDetectorAgentCustomAttrJSON), &uninstallDetectorAgentParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentDetectorService.UninstallDetectorAgent", uninstallDetectorAgentParams, &result)
@@ -30,8 +38,7 @@ var UninstallDetectorAgentCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	UninstallDetectorAgentCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	UninstallDetectorAgentCmd.Flags().StringVar(&UninstallDetectorAgentCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	UninstallDetectorAgentCmd.Flags().Float64SliceVar(&uninstallDetectorAgentParams.GroupId, "group-id", nil, "业务组 ID")
 	UninstallDetectorAgentCmd.Flags().StringSliceVar(&uninstallDetectorAgentParams.HostComment, "host-comment", nil, "主机备注")
 	UninstallDetectorAgentCmd.Flags().Float64SliceVar(&uninstallDetectorAgentParams.HostId, "host-id", nil, "主机 ID")

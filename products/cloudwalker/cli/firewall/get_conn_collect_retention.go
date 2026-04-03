@@ -15,6 +15,7 @@ var GetConnCollectRetentionCmd = &cobra.Command{
 	Short: "获取连接采集数据保留期限配置",
 	Long:  `获取连接采集数据保留期限配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.GetConnCollectRetention", nil, &result)

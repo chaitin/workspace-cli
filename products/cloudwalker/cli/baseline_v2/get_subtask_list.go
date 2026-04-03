@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getSubtaskListParams GetSubtaskListParams
+var GetSubtaskListCustomAttrJSON string
+var GetSubtaskListOrderByJSON string
+var GetSubtaskListSelectJSON string
 
 var GetSubtaskListCmd = &cobra.Command{
 	Use:   "get_subtask_list",
 	Short: "获取核查子任务列表",
 	Long:  `获取核查子任务列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetSubtaskListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetSubtaskListCustomAttrJSON), &getSubtaskListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetSubtaskListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetSubtaskListOrderByJSON), &getSubtaskListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetSubtaskListSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetSubtaskListSelectJSON), &getSubtaskListParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.GetSubtaskList", getSubtaskListParams, &result)
@@ -32,8 +54,7 @@ func init() {
 	GetSubtaskListCmd.Flags().IntVar(&getSubtaskListParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetSubtaskListCmd.Flags().StringSliceVar(&getSubtaskListParams.CreatedAt, "created-at", nil, "任务创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetSubtaskListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetSubtaskListCmd.Flags().StringVar(&GetSubtaskListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetSubtaskListCmd.Flags().StringSliceVar(&getSubtaskListParams.Description, "description", nil, "核查项描述")
 	GetSubtaskListCmd.Flags().StringSliceVar(&getSubtaskListParams.FinishedAt, "finished-at", nil, "任务结束时间")
 	GetSubtaskListCmd.Flags().Float64SliceVar(&getSubtaskListParams.Gids, "gids", nil, "业务组 ID")
@@ -47,12 +68,10 @@ func init() {
 	GetSubtaskListCmd.Flags().IntSliceVar(&getSubtaskListParams.Level, "level", nil, "核查项风险级别(1-低危，2-中危，3-高危，4-严重)")
 	GetSubtaskListCmd.Flags().IntVar(&getSubtaskListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetSubtaskListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetSubtaskListCmd.Flags().StringVar(&GetSubtaskListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetSubtaskListCmd.Flags().StringSliceVar(&getSubtaskListParams.Reply, "reply", nil, "核查输出")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetSubtaskListCmd.Flags().StringVar(&selectJSON, "select", "", "选中的项 (JSON, e.g. [{\"id\": 1, \"task_id\": 1}])")
+	GetSubtaskListCmd.Flags().StringVar(&GetSubtaskListSelectJSON, "select", "", "选中的项 (JSON, e.g. [{\"id\": 1, \"task_id\": 1}])")
 	GetSubtaskListCmd.Flags().BoolVar(&getSubtaskListParams.SelectAll, "select-all", false, "全选所有")
 	GetSubtaskListCmd.Flags().StringSliceVar(&getSubtaskListParams.SetName, "set-name", nil, "核查策略名称")
 	GetSubtaskListCmd.Flags().StringSliceVar(&getSubtaskListParams.StartedAt, "started-at", nil, "任务运行时间")

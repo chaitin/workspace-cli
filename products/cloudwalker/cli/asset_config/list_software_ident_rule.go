@@ -4,6 +4,7 @@ package asset_config
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var listSoftwareIdentRuleParams ListSoftwareIdentRuleParams
+var ListSoftwareIdentRuleCustomAttrJSON string
 
 var ListSoftwareIdentRuleCmd = &cobra.Command{
 	Use:   "list_software_ident_rule",
 	Short: "获取软件识别规则列表",
 	Long:  `获取软件识别规则列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListSoftwareIdentRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListSoftwareIdentRuleCustomAttrJSON), &listSoftwareIdentRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AssetConfigService.ListSoftwareIdentRule", listSoftwareIdentRuleParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	ListSoftwareIdentRuleCmd.Flags().IntVar(&listSoftwareIdentRuleParams.Count, "count", 20, "每页记录数量")
 	ListSoftwareIdentRuleCmd.Flags().StringSliceVar(&listSoftwareIdentRuleParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListSoftwareIdentRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListSoftwareIdentRuleCmd.Flags().StringVar(&ListSoftwareIdentRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListSoftwareIdentRuleCmd.Flags().StringSliceVar(&listSoftwareIdentRuleParams.HostComment, "host-comment", nil, "主机备注")
 	ListSoftwareIdentRuleCmd.Flags().Float64SliceVar(&listSoftwareIdentRuleParams.HostId, "host-id", nil, "主机ID")
 	ListSoftwareIdentRuleCmd.Flags().StringSliceVar(&listSoftwareIdentRuleParams.HostIp, "host-ip", nil, "主机IP")

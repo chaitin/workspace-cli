@@ -17,6 +17,7 @@ var GetItemListCmd = &cobra.Command{
 	Short: "获取导入的核查项详情",
 	Long:  `获取导入的核查项详情`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.GetItemList", getItemListParams, &result)

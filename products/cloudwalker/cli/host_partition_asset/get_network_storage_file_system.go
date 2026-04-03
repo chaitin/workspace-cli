@@ -15,6 +15,7 @@ var GetNetworkStorageFileSystemCmd = &cobra.Command{
 	Short: "获取所有主机网络存储文件系统",
 	Long:  `获取所有主机网络存储文件系统`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostPartitionAssetService.GetNetworkStorageFileSystem", nil, &result)

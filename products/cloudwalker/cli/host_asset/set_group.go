@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var setGroupParams SetGroupParams
+var SetGroupCustomAttrJSON string
+var SetGroupSelectJSON string
 
 var SetGroupCmd = &cobra.Command{
 	Use:   "set_group",
 	Short: "修改主机业务组",
 	Long:  `修改主机业务组`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SetGroupCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(SetGroupCustomAttrJSON), &setGroupParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if SetGroupSelectJSON != "" {
+			if err := json.Unmarshal([]byte(SetGroupSelectJSON), &setGroupParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.SetGroup", setGroupParams, &result)
@@ -40,8 +55,7 @@ func init() {
 	SetGroupCmd.Flags().StringSliceVar(&setGroupParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	SetGroupCmd.Flags().StringSliceVar(&setGroupParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	SetGroupCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	SetGroupCmd.Flags().StringVar(&SetGroupCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	SetGroupCmd.Flags().BoolVar(&setGroupParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	SetGroupCmd.Flags().BoolVar(&setGroupParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	SetGroupCmd.Flags().StringSliceVar(&setGroupParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")
@@ -77,8 +91,7 @@ func init() {
 	SetGroupCmd.Flags().StringSliceVar(&setGroupParams.ResLimitMemory, "res-limit-memory", nil, "内存资源限制")
 	SetGroupCmd.Flags().StringSliceVar(&setGroupParams.ResLimitNetwork, "res-limit-network", nil, "网络资源限制")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	SetGroupCmd.Flags().StringVar(&selectJSON, "select", "", "选择项目 (JSON, e.g. [{\"id\": 196}])")
+	SetGroupCmd.Flags().StringVar(&SetGroupSelectJSON, "select", "", "选择项目 (JSON, e.g. [{\"id\": 196}])")
 	SetGroupCmd.Flags().BoolVar(&setGroupParams.SelectAll, "select-all", false, "是否选取所有")
 	SetGroupCmd.Flags().StringSliceVar(&setGroupParams.ServerAddresses, "server-addresses", nil, "探针连接的服务端的地址（若该字段不是真正的服务端地址，说明存在反向代理）")
 	SetGroupCmd.Flags().StringSliceVar(&setGroupParams.Tags, "tags", nil, "特征")

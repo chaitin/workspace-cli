@@ -4,6 +4,7 @@ package agent_module
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getAgentListParams GetAgentListParams
+var GetAgentListFilterJSON string
+var GetAgentListPageJSON string
 
 var GetAgentListCmd = &cobra.Command{
 	Use:   "get_agent_list",
 	Short: "获取探针列表",
 	Long:  `获取探针列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetAgentListFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetAgentListFilterJSON), &getAgentListParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetAgentListPageJSON != "" {
+			if err := json.Unmarshal([]byte(GetAgentListPageJSON), &getAgentListParams.Page); err != nil {
+				cmd.PrintErrln("Error parsing page:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentModuleService.GetAgentList", getAgentListParams, &result)
@@ -30,11 +45,9 @@ var GetAgentListCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	GetAgentListCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
+	GetAgentListCmd.Flags().StringVar(&GetAgentListFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
 	// page is object type, use JSON string
-	var pageJSON string
-	GetAgentListCmd.Flags().StringVar(&pageJSON, "page", "", "分页器 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
+	GetAgentListCmd.Flags().StringVar(&GetAgentListPageJSON, "page", "", "分页器 (JSON, e.g. {\"count\": 20, \"offset\": 0, \"order\": {\"column\": \"level\", \"order\": \"ASC\"}})")
 }
 
 // GetAgentListParams 请求参数

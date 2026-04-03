@@ -17,6 +17,7 @@ var ListHostCmd = &cobra.Command{
 	Short: "获取未知主机资产信息",
 	Long:  `获取未知主机资产信息`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostDiscoveryService.ListHost", listHostParams, &result)

@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enablementAbnormalLoginRuleParams EnablementAbnormalLoginRuleParams
+var EnablementAbnormalLoginRuleFilterJSON string
 
 var EnablementAbnormalLoginRuleCmd = &cobra.Command{
 	Use:   "enablement_abnormal_login_rule",
 	Short: "启禁用异常登录检测规则",
 	Long:  `启禁用异常登录检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnablementAbnormalLoginRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EnablementAbnormalLoginRuleFilterJSON), &enablementAbnormalLoginRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.EnablementAbnormalLoginRule", enablementAbnormalLoginRuleParams, &result)
@@ -31,8 +39,7 @@ var EnablementAbnormalLoginRuleCmd = &cobra.Command{
 func init() {
 	EnablementAbnormalLoginRuleCmd.Flags().BoolVar(&enablementAbnormalLoginRuleParams.Enable, "enable", false, "是否启用")
 	// filter is object type, use JSON string
-	var filterJSON string
-	EnablementAbnormalLoginRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"auth_type\": [\"ssh\"], \"category\": [\"black_list\"], \"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"...\": \"...\"})")
+	EnablementAbnormalLoginRuleCmd.Flags().StringVar(&EnablementAbnormalLoginRuleFilterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"auth_type\": [\"ssh\"], \"category\": [\"black_list\"], \"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"...\": \"...\"})")
 }
 
 // EnablementAbnormalLoginRuleParams 请求参数

@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var startTaskParams StartTaskParams
+var StartTaskCustomAttrJSON string
+var StartTaskSelectJSON string
 
 var StartTaskCmd = &cobra.Command{
 	Use:   "start_task",
 	Short: "开始核查任务",
 	Long:  `开始核查任务`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StartTaskCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StartTaskCustomAttrJSON), &startTaskParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if StartTaskSelectJSON != "" {
+			if err := json.Unmarshal([]byte(StartTaskSelectJSON), &startTaskParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.StartTask", startTaskParams, &result)
@@ -31,8 +46,7 @@ var StartTaskCmd = &cobra.Command{
 func init() {
 	StartTaskCmd.Flags().StringSliceVar(&startTaskParams.CreatedAt, "created-at", nil, "任务创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StartTaskCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StartTaskCmd.Flags().StringVar(&StartTaskCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StartTaskCmd.Flags().BoolVar(&startTaskParams.Enable, "enable", false, "是否启用")
 	StartTaskCmd.Flags().StringSliceVar(&startTaskParams.FinishedAt, "finished-at", nil, "任务结束时间")
 	StartTaskCmd.Flags().Float64SliceVar(&startTaskParams.Gids, "gids", nil, "业务组 ID")
@@ -44,8 +58,7 @@ func init() {
 	StartTaskCmd.Flags().StringSliceVar(&startTaskParams.HostTags, "host-tags", nil, "主机标签")
 	StartTaskCmd.Flags().StringSliceVar(&startTaskParams.ItemName, "item-name", nil, "核查项名称")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	StartTaskCmd.Flags().StringVar(&selectJSON, "select", "", "选择内容 (JSON, e.g. [{\"id\": 1}])")
+	StartTaskCmd.Flags().StringVar(&StartTaskSelectJSON, "select", "", "选择内容 (JSON, e.g. [{\"id\": 1}])")
 	StartTaskCmd.Flags().BoolVar(&startTaskParams.SelectAll, "select-all", false, "选择所有")
 	StartTaskCmd.Flags().StringSliceVar(&startTaskParams.SetName, "set-name", nil, "核查策略名称")
 	StartTaskCmd.Flags().StringSliceVar(&startTaskParams.StartedAt, "started-at", nil, "任务运行时间")

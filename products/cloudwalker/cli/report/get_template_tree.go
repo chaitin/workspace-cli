@@ -17,6 +17,7 @@ var GetTemplateTreeCmd = &cobra.Command{
 	Short: "获取模板树",
 	Long:  `获取模板树`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ReportService.GetTemplateTree", getTemplateTreeParams, &result)

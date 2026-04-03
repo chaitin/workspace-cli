@@ -4,6 +4,7 @@ package patch_info_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getPatchInfoEventListParams GetPatchInfoEventListParams
+var GetPatchInfoEventListCustomAttrJSON string
+var GetPatchInfoEventListOrderByJSON string
+var GetPatchInfoEventListSelectJSON string
 
 var GetPatchInfoEventListCmd = &cobra.Command{
 	Use:   "get_patch_info_event_list",
 	Short: "获取补丁风险列表",
 	Long:  `获取补丁风险列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetPatchInfoEventListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetPatchInfoEventListCustomAttrJSON), &getPatchInfoEventListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetPatchInfoEventListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetPatchInfoEventListOrderByJSON), &getPatchInfoEventListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetPatchInfoEventListSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetPatchInfoEventListSelectJSON), &getPatchInfoEventListParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PatchInfoEventService.GetPatchInfoEventList", getPatchInfoEventListParams, &result)
@@ -34,8 +56,7 @@ func init() {
 	GetPatchInfoEventListCmd.Flags().IntVar(&getPatchInfoEventListParams.Count, "count", 20, "数量")
 	GetPatchInfoEventListCmd.Flags().StringSliceVar(&getPatchInfoEventListParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetPatchInfoEventListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetPatchInfoEventListCmd.Flags().StringVar(&GetPatchInfoEventListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetPatchInfoEventListCmd.Flags().StringSliceVar(&getPatchInfoEventListParams.Cve, "cve", nil, "CVE 编号")
 	GetPatchInfoEventListCmd.Flags().Float64SliceVar(&getPatchInfoEventListParams.Gids, "gids", nil, "业务组 ID")
 	GetPatchInfoEventListCmd.Flags().StringSliceVar(&getPatchInfoEventListParams.GroupName, "group-name", nil, "业务组名")
@@ -52,14 +73,12 @@ func init() {
 	GetPatchInfoEventListCmd.Flags().IntVar(&getPatchInfoEventListParams.Offset, "offset", 0, "偏移量")
 	GetPatchInfoEventListCmd.Flags().Float64SliceVar(&getPatchInfoEventListParams.Oid, "oid", nil, "oid")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetPatchInfoEventListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetPatchInfoEventListCmd.Flags().StringVar(&GetPatchInfoEventListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetPatchInfoEventListCmd.Flags().Float64SliceVar(&getPatchInfoEventListParams.PatchState, "patch-state", nil, "事件状态(1-risky,2-ignored,3-fixed,4-fixing,5-fix_failed)")
 	GetPatchInfoEventListCmd.Flags().Float64SliceVar(&getPatchInfoEventListParams.PlanId, "plan-id", nil, "计划ID")
 	GetPatchInfoEventListCmd.Flags().StringSliceVar(&getPatchInfoEventListParams.PublishTime, "publish-time", nil, "补丁发布时间")
 	// select is object type, use JSON string
-	var selectJSON string
-	GetPatchInfoEventListCmd.Flags().StringVar(&selectJSON, "select", "", "选项 (JSON, e.g. {})")
+	GetPatchInfoEventListCmd.Flags().StringVar(&GetPatchInfoEventListSelectJSON, "select", "", "选项 (JSON, e.g. {})")
 	GetPatchInfoEventListCmd.Flags().BoolVar(&getPatchInfoEventListParams.SelectAll, "select-all", false, "是否全选")
 	GetPatchInfoEventListCmd.Flags().StringSliceVar(&getPatchInfoEventListParams.Trait, "trait", nil, "特征")
 	GetPatchInfoEventListCmd.Flags().StringSliceVar(&getPatchInfoEventListParams.Type, "type", nil, "补丁类型 KB/Ubuntu")

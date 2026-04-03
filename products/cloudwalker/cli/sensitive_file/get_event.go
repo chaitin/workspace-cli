@@ -17,6 +17,7 @@ var GetEventCmd = &cobra.Command{
 	Short: "获取敏感文件事件详情",
 	Long:  `获取敏感文件事件详情`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitiveFileService.GetEvent", getEventParams, &result)

@@ -4,6 +4,7 @@ package full_command
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getListByNetAppParams GetListByNetAppParams
+var GetListByNetAppCustomAttrJSON string
+var GetListByNetAppOrderByJSON string
 
 var GetListByNetAppCmd = &cobra.Command{
 	Use:   "get_list_by_net_app",
 	Short: "获取按网络应用聚合的事件列表",
 	Long:  `获取按网络应用聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetListByNetAppCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetListByNetAppCustomAttrJSON), &getListByNetAppParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetListByNetAppOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetListByNetAppOrderByJSON), &getListByNetAppParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FullCommandService.GetListByNetApp", getListByNetAppParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	GetListByNetAppCmd.Flags().StringSliceVar(&getListByNetAppParams.Comment, "comment", nil, "用户自定义备注")
 	GetListByNetAppCmd.Flags().IntVar(&getListByNetAppParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetListByNetAppCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetListByNetAppCmd.Flags().StringVar(&GetListByNetAppCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetListByNetAppCmd.Flags().Float64SliceVar(&getListByNetAppParams.Gids, "gids", nil, "业务组 ID")
 	GetListByNetAppCmd.Flags().StringSliceVar(&getListByNetAppParams.HostComment, "host-comment", nil, "主机备注")
 	GetListByNetAppCmd.Flags().Float64SliceVar(&getListByNetAppParams.HostId, "host-id", nil, "主机ID, 用于主机详情页面")
@@ -46,8 +60,7 @@ func init() {
 	GetListByNetAppCmd.Flags().IntVar(&getListByNetAppParams.Offset, "offset", 0, "偏移量")
 	GetListByNetAppCmd.Flags().Float64SliceVar(&getListByNetAppParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetListByNetAppCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetListByNetAppCmd.Flags().StringVar(&GetListByNetAppOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetListByNetAppCmd.Flags().StringSliceVar(&getListByNetAppParams.SessionId, "session-id", nil, "会话id")
 	GetListByNetAppCmd.Flags().StringSliceVar(&getListByNetAppParams.ShellDuration, "shell-duration", nil, "会话持续时间")
 	GetListByNetAppCmd.Flags().StringSliceVar(&getListByNetAppParams.ShellStartedAt, "shell-started-at", nil, "会话启动时间")

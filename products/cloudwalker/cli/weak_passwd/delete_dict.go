@@ -17,6 +17,7 @@ var DeleteDictCmd = &cobra.Command{
 	Short: "删除弱口令字典",
 	Long:  `删除弱口令字典`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WeakPasswdService.DeleteDict", deleteDictParams, &result)

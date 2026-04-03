@@ -17,6 +17,7 @@ var GetModuleListCmd = &cobra.Command{
 	Short: "文件防篡改模块的列表",
 	Long:  `文件防篡改模块的列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "TamperProofService.GetModuleList", getModuleListParams, &result)

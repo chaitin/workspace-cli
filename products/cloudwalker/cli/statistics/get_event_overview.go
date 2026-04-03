@@ -17,6 +17,7 @@ var GetEventOverviewCmd = &cobra.Command{
 	Short: "获取事件描述",
 	Long:  `获取事件描述`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "StatisticsService.GetEventOverview", getEventOverviewParams, &result)

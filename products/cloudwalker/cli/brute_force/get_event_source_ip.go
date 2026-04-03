@@ -17,6 +17,7 @@ var GetEventSourceIpCmd = &cobra.Command{
 	Short: "获取某事件的攻击源 IP",
 	Long:  `获取某事件的攻击源 IP`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BruteForceService.GetEventSourceIP", getEventSourceIpParams, &result)

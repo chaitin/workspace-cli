@@ -17,6 +17,7 @@ var ListSecurityStrategyCmd = &cobra.Command{
 	Short: "获取安全策略列表",
 	Long:  `获取安全策略列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SecurityStrategyService.ListSecurityStrategy", listSecurityStrategyParams, &result)

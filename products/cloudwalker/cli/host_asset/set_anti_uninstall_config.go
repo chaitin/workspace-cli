@@ -17,6 +17,7 @@ var SetAntiUninstallConfigCmd = &cobra.Command{
 	Short: "设置探针防卸载开关",
 	Long:  `设置探针防卸载开关`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.SetAntiUninstallConfig", setAntiUninstallConfigParams, &result)

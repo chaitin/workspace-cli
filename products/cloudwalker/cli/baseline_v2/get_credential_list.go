@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getCredentialListParams GetCredentialListParams
+var GetCredentialListCustomAttrJSON string
+var GetCredentialListOrderByJSON string
 
 var GetCredentialListCmd = &cobra.Command{
 	Use:   "get_credential_list",
 	Short: "获取凭证列表",
 	Long:  `获取凭证列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetCredentialListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetCredentialListCustomAttrJSON), &getCredentialListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetCredentialListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetCredentialListOrderByJSON), &getCredentialListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.GetCredentialList", getCredentialListParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	GetCredentialListCmd.Flags().IntVar(&getCredentialListParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetCredentialListCmd.Flags().StringSliceVar(&getCredentialListParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetCredentialListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetCredentialListCmd.Flags().StringVar(&GetCredentialListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetCredentialListCmd.Flags().Float64SliceVar(&getCredentialListParams.Gids, "gids", nil, "业务组 ID")
 	GetCredentialListCmd.Flags().StringSliceVar(&getCredentialListParams.HostComment, "host-comment", nil, "主机备注")
 	GetCredentialListCmd.Flags().Float64SliceVar(&getCredentialListParams.HostId, "host-id", nil, "主机ID, 用于主机详情页面")
@@ -44,8 +58,7 @@ func init() {
 	GetCredentialListCmd.Flags().StringSliceVar(&getCredentialListParams.HostTags, "host-tags", nil, "主机标签")
 	GetCredentialListCmd.Flags().IntVar(&getCredentialListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetCredentialListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetCredentialListCmd.Flags().StringVar(&GetCredentialListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetCredentialListCmd.Flags().StringSliceVar(&getCredentialListParams.Protocol, "protocol", nil, "监听的协议(TCP, UnixSocket)")
 	GetCredentialListCmd.Flags().StringSliceVar(&getCredentialListParams.Type, "type", nil, "凭证类型(mysql，postgresql，oracle, weblogic)")
 	GetCredentialListCmd.Flags().StringSliceVar(&getCredentialListParams.UpdatedAt, "updated-at", nil, "修改时间")

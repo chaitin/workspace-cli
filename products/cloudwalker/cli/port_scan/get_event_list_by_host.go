@@ -4,6 +4,7 @@ package port_scan
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getEventListByHostParams GetEventListByHostParams
+var GetEventListByHostCustomAttrJSON string
+var GetEventListByHostOrderByJSON string
+var GetEventListByHostSelectJSON string
 
 var GetEventListByHostCmd = &cobra.Command{
 	Use:   "get_event_list_by_host",
 	Short: "事件列表-主机视角",
 	Long:  `事件列表-主机视角`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventListByHostCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByHostCustomAttrJSON), &getEventListByHostParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventListByHostOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByHostOrderByJSON), &getEventListByHostParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetEventListByHostSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventListByHostSelectJSON), &getEventListByHostParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PortScanService.GetEventListByHost", getEventListByHostParams, &result)
@@ -32,8 +54,7 @@ func init() {
 	GetEventListByHostCmd.Flags().StringSliceVar(&getEventListByHostParams.Comment, "comment", nil, "comment")
 	GetEventListByHostCmd.Flags().IntVar(&getEventListByHostParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventListByHostCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventListByHostCmd.Flags().StringVar(&GetEventListByHostCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventListByHostCmd.Flags().StringSliceVar(&getEventListByHostParams.FinishedAt, "finished-at", nil, "finished_at")
 	GetEventListByHostCmd.Flags().Float64SliceVar(&getEventListByHostParams.Gids, "gids", nil, "业务组 ID")
 	GetEventListByHostCmd.Flags().StringSliceVar(&getEventListByHostParams.HostComment, "host-comment", nil, "主机备注")
@@ -47,13 +68,11 @@ func init() {
 	GetEventListByHostCmd.Flags().IntVar(&getEventListByHostParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventListByHostCmd.Flags().Float64SliceVar(&getEventListByHostParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventListByHostCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则，默认 last_seen_at desc，支持 last_seen_at 和 event_count (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventListByHostCmd.Flags().StringVar(&GetEventListByHostOrderByJSON, "order-by", "", "排序规则，默认 last_seen_at desc，支持 last_seen_at 和 event_count (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventListByHostCmd.Flags().Float64SliceVar(&getEventListByHostParams.Port, "port", nil, "port")
 	GetEventListByHostCmd.Flags().StringSliceVar(&getEventListByHostParams.RuleId, "rule-id", nil, "规则ID")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetEventListByHostCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 162, \"id\": 154, \"source_ip\": \"127.0.0.1\"}])")
+	GetEventListByHostCmd.Flags().StringVar(&GetEventListByHostSelectJSON, "select", "", "select (JSON, e.g. [{\"host_id\": 162, \"id\": 154, \"source_ip\": \"127.0.0.1\"}])")
 	GetEventListByHostCmd.Flags().BoolVar(&getEventListByHostParams.SelectAll, "select-all", false, "是否全选")
 	GetEventListByHostCmd.Flags().StringSliceVar(&getEventListByHostParams.SourceIp, "source-ip", nil, "source_ip")
 	GetEventListByHostCmd.Flags().StringSliceVar(&getEventListByHostParams.StartedAt, "started-at", nil, "started_at")

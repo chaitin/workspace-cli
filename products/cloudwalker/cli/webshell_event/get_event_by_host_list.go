@@ -4,6 +4,7 @@ package webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getEventByHostListParams GetEventByHostListParams
+var GetEventByHostListCustomAttrJSON string
+var GetEventByHostListOrderByJSON string
+var GetEventByHostListSelectJSON string
 
 var GetEventByHostListCmd = &cobra.Command{
 	Use:   "get_event_by_host_list",
 	Short: "根据主机获取事件列表",
 	Long:  `根据主机获取事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventByHostListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventByHostListCustomAttrJSON), &getEventByHostListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventByHostListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventByHostListOrderByJSON), &getEventByHostListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetEventByHostListSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventByHostListSelectJSON), &getEventByHostListParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.GetEventByHostList", getEventByHostListParams, &result)
@@ -33,8 +55,7 @@ func init() {
 	GetEventByHostListCmd.Flags().IntVar(&getEventByHostListParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetEventByHostListCmd.Flags().StringSliceVar(&getEventByHostListParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventByHostListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventByHostListCmd.Flags().StringVar(&GetEventByHostListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventByHostListCmd.Flags().StringSliceVar(&getEventByHostListParams.Domain, "domain", nil, "域名")
 	GetEventByHostListCmd.Flags().StringSliceVar(&getEventByHostListParams.FileName, "file-name", nil, "文件名")
 	GetEventByHostListCmd.Flags().StringSliceVar(&getEventByHostListParams.FilePath, "file-path", nil, "文件路径")
@@ -52,12 +73,10 @@ func init() {
 	GetEventByHostListCmd.Flags().IntVar(&getEventByHostListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventByHostListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventByHostListCmd.Flags().StringVar(&GetEventByHostListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.PlanId, "plan-id", nil, "任务 id")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetEventByHostListCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
+	GetEventByHostListCmd.Flags().StringVar(&GetEventByHostListSelectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
 	GetEventByHostListCmd.Flags().BoolVar(&getEventByHostListParams.SelectAll, "select-all", false, "是否全选")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.StatEventId, "stat-event-id", nil, "统计事件 ID")
 	GetEventByHostListCmd.Flags().IntSliceVar(&getEventByHostListParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

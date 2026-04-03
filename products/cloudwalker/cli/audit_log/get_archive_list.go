@@ -17,6 +17,7 @@ var GetArchiveListCmd = &cobra.Command{
 	Short: "获取归档列表",
 	Long:  `获取归档列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AuditLogService.GetArchiveList", getArchiveListParams, &result)

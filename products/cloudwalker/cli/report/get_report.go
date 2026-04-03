@@ -17,6 +17,7 @@ var GetReportCmd = &cobra.Command{
 	Short: "获取报告详情",
 	Long:  `获取报告详情`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ReportService.GetReport", getReportParams, &result)

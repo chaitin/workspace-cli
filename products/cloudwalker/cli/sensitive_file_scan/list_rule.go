@@ -17,6 +17,7 @@ var ListRuleCmd = &cobra.Command{
 	Short: "获取文件完整性任务检测规则列表",
 	Long:  `获取文件完整性任务检测规则列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitiveFileScanService.ListRule", listRuleParams, &result)

@@ -4,6 +4,7 @@ package docker_network
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var getNetworkListParams GetNetworkListParams
+var GetNetworkListCustomAttrJSON string
+var GetNetworkListOrderByJSON string
 
 var GetNetworkListCmd = &cobra.Command{
 	Use:   "get_network_list",
 	Short: "获取Docker网络资产列表",
 	Long:  `获取Docker网络资产列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetNetworkListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetNetworkListCustomAttrJSON), &getNetworkListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetNetworkListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetNetworkListOrderByJSON), &getNetworkListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DockerNetworkService.GetNetworkList", getNetworkListParams, &result)
@@ -31,8 +46,7 @@ var GetNetworkListCmd = &cobra.Command{
 func init() {
 	GetNetworkListCmd.Flags().IntVar(&getNetworkListParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetNetworkListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetNetworkListCmd.Flags().StringVar(&GetNetworkListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetNetworkListCmd.Flags().Float64SliceVar(&getNetworkListParams.Gids, "gids", nil, "gids")
 	GetNetworkListCmd.Flags().StringSliceVar(&getNetworkListParams.HostComment, "host-comment", nil, "主机备注")
 	GetNetworkListCmd.Flags().Float64SliceVar(&getNetworkListParams.HostId, "host-id", nil, "主机 ID")
@@ -49,8 +63,7 @@ func init() {
 	GetNetworkListCmd.Flags().IntVar(&getNetworkListParams.Offset, "offset", 0, "偏移量")
 	GetNetworkListCmd.Flags().Float64SliceVar(&getNetworkListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetNetworkListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetNetworkListCmd.Flags().StringVar(&GetNetworkListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 }
 
 // GetNetworkListParams 请求参数

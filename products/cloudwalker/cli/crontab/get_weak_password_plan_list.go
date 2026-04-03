@@ -4,6 +4,7 @@ package crontab
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getWeakPasswordPlanListParams GetWeakPasswordPlanListParams
+var GetWeakPasswordPlanListOrderByJSON string
 
 var GetWeakPasswordPlanListCmd = &cobra.Command{
 	Use:   "get_weak_password_plan_list",
 	Short: "获取弱口令任务计划列表",
 	Long:  `获取弱口令任务计划列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetWeakPasswordPlanListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetWeakPasswordPlanListOrderByJSON), &getWeakPasswordPlanListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.GetWeakPasswordPlanList", getWeakPasswordPlanListParams, &result)
@@ -39,8 +47,7 @@ func init() {
 	GetWeakPasswordPlanListCmd.Flags().StringSliceVar(&getWeakPasswordPlanListParams.NextStartedAt, "next-started-at", nil, "下次扫描启动时间：时间范围")
 	GetWeakPasswordPlanListCmd.Flags().IntVar(&getWeakPasswordPlanListParams.Offset, "offset", 0, "偏移量")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetWeakPasswordPlanListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetWeakPasswordPlanListCmd.Flags().StringVar(&GetWeakPasswordPlanListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetWeakPasswordPlanListCmd.Flags().StringSliceVar(&getWeakPasswordPlanListParams.State, "state", nil, "扫描状态：多选")
 	GetWeakPasswordPlanListCmd.Flags().StringSliceVar(&getWeakPasswordPlanListParams.TriggerMethod, "trigger-method", nil, "触发方式：多选")
 	GetWeakPasswordPlanListCmd.Flags().StringSliceVar(&getWeakPasswordPlanListParams.UpdatedAt, "updated-at", nil, "最近修改时间：时间范围")

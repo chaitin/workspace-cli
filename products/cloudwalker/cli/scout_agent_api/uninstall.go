@@ -4,6 +4,7 @@ package scout_agent_api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var uninstallParams UninstallParams
+var UninstallFilterJSON string
+var UninstallSelectFilterJSON string
 
 var UninstallCmd = &cobra.Command{
 	Use:   "uninstall",
 	Short: "卸载采集探针",
 	Long:  `卸载采集探针`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if UninstallFilterJSON != "" {
+			if err := json.Unmarshal([]byte(UninstallFilterJSON), &uninstallParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if UninstallSelectFilterJSON != "" {
+			if err := json.Unmarshal([]byte(UninstallSelectFilterJSON), &uninstallParams.SelectFilter); err != nil {
+				cmd.PrintErrln("Error parsing select-filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ScoutAgentApiService.Uninstall", uninstallParams, &result)
@@ -30,11 +45,9 @@ var UninstallCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	UninstallCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_memory_rate\": [\"0.03298633\"], \"cpu\": [\"0.007942708\"], \"created_at\": [\"1664273285.232421\"], \"...\": \"...\"})")
+	UninstallCmd.Flags().StringVar(&UninstallFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_memory_rate\": [\"0.03298633\"], \"cpu\": [\"0.007942708\"], \"created_at\": [\"1664273285.232421\"], \"...\": \"...\"})")
 	// select_filter is object type, use JSON string
-	var selectFilterJSON string
-	UninstallCmd.Flags().StringVar(&selectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
+	UninstallCmd.Flags().StringVar(&UninstallSelectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
 }
 
 // UninstallParams 请求参数

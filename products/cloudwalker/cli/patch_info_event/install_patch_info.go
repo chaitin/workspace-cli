@@ -4,6 +4,7 @@ package patch_info_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var installPatchInfoParams InstallPatchInfoParams
+var InstallPatchInfoCustomAttrJSON string
+var InstallPatchInfoSelectJSON string
 
 var InstallPatchInfoCmd = &cobra.Command{
 	Use:   "install_patch_info",
 	Short: "安装补丁",
 	Long:  `安装补丁`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if InstallPatchInfoCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(InstallPatchInfoCustomAttrJSON), &installPatchInfoParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if InstallPatchInfoSelectJSON != "" {
+			if err := json.Unmarshal([]byte(InstallPatchInfoSelectJSON), &installPatchInfoParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PatchInfoEventService.InstallPatchInfo", installPatchInfoParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	InstallPatchInfoCmd.Flags().StringSliceVar(&installPatchInfoParams.Comment, "comment", nil, "用户自定义备注")
 	InstallPatchInfoCmd.Flags().StringSliceVar(&installPatchInfoParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	InstallPatchInfoCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	InstallPatchInfoCmd.Flags().StringVar(&InstallPatchInfoCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	InstallPatchInfoCmd.Flags().StringSliceVar(&installPatchInfoParams.Cve, "cve", nil, "CVE 编号")
 	InstallPatchInfoCmd.Flags().Float64SliceVar(&installPatchInfoParams.Gids, "gids", nil, "业务组 ID")
 	InstallPatchInfoCmd.Flags().StringSliceVar(&installPatchInfoParams.GroupName, "group-name", nil, "业务组名")
@@ -54,8 +68,7 @@ func init() {
 	InstallPatchInfoCmd.Flags().StringVar(&installPatchInfoParams.Proxy, "proxy", "", "代理")
 	InstallPatchInfoCmd.Flags().StringSliceVar(&installPatchInfoParams.PublishTime, "publish-time", nil, "补丁发布时间")
 	// select is object type, use JSON string
-	var selectJSON string
-	InstallPatchInfoCmd.Flags().StringVar(&selectJSON, "select", "", "选项 (JSON, e.g. {})")
+	InstallPatchInfoCmd.Flags().StringVar(&InstallPatchInfoSelectJSON, "select", "", "选项 (JSON, e.g. {})")
 	InstallPatchInfoCmd.Flags().BoolVar(&installPatchInfoParams.SelectAll, "select-all", false, "是否全选")
 	InstallPatchInfoCmd.Flags().StringSliceVar(&installPatchInfoParams.Trait, "trait", nil, "特征")
 	InstallPatchInfoCmd.Flags().StringSliceVar(&installPatchInfoParams.Type, "type", nil, "补丁类型 KB/Ubuntu")

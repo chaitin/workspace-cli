@@ -4,6 +4,7 @@ package file_disposal
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var isolationParams IsolationParams
+var IsolationCustomAttrJSON string
 
 var IsolationCmd = &cobra.Command{
 	Use:   "isolation",
 	Short: "文件隔离或者文件信任",
 	Long:  `文件隔离或者文件信任`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if IsolationCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(IsolationCustomAttrJSON), &isolationParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FileDisposalService.Isolation", isolationParams, &result)
@@ -31,8 +39,7 @@ var IsolationCmd = &cobra.Command{
 func init() {
 	IsolationCmd.Flags().Float64Var(&isolationParams.Action, "action", 0, "操作，1信任文件，2隔离文件")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	IsolationCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	IsolationCmd.Flags().StringVar(&IsolationCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	IsolationCmd.Flags().StringSliceVar(&isolationParams.ExposedIp, "exposed-ip", nil, "主机外网 IP")
 	IsolationCmd.Flags().StringSliceVar(&isolationParams.FilePath, "file-path", nil, "文件路径")
 	IsolationCmd.Flags().Float64SliceVar(&isolationParams.Gids, "gids", nil, "主机业务组 ID")

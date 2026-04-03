@@ -17,6 +17,7 @@ var GetDecoyListCmd = &cobra.Command{
 	Short: "获取主机诱饵文件列表",
 	Long:  `获取主机诱饵文件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AntiRansomwareService.GetDecoyList", getDecoyListParams, &result)

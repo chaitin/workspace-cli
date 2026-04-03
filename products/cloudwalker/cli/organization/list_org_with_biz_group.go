@@ -15,6 +15,7 @@ var ListOrgWithBizGroupCmd = &cobra.Command{
 	Short: "用户列表",
 	Long:  `用户列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "OrganizationService.ListOrgWithBizGroup", nil, &result)

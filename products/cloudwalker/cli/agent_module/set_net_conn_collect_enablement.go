@@ -4,6 +4,7 @@ package agent_module
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var setNetConnCollectEnablementParams SetNetConnCollectEnablementParams
+var SetNetConnCollectEnablementFilterJSON string
+var SetNetConnCollectEnablementSelectFilterJSON string
 
 var SetNetConnCollectEnablementCmd = &cobra.Command{
 	Use:   "set_net_conn_collect_enablement",
 	Short: "设置网络连接采集",
 	Long:  `设置网络连接采集`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SetNetConnCollectEnablementFilterJSON != "" {
+			if err := json.Unmarshal([]byte(SetNetConnCollectEnablementFilterJSON), &setNetConnCollectEnablementParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if SetNetConnCollectEnablementSelectFilterJSON != "" {
+			if err := json.Unmarshal([]byte(SetNetConnCollectEnablementSelectFilterJSON), &setNetConnCollectEnablementParams.SelectFilter); err != nil {
+				cmd.PrintErrln("Error parsing select-filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentModuleService.SetNetConnCollectEnablement", setNetConnCollectEnablementParams, &result)
@@ -31,11 +46,9 @@ var SetNetConnCollectEnablementCmd = &cobra.Command{
 func init() {
 	SetNetConnCollectEnablementCmd.Flags().BoolVar(&setNetConnCollectEnablementParams.Enablement, "enablement", false, "是否开启")
 	// filter is object type, use JSON string
-	var filterJSON string
-	SetNetConnCollectEnablementCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
+	SetNetConnCollectEnablementCmd.Flags().StringVar(&SetNetConnCollectEnablementFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
 	// select_filter is object type, use JSON string
-	var selectFilterJSON string
-	SetNetConnCollectEnablementCmd.Flags().StringVar(&selectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
+	SetNetConnCollectEnablementCmd.Flags().StringVar(&SetNetConnCollectEnablementSelectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
 }
 
 // SetNetConnCollectEnablementParams 请求参数

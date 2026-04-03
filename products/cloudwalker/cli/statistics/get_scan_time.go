@@ -17,6 +17,7 @@ var GetScanTimeCmd = &cobra.Command{
 	Short: "获取最近一次扫描任务完成时间",
 	Long:  `获取最近一次扫描任务完成时间`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "StatisticsService.GetScanTime", getScanTimeParams, &result)

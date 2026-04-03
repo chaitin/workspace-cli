@@ -17,6 +17,7 @@ var GetDownloadResultCmd = &cobra.Command{
 	Short: "获取升级包下载结果",
 	Long:  `获取升级包下载结果`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PackageService.GetDownloadResult", getDownloadResultParams, &result)

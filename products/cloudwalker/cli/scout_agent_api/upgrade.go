@@ -4,6 +4,7 @@ package scout_agent_api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var upgradeParams UpgradeParams
+var UpgradeFilterJSON string
+var UpgradeSelectFilterJSON string
 
 var UpgradeCmd = &cobra.Command{
 	Use:   "upgrade",
 	Short: "更新采集探针",
 	Long:  `更新采集探针`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if UpgradeFilterJSON != "" {
+			if err := json.Unmarshal([]byte(UpgradeFilterJSON), &upgradeParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if UpgradeSelectFilterJSON != "" {
+			if err := json.Unmarshal([]byte(UpgradeSelectFilterJSON), &upgradeParams.SelectFilter); err != nil {
+				cmd.PrintErrln("Error parsing select-filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ScoutAgentApiService.Upgrade", upgradeParams, &result)
@@ -30,11 +45,9 @@ var UpgradeCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	UpgradeCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_memory_rate\": [\"0.03298633\"], \"cpu\": [\"0.007942708\"], \"created_at\": [\"1664273285.232421\"], \"...\": \"...\"})")
+	UpgradeCmd.Flags().StringVar(&UpgradeFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_memory_rate\": [\"0.03298633\"], \"cpu\": [\"0.007942708\"], \"created_at\": [\"1664273285.232421\"], \"...\": \"...\"})")
 	// select_filter is object type, use JSON string
-	var selectFilterJSON string
-	UpgradeCmd.Flags().StringVar(&selectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
+	UpgradeCmd.Flags().StringVar(&UpgradeSelectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
 }
 
 // UpgradeParams 请求参数

@@ -4,6 +4,7 @@ package event_stat
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var eventProcessCountParams EventProcessCountParams
+var EventProcessCountCustomAttrJSON string
 
 var EventProcessCountCmd = &cobra.Command{
 	Use:   "event_process_count",
 	Short: "事件进程名聚合数量统计",
 	Long:  `事件进程名聚合数量统计`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EventProcessCountCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EventProcessCountCustomAttrJSON), &eventProcessCountParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EventStatService.EventProcessCount", eventProcessCountParams, &result)
@@ -30,8 +38,7 @@ var EventProcessCountCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EventProcessCountCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EventProcessCountCmd.Flags().StringVar(&EventProcessCountCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EventProcessCountCmd.Flags().StringSliceVar(&eventProcessCountParams.EventType, "event-type", nil, "事件类型")
 	EventProcessCountCmd.Flags().StringSliceVar(&eventProcessCountParams.Filename, "filename", nil, "相关文件名")
 	EventProcessCountCmd.Flags().Float64SliceVar(&eventProcessCountParams.Gids, "gids", nil, "业务组 ID")

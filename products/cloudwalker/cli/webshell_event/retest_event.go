@@ -4,6 +4,7 @@ package webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var retestEventParams RetestEventParams
+var RetestEventCustomAttrJSON string
+var RetestEventSelectJSON string
 
 var RetestEventCmd = &cobra.Command{
 	Use:   "retest_event",
 	Short: "触发一个探针端任务用来检测 Webshell 是否仍然存在",
 	Long:  `触发一个探针端任务用来检测 Webshell 是否仍然存在`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if RetestEventCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(RetestEventCustomAttrJSON), &retestEventParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if RetestEventSelectJSON != "" {
+			if err := json.Unmarshal([]byte(RetestEventSelectJSON), &retestEventParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WebshellEventService.RetestEvent", retestEventParams, &result)
@@ -32,8 +47,7 @@ func init() {
 	RetestEventCmd.Flags().StringSliceVar(&retestEventParams.Comment, "comment", nil, "用户自定义备注")
 	RetestEventCmd.Flags().StringSliceVar(&retestEventParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	RetestEventCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	RetestEventCmd.Flags().StringVar(&RetestEventCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	RetestEventCmd.Flags().StringSliceVar(&retestEventParams.Domain, "domain", nil, "域名")
 	RetestEventCmd.Flags().StringSliceVar(&retestEventParams.FileName, "file-name", nil, "文件名")
 	RetestEventCmd.Flags().StringSliceVar(&retestEventParams.FilePath, "file-path", nil, "文件路径")
@@ -51,8 +65,7 @@ func init() {
 	RetestEventCmd.Flags().Float64SliceVar(&retestEventParams.Oid, "oid", nil, "机构 ID")
 	RetestEventCmd.Flags().Float64SliceVar(&retestEventParams.PlanId, "plan-id", nil, "任务 id")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	RetestEventCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
+	RetestEventCmd.Flags().StringVar(&RetestEventSelectJSON, "select", "", "select (JSON, e.g. [{\"file_name\": \"WebShell\", \"file_path\": \"mem://[java.exe:9540]/org.apache.coyote.type.TypeBase\", \"host_id\": 162, \"id\": 154, \"webshell_type\": \"java_memory_webshell\"}])")
 	RetestEventCmd.Flags().BoolVar(&retestEventParams.SelectAll, "select-all", false, "是否全选")
 	RetestEventCmd.Flags().Float64SliceVar(&retestEventParams.StatEventId, "stat-event-id", nil, "统计事件 ID")
 	RetestEventCmd.Flags().IntSliceVar(&retestEventParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")

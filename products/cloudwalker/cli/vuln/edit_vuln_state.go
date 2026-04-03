@@ -4,6 +4,7 @@ package vuln
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editVulnStateParams EditVulnStateParams
+var EditVulnStateCustomAttrJSON string
+var EditVulnStateSelectJSON string
 
 var EditVulnStateCmd = &cobra.Command{
 	Use:   "edit_vuln_state",
 	Short: "修改漏洞事件状态",
 	Long:  `修改漏洞事件状态`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditVulnStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EditVulnStateCustomAttrJSON), &editVulnStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if EditVulnStateSelectJSON != "" {
+			if err := json.Unmarshal([]byte(EditVulnStateSelectJSON), &editVulnStateParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "VulnService.EditVulnState", editVulnStateParams, &result)
@@ -44,8 +59,7 @@ func init() {
 	EditVulnStateCmd.Flags().StringSliceVar(&editVulnStateParams.Confidentiality, "confidentiality", nil, "机密性影响")
 	EditVulnStateCmd.Flags().StringSliceVar(&editVulnStateParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EditVulnStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EditVulnStateCmd.Flags().StringVar(&EditVulnStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EditVulnStateCmd.Flags().StringSliceVar(&editVulnStateParams.Cve, "cve", nil, "CVE 编号")
 	EditVulnStateCmd.Flags().StringSliceVar(&editVulnStateParams.CvssScore, "cvss-score", nil, "CVSS 分数")
 	EditVulnStateCmd.Flags().StringSliceVar(&editVulnStateParams.Cwe, "cwe", nil, "CWE 编号")
@@ -69,8 +83,7 @@ func init() {
 	EditVulnStateCmd.Flags().Float64SliceVar(&editVulnStateParams.PlanId, "plan-id", nil, "任务 id")
 	EditVulnStateCmd.Flags().StringSliceVar(&editVulnStateParams.PublishDate, "publish-date", nil, "漏洞发布时间")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	EditVulnStateCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"app_product\": \"windows_nt\", \"app_vendor\": \"null\", \"host_id\": 111, \"id\": 120, \"vuln_id\": 111}])")
+	EditVulnStateCmd.Flags().StringVar(&EditVulnStateSelectJSON, "select", "", "select (JSON, e.g. [{\"app_product\": \"windows_nt\", \"app_vendor\": \"null\", \"host_id\": 111, \"id\": 120, \"vuln_id\": 111}])")
 	EditVulnStateCmd.Flags().BoolVar(&editVulnStateParams.SelectAll, "select-all", false, "select_all")
 	EditVulnStateCmd.Flags().IntSliceVar(&editVulnStateParams.State, "state", nil, "事件状态(1-有风险，2-已忽略，3-已处理)")
 	EditVulnStateCmd.Flags().StringSliceVar(&editVulnStateParams.Tags, "tags", nil, "漏洞标签")

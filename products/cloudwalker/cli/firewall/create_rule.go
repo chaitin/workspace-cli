@@ -4,6 +4,7 @@ package firewall
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var createRuleParams CreateRuleParams
+var CreateRuleDestJSON string
+var CreateRuleSourceJSON string
 
 var CreateRuleCmd = &cobra.Command{
 	Use:   "create_rule",
 	Short: "添加规则",
 	Long:  `添加规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if CreateRuleDestJSON != "" {
+			if err := json.Unmarshal([]byte(CreateRuleDestJSON), &createRuleParams.Dest); err != nil {
+				cmd.PrintErrln("Error parsing dest:", err)
+				return
+			}
+		}
+		if CreateRuleSourceJSON != "" {
+			if err := json.Unmarshal([]byte(CreateRuleSourceJSON), &createRuleParams.Source); err != nil {
+				cmd.PrintErrln("Error parsing source:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.CreateRule", createRuleParams, &result)
@@ -31,8 +46,7 @@ var CreateRuleCmd = &cobra.Command{
 func init() {
 	CreateRuleCmd.Flags().StringVar(&createRuleParams.Action, "action", "", "动作")
 	// dest is object type, use JSON string
-	var destJSON string
-	CreateRuleCmd.Flags().StringVar(&destJSON, "dest", "", "被访问者 (JSON, e.g. {\"cidr\": [\"\"], \"domain\": [\"\"], \"group_id\": [0.0], \"group_name\": [\"\"], \"host_id\": [0.0], \"host_ip\": [\"\"], \"tags\": [\"\"], \"type\": 1})")
+	CreateRuleCmd.Flags().StringVar(&CreateRuleDestJSON, "dest", "", "被访问者 (JSON, e.g. {\"cidr\": [\"\"], \"domain\": [\"\"], \"group_id\": [0.0], \"group_name\": [\"\"], \"host_id\": [0.0], \"host_ip\": [\"\"], \"tags\": [\"\"], \"type\": 1})")
 	CreateRuleCmd.Flags().BoolVar(&createRuleParams.Enable, "enable", false, "是否开启规则")
 	CreateRuleCmd.Flags().BoolVar(&createRuleParams.FilterSpecialAddress, "filter-special-address", false, "是否过滤特殊地址")
 	CreateRuleCmd.Flags().StringVar(&createRuleParams.Name, "name", "", "规则名")
@@ -40,8 +54,7 @@ func init() {
 	CreateRuleCmd.Flags().IntVar(&createRuleParams.Priority, "priority", 0, "优先级，数字越低优先级越高，优先级相同按修改时间倒序")
 	CreateRuleCmd.Flags().StringVar(&createRuleParams.Protocol, "protocol", "", "传输协议")
 	// source is object type, use JSON string
-	var sourceJSON string
-	CreateRuleCmd.Flags().StringVar(&sourceJSON, "source", "", "访问者 (JSON, e.g. {\"cidr\": [\"\"], \"domain\": [\"\"], \"group_id\": [0.0], \"group_name\": [\"\"], \"host_id\": [0.0], \"host_ip\": [\"\"], \"tags\": [\"\"], \"type\": 1})")
+	CreateRuleCmd.Flags().StringVar(&CreateRuleSourceJSON, "source", "", "访问者 (JSON, e.g. {\"cidr\": [\"\"], \"domain\": [\"\"], \"group_id\": [0.0], \"group_name\": [\"\"], \"host_id\": [0.0], \"host_ip\": [\"\"], \"tags\": [\"\"], \"type\": 1})")
 }
 
 // CreateRuleParams 请求参数

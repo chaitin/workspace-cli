@@ -4,6 +4,7 @@ package abnormal_login_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var resetEventStateParams ResetEventStateParams
+var ResetEventStateCustomAttrJSON string
 
 var ResetEventStateCmd = &cobra.Command{
 	Use:   "reset_event_state",
 	Short: "reset the state of event to 'risky'",
 	Long:  `reset the state of event to 'risky'`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ResetEventStateCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ResetEventStateCustomAttrJSON), &resetEventStateParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AbnormalLoginEventService.ResetEventState", resetEventStateParams, &result)
@@ -33,8 +41,7 @@ func init() {
 	ResetEventStateCmd.Flags().StringSliceVar(&resetEventStateParams.Comment, "comment", nil, "用户自定义备注")
 	ResetEventStateCmd.Flags().StringSliceVar(&resetEventStateParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ResetEventStateCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ResetEventStateCmd.Flags().StringVar(&ResetEventStateCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ResetEventStateCmd.Flags().Float64SliceVar(&resetEventStateParams.Gids, "gids", nil, "业务组 ID")
 	ResetEventStateCmd.Flags().StringSliceVar(&resetEventStateParams.HostComment, "host-comment", nil, "主机备注")
 	ResetEventStateCmd.Flags().Float64SliceVar(&resetEventStateParams.HostId, "host-id", nil, "主机 ID")

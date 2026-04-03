@@ -17,6 +17,7 @@ var GetAssetRefreshDetailCmd = &cobra.Command{
 	Short: "刷新主机资产",
 	Long:  `刷新主机资产`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetAssetRefreshDetail", getAssetRefreshDetailParams, &result)

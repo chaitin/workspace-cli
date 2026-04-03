@@ -4,6 +4,7 @@ package crontab
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var editEditSensitiveFilePlanParams EditEditSensitiveFilePlanParams
+var EditEditSensitiveFilePlanCronJSON string
+var EditEditSensitiveFilePlanTaskJSON string
 
 var EditEditSensitiveFilePlanCmd = &cobra.Command{
 	Use:   "edit_edit_sensitive_file_plan",
 	Short: "修改文件完整性任务计划",
 	Long:  `修改文件完整性任务计划`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EditEditSensitiveFilePlanCronJSON != "" {
+			if err := json.Unmarshal([]byte(EditEditSensitiveFilePlanCronJSON), &editEditSensitiveFilePlanParams.Cron); err != nil {
+				cmd.PrintErrln("Error parsing cron:", err)
+				return
+			}
+		}
+		if EditEditSensitiveFilePlanTaskJSON != "" {
+			if err := json.Unmarshal([]byte(EditEditSensitiveFilePlanTaskJSON), &editEditSensitiveFilePlanParams.Task); err != nil {
+				cmd.PrintErrln("Error parsing task:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.EditEditSensitiveFilePlan", editEditSensitiveFilePlanParams, &result)
@@ -33,14 +48,12 @@ func init() {
 	EditEditSensitiveFilePlanCmd.Flags().Float64SliceVar(&editEditSensitiveFilePlanParams.BusinessGroupRange, "business-group-range", nil, "业务组范围, 如果 null 证明不修改，如果是个空 [] 则清空本项")
 	EditEditSensitiveFilePlanCmd.Flags().StringVar(&editEditSensitiveFilePlanParams.Comment, "comment", "", "test")
 	// cron is object type, use JSON string
-	var cronJSON string
-	EditEditSensitiveFilePlanCmd.Flags().StringVar(&cronJSON, "cron", "", "计划定时器 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
+	EditEditSensitiveFilePlanCmd.Flags().StringVar(&EditEditSensitiveFilePlanCronJSON, "cron", "", "计划定时器 (JSON, e.g. {\"interval\": 1, \"now\": true, \"plan_time\": 1667461108.618155, \"trigger_method\": \"day\", \"week_selector\": [0]})")
 	EditEditSensitiveFilePlanCmd.Flags().StringSliceVar(&editEditSensitiveFilePlanParams.HostTagRange, "host-tag-range", nil, "主机标签范围")
 	EditEditSensitiveFilePlanCmd.Flags().IntVar(&editEditSensitiveFilePlanParams.Id, "id", 0, "计划 ID")
 	EditEditSensitiveFilePlanCmd.Flags().StringVar(&editEditSensitiveFilePlanParams.Name, "name", "", "计划名称")
 	// task is object type, use JSON string
-	var taskJSON string
-	EditEditSensitiveFilePlanCmd.Flags().StringVar(&taskJSON, "task", "", "文件完整性任务信息 (JSON, e.g. {\"args\": {\"plan_id\": 0.0, \"rule_ids\": [\"\"], \"select_all\": false, \"snapshot_mode\": \"\"}, \"timeout\": 3600})")
+	EditEditSensitiveFilePlanCmd.Flags().StringVar(&EditEditSensitiveFilePlanTaskJSON, "task", "", "文件完整性任务信息 (JSON, e.g. {\"args\": {\"plan_id\": 0.0, \"rule_ids\": [\"\"], \"select_all\": false, \"snapshot_mode\": \"\"}, \"timeout\": 3600})")
 }
 
 // EditEditSensitiveFilePlanParams 请求参数

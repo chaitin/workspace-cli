@@ -4,6 +4,7 @@ package port_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getPortAssetListParams GetPortAssetListParams
+var GetPortAssetListCustomAttrJSON string
+var GetPortAssetListFilterJSON string
+var GetPortAssetListOrderByJSON string
 
 var GetPortAssetListCmd = &cobra.Command{
 	Use:   "get_port_asset_list",
 	Short: "获取端口资产列表",
 	Long:  `获取端口资产列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetPortAssetListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetPortAssetListCustomAttrJSON), &getPortAssetListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetPortAssetListFilterJSON != "" {
+			if err := json.Unmarshal([]byte(GetPortAssetListFilterJSON), &getPortAssetListParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if GetPortAssetListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetPortAssetListOrderByJSON), &getPortAssetListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PortAssetService.GetPortAssetList", getPortAssetListParams, &result)
@@ -32,11 +54,9 @@ func init() {
 	GetPortAssetListCmd.Flags().StringSliceVar(&getPortAssetListParams.Cmd, "cmd", nil, "IP")
 	GetPortAssetListCmd.Flags().IntVar(&getPortAssetListParams.Count, "count", 20, "数量")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetPortAssetListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetPortAssetListCmd.Flags().StringVar(&GetPortAssetListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	// filter is complex type []map[string]interface{}, use JSON string
-	var filterJSON string
-	GetPortAssetListCmd.Flags().StringVar(&filterJSON, "filter", "", "filter (JSON, e.g. [{\"cmd\": \"java\", \"id\": 151, \"ip\": \"::\", \"port\": 50002, \"protocol\": \"tcp\"}])")
+	GetPortAssetListCmd.Flags().StringVar(&GetPortAssetListFilterJSON, "filter", "", "filter (JSON, e.g. [{\"cmd\": \"java\", \"id\": 151, \"ip\": \"::\", \"port\": 50002, \"protocol\": \"tcp\"}])")
 	GetPortAssetListCmd.Flags().Float64SliceVar(&getPortAssetListParams.Gids, "gids", nil, "gids")
 	GetPortAssetListCmd.Flags().StringSliceVar(&getPortAssetListParams.HostComment, "host-comment", nil, "主机备注")
 	GetPortAssetListCmd.Flags().Float64SliceVar(&getPortAssetListParams.HostId, "host-id", nil, "主机 ID")
@@ -48,8 +68,7 @@ func init() {
 	GetPortAssetListCmd.Flags().IntVar(&getPortAssetListParams.Offset, "offset", 0, "偏移量")
 	GetPortAssetListCmd.Flags().Float64SliceVar(&getPortAssetListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetPortAssetListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetPortAssetListCmd.Flags().StringVar(&GetPortAssetListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetPortAssetListCmd.Flags().Float64SliceVar(&getPortAssetListParams.Pid, "pid", nil, "IP")
 	GetPortAssetListCmd.Flags().StringSliceVar(&getPortAssetListParams.Port, "port", nil, "IP")
 	GetPortAssetListCmd.Flags().StringSliceVar(&getPortAssetListParams.Protocol, "protocol", nil, "IP")

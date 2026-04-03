@@ -17,6 +17,7 @@ var DeleteTemplateCmd = &cobra.Command{
 	Short: "删除模板",
 	Long:  `删除模板`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ReportService.DeleteTemplate", deleteTemplateParams, &result)

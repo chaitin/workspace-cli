@@ -17,6 +17,7 @@ var CreateOrgCmd = &cobra.Command{
 	Short: "创建机构",
 	Long:  `创建机构`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "OrganizationService.CreateOrg", createOrgParams, &result)

@@ -17,6 +17,7 @@ var DeletePlanCmd = &cobra.Command{
 	Short: "删除任务计划",
 	Long:  `删除任务计划`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.DeletePlan", deletePlanParams, &result)

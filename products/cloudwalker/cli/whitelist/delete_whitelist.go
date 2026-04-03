@@ -4,6 +4,7 @@ package whitelist
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var deleteWhitelistParams DeleteWhitelistParams
+var DeleteWhitelistCustomAttrJSON string
 
 var DeleteWhitelistCmd = &cobra.Command{
 	Use:   "delete_whitelist",
 	Short: "删除事件加白规则",
 	Long:  `删除事件加白规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if DeleteWhitelistCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(DeleteWhitelistCustomAttrJSON), &deleteWhitelistParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "WhitelistService.DeleteWhitelist", deleteWhitelistParams, &result)
@@ -31,8 +39,7 @@ var DeleteWhitelistCmd = &cobra.Command{
 func init() {
 	DeleteWhitelistCmd.Flags().StringSliceVar(&deleteWhitelistParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	DeleteWhitelistCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	DeleteWhitelistCmd.Flags().StringVar(&DeleteWhitelistCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	DeleteWhitelistCmd.Flags().BoolVar(&deleteWhitelistParams.Enable, "enable", false, "是否启用")
 	DeleteWhitelistCmd.Flags().StringSliceVar(&deleteWhitelistParams.HostComment, "host-comment", nil, "主机备注")
 	DeleteWhitelistCmd.Flags().Float64SliceVar(&deleteWhitelistParams.HostId, "host-id", nil, "主机ID")

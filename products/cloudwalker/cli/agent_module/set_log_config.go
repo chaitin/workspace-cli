@@ -4,6 +4,7 @@ package agent_module
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var setLogConfigParams SetLogConfigParams
+var SetLogConfigFilterJSON string
+var SetLogConfigSelectFilterJSON string
 
 var SetLogConfigCmd = &cobra.Command{
 	Use:   "set_log_config",
 	Short: "设置日志配置",
 	Long:  `设置日志配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SetLogConfigFilterJSON != "" {
+			if err := json.Unmarshal([]byte(SetLogConfigFilterJSON), &setLogConfigParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
+		if SetLogConfigSelectFilterJSON != "" {
+			if err := json.Unmarshal([]byte(SetLogConfigSelectFilterJSON), &setLogConfigParams.SelectFilter); err != nil {
+				cmd.PrintErrln("Error parsing select-filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AgentModuleService.SetLogConfig", setLogConfigParams, &result)
@@ -30,12 +45,10 @@ var SetLogConfigCmd = &cobra.Command{
 
 func init() {
 	// filter is object type, use JSON string
-	var filterJSON string
-	SetLogConfigCmd.Flags().StringVar(&filterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
+	SetLogConfigCmd.Flags().StringVar(&SetLogConfigFilterJSON, "filter", "", "筛选器 (JSON, e.g. {\"agent_install_plan_id\": [1, 2], \"agent_mem_size\": [\"1GB\"], \"agent_memory_rate\": [\"0.03298633\"], \"...\": \"...\"})")
 	SetLogConfigCmd.Flags().IntVar(&setLogConfigParams.Level, "level", 0, "日志输出级别（Error:1, Warning:2, Info:3, Debug:4）")
 	// select_filter is object type, use JSON string
-	var selectFilterJSON string
-	SetLogConfigCmd.Flags().StringVar(&selectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
+	SetLogConfigCmd.Flags().StringVar(&SetLogConfigSelectFilterJSON, "select-filter", "", "是否全选&主机ID (JSON, e.g. {\"select\": [{\"id\": 196}], \"select_all\": true})")
 	SetLogConfigCmd.Flags().IntVar(&setLogConfigParams.Size, "size", 0, "日志存储量, 单位 MB")
 }
 

@@ -4,6 +4,7 @@ package baseline_v2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var getSetListParams GetSetListParams
+var GetSetListOrderByJSON string
 
 var GetSetListCmd = &cobra.Command{
 	Use:   "get_set_list",
 	Short: "获取策略列表",
 	Long:  `获取策略列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetSetListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetSetListOrderByJSON), &getSetListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "BaselineV2Service.GetSetList", getSetListParams, &result)
@@ -37,8 +45,7 @@ func init() {
 	GetSetListCmd.Flags().StringSliceVar(&getSetListParams.Name, "name", nil, "核查策略名称")
 	GetSetListCmd.Flags().IntVar(&getSetListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetSetListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetSetListCmd.Flags().StringVar(&GetSetListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetSetListCmd.Flags().StringSliceVar(&getSetListParams.UpdatedAt, "updated-at", nil, "修改时间")
 }
 

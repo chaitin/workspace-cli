@@ -17,6 +17,7 @@ var ListGetRiskyHostInfoCmd = &cobra.Command{
 	Short: "高风险主机",
 	Long:  `高风险主机`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ThreatOverviewService.ListGetRiskyHostInfo", listGetRiskyHostInfoParams, &result)

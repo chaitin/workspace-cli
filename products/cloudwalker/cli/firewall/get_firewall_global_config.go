@@ -15,6 +15,7 @@ var GetFirewallGlobalConfigCmd = &cobra.Command{
 	Short: "获取防火墙全局配置",
 	Long:  `获取防火墙全局配置`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "FirewallService.GetFirewallGlobalConfig", nil, &result)

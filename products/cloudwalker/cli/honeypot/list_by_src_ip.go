@@ -4,6 +4,7 @@ package honeypot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var listBySrcIpParams ListBySrcIpParams
+var ListBySrcIpCustomAttrJSON string
+var ListBySrcIpOrderByJSON string
 
 var ListBySrcIpCmd = &cobra.Command{
 	Use:   "list_by_src_ip",
 	Short: "获取按源 IP 聚合的事件列表",
 	Long:  `获取按源 IP 聚合的事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if ListBySrcIpCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(ListBySrcIpCustomAttrJSON), &listBySrcIpParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if ListBySrcIpOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(ListBySrcIpOrderByJSON), &listBySrcIpParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HoneypotService.ListBySrcIP", listBySrcIpParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	ListBySrcIpCmd.Flags().IntVar(&listBySrcIpParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	ListBySrcIpCmd.Flags().StringSliceVar(&listBySrcIpParams.CreatedAt, "created-at", nil, "事件创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	ListBySrcIpCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	ListBySrcIpCmd.Flags().StringVar(&ListBySrcIpCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	ListBySrcIpCmd.Flags().StringSliceVar(&listBySrcIpParams.EndTime, "end-time", nil, "攻击结束时间")
 	ListBySrcIpCmd.Flags().Float64SliceVar(&listBySrcIpParams.Gids, "gids", nil, "业务组 ID")
 	ListBySrcIpCmd.Flags().StringSliceVar(&listBySrcIpParams.HostComment, "host-comment", nil, "主机备注")
@@ -49,8 +63,7 @@ func init() {
 	ListBySrcIpCmd.Flags().IntVar(&listBySrcIpParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	ListBySrcIpCmd.Flags().Float64SliceVar(&listBySrcIpParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	ListBySrcIpCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	ListBySrcIpCmd.Flags().StringVar(&ListBySrcIpOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	ListBySrcIpCmd.Flags().StringSliceVar(&listBySrcIpParams.RemoteAddrType, "remote-addr-type", nil, "远程IP类型，intranet(内网)、internet(外网)")
 	ListBySrcIpCmd.Flags().StringSliceVar(&listBySrcIpParams.SourceIp, "source-ip", nil, "攻击源 IP")
 	ListBySrcIpCmd.Flags().StringSliceVar(&listBySrcIpParams.StartTime, "start-time", nil, "攻击开始时间")

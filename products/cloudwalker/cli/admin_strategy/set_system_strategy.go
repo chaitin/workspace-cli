@@ -4,6 +4,7 @@ package admin_strategy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var setSystemStrategyParams SetSystemStrategyParams
+var SetSystemStrategyContentJSON string
 
 var SetSystemStrategyCmd = &cobra.Command{
 	Use:   "set_system_strategy",
 	Short: "设置系统默认策略",
 	Long:  `设置系统默认策略`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if SetSystemStrategyContentJSON != "" {
+			if err := json.Unmarshal([]byte(SetSystemStrategyContentJSON), &setSystemStrategyParams.Content); err != nil {
+				cmd.PrintErrln("Error parsing content:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AdminStrategyService.SetSystemStrategy", setSystemStrategyParams, &result)
@@ -30,8 +38,7 @@ var SetSystemStrategyCmd = &cobra.Command{
 
 func init() {
 	// content is object type, use JSON string
-	var contentJSON string
-	SetSystemStrategyCmd.Flags().StringVar(&contentJSON, "content", "", "安全策略内容 (JSON, e.g. {\"abnormal_login\": {\"ap_dur_critical\": 100, \"ap_dur_high\": 100, \"ap_dur_low\": 100, \"ap_dur_medium\": 100, \"ap_enable\": true, \"enable\": true, \"protect_time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"protect_time_strategy\": \"\"}, \"bruteforce\": {\"ap_dur_critical\": 100, \"ap_dur_high\": 100, \"ap_dur_low\": 100, \"ap_dur_medium\": 100, \"ap_enable\": true, \"enable\": true, \"ftp_enable\": true, \"protect_time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"protect_time_strategy\": \"\", \"rdp_enable\": true, \"smb_enable\": true, \"ssh_enable\": true, \"winrm_enable\": true}, \"elevation_process\": {\"enable\": true, \"process_kill_enable\": false, \"process_kill_event_level\": [\"\"], \"protect_time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"protect_time_strategy\": \"\"}, \"...\": \"...\"})")
+	SetSystemStrategyCmd.Flags().StringVar(&SetSystemStrategyContentJSON, "content", "", "安全策略内容 (JSON, e.g. {\"abnormal_login\": {\"ap_dur_critical\": 100, \"ap_dur_high\": 100, \"ap_dur_low\": 100, \"ap_dur_medium\": 100, \"ap_enable\": true, \"enable\": true, \"protect_time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"protect_time_strategy\": \"\"}, \"bruteforce\": {\"ap_dur_critical\": 100, \"ap_dur_high\": 100, \"ap_dur_low\": 100, \"ap_dur_medium\": 100, \"ap_enable\": true, \"enable\": true, \"ftp_enable\": true, \"protect_time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"protect_time_strategy\": \"\", \"rdp_enable\": true, \"smb_enable\": true, \"ssh_enable\": true, \"winrm_enable\": true}, \"elevation_process\": {\"enable\": true, \"process_kill_enable\": false, \"process_kill_event_level\": [\"\"], \"protect_time\": [{\"start_time\": \"...\", \"stop_time\": \"...\", \"weekdays\": \"...\"}], \"protect_time_strategy\": \"\"}, \"...\": \"...\"})")
 	SetSystemStrategyCmd.Flags().StringVar(&setSystemStrategyParams.Id, "id", "", "安全策略 id")
 }
 

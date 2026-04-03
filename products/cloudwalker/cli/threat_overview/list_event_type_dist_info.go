@@ -17,6 +17,7 @@ var ListEventTypeDistInfoCmd = &cobra.Command{
 	Short: "事件类型分布",
 	Long:  `事件类型分布`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "ThreatOverviewService.ListEventTypeDistInfo", listEventTypeDistInfoParams, &result)

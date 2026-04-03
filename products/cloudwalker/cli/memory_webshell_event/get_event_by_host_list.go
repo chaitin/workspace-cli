@@ -4,6 +4,7 @@ package memory_webshell_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,33 @@ import (
 )
 
 var getEventByHostListParams GetEventByHostListParams
+var GetEventByHostListCustomAttrJSON string
+var GetEventByHostListOrderByJSON string
+var GetEventByHostListSelectJSON string
 
 var GetEventByHostListCmd = &cobra.Command{
 	Use:   "get_event_by_host_list",
 	Short: "根据主机获取事件列表",
 	Long:  `根据主机获取事件列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if GetEventByHostListCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventByHostListCustomAttrJSON), &getEventByHostListParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if GetEventByHostListOrderByJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventByHostListOrderByJSON), &getEventByHostListParams.OrderBy); err != nil {
+				cmd.PrintErrln("Error parsing order-by:", err)
+				return
+			}
+		}
+		if GetEventByHostListSelectJSON != "" {
+			if err := json.Unmarshal([]byte(GetEventByHostListSelectJSON), &getEventByHostListParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "MemoryWebshellEventService.GetEventByHostList", getEventByHostListParams, &result)
@@ -34,8 +56,7 @@ func init() {
 	GetEventByHostListCmd.Flags().IntVar(&getEventByHostListParams.Count, "count", 20, "每页记录数量, 默认为 20")
 	GetEventByHostListCmd.Flags().StringSliceVar(&getEventByHostListParams.CreatedAt, "created-at", nil, "事件发现时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	GetEventByHostListCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	GetEventByHostListCmd.Flags().StringVar(&GetEventByHostListCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.Gids, "gids", nil, "业务组 ID")
 	GetEventByHostListCmd.Flags().StringSliceVar(&getEventByHostListParams.HostComment, "host-comment", nil, "主机备注")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.HostId, "host-id", nil, "主机 ID")
@@ -48,14 +69,12 @@ func init() {
 	GetEventByHostListCmd.Flags().IntVar(&getEventByHostListParams.Offset, "offset", 0, "页偏移, 默认为 0")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.Oid, "oid", nil, "机构 ID")
 	// order_by is object type, use JSON string
-	var orderByJSON string
-	GetEventByHostListCmd.Flags().StringVar(&orderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
+	GetEventByHostListCmd.Flags().StringVar(&GetEventByHostListOrderByJSON, "order-by", "", "排序规则 (JSON, e.g. {\"column\": \"level\", \"order\": \"ASC\"})")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.Pid, "pid", nil, "进程 ID")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.PlanId, "plan-id", nil, "任务 id")
 	GetEventByHostListCmd.Flags().StringSliceVar(&getEventByHostListParams.ProcessName, "process-name", nil, "进程名称")
 	// select is complex type []map[string]interface{}, use JSON string
-	var selectJSON string
-	GetEventByHostListCmd.Flags().StringVar(&selectJSON, "select", "", "select (JSON, e.g. [{\"class_name\": \".class\", \"host_id\": 162, \"id\": 154, \"server_name\": \"tomcat\"}])")
+	GetEventByHostListCmd.Flags().StringVar(&GetEventByHostListSelectJSON, "select", "", "select (JSON, e.g. [{\"class_name\": \".class\", \"host_id\": 162, \"id\": 154, \"server_name\": \"tomcat\"}])")
 	GetEventByHostListCmd.Flags().BoolVar(&getEventByHostListParams.SelectAll, "select-all", false, "是否全选")
 	GetEventByHostListCmd.Flags().StringSliceVar(&getEventByHostListParams.ServerName, "server-name", nil, "服务名称")
 	GetEventByHostListCmd.Flags().Float64SliceVar(&getEventByHostListParams.StatEventId, "stat-event-id", nil, "事件统计 ID")

@@ -17,6 +17,7 @@ var GetUninstallCommandCmd = &cobra.Command{
 	Short: "获取离线卸载 token",
 	Long:  `获取离线卸载 token`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetUninstallCommand", getUninstallCommandParams, &result)

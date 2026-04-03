@@ -17,6 +17,7 @@ var SwitchServerCertCmd = &cobra.Command{
 	Short: "切换服务端证书参数",
 	Long:  `切换服务端证书参数`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "EndpointService.SwitchServerCert", switchServerCertParams, &result)

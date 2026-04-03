@@ -17,6 +17,7 @@ var GetHoneypotRuleCmd = &cobra.Command{
 	Short: "获取蜜罐诱捕检测规则详情",
 	Long:  `获取蜜罐诱捕检测规则详情`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.GetHoneypotRule", getHoneypotRuleParams, &result)

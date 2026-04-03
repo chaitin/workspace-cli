@@ -4,6 +4,7 @@ package patch_info_event
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,26 @@ import (
 )
 
 var retestPatchInfoParams RetestPatchInfoParams
+var RetestPatchInfoCustomAttrJSON string
+var RetestPatchInfoSelectJSON string
 
 var RetestPatchInfoCmd = &cobra.Command{
 	Use:   "retest_patch_info",
 	Short: "复测补丁",
 	Long:  `复测补丁`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if RetestPatchInfoCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(RetestPatchInfoCustomAttrJSON), &retestPatchInfoParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
+		if RetestPatchInfoSelectJSON != "" {
+			if err := json.Unmarshal([]byte(RetestPatchInfoSelectJSON), &retestPatchInfoParams.Select); err != nil {
+				cmd.PrintErrln("Error parsing select:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "PatchInfoEventService.RetestPatchInfo", retestPatchInfoParams, &result)
@@ -33,8 +48,7 @@ func init() {
 	RetestPatchInfoCmd.Flags().StringSliceVar(&retestPatchInfoParams.Comment, "comment", nil, "用户自定义备注")
 	RetestPatchInfoCmd.Flags().StringSliceVar(&retestPatchInfoParams.CreatedAt, "created-at", nil, "创建时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	RetestPatchInfoCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	RetestPatchInfoCmd.Flags().StringVar(&RetestPatchInfoCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	RetestPatchInfoCmd.Flags().StringSliceVar(&retestPatchInfoParams.Cve, "cve", nil, "CVE 编号")
 	RetestPatchInfoCmd.Flags().Float64SliceVar(&retestPatchInfoParams.Gids, "gids", nil, "业务组 ID")
 	RetestPatchInfoCmd.Flags().StringSliceVar(&retestPatchInfoParams.GroupName, "group-name", nil, "业务组名")
@@ -54,8 +68,7 @@ func init() {
 	RetestPatchInfoCmd.Flags().StringVar(&retestPatchInfoParams.Proxy, "proxy", "", "代理")
 	RetestPatchInfoCmd.Flags().StringSliceVar(&retestPatchInfoParams.PublishTime, "publish-time", nil, "补丁发布时间")
 	// select is object type, use JSON string
-	var selectJSON string
-	RetestPatchInfoCmd.Flags().StringVar(&selectJSON, "select", "", "选项 (JSON, e.g. {})")
+	RetestPatchInfoCmd.Flags().StringVar(&RetestPatchInfoSelectJSON, "select", "", "选项 (JSON, e.g. {})")
 	RetestPatchInfoCmd.Flags().BoolVar(&retestPatchInfoParams.SelectAll, "select-all", false, "是否全选")
 	RetestPatchInfoCmd.Flags().StringSliceVar(&retestPatchInfoParams.Trait, "trait", nil, "特征")
 	RetestPatchInfoCmd.Flags().StringSliceVar(&retestPatchInfoParams.Type, "type", nil, "补丁类型 KB/Ubuntu")

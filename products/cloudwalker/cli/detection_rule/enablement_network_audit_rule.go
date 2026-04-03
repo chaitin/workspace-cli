@@ -4,6 +4,7 @@ package detection_rule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enablementNetworkAuditRuleParams EnablementNetworkAuditRuleParams
+var EnablementNetworkAuditRuleFilterJSON string
 
 var EnablementNetworkAuditRuleCmd = &cobra.Command{
 	Use:   "enablement_network_audit_rule",
 	Short: "启禁用网络异常检测规则",
 	Long:  `启禁用网络异常检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnablementNetworkAuditRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EnablementNetworkAuditRuleFilterJSON), &enablementNetworkAuditRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "DetectionRuleService.EnablementNetworkAuditRule", enablementNetworkAuditRuleParams, &result)
@@ -31,8 +39,7 @@ var EnablementNetworkAuditRuleCmd = &cobra.Command{
 func init() {
 	EnablementNetworkAuditRuleCmd.Flags().BoolVar(&enablementNetworkAuditRuleParams.Enable, "enable", false, "是否启用")
 	// filter is object type, use JSON string
-	var filterJSON string
-	EnablementNetworkAuditRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": true, \"host_comment\": [\"主机备注\"], \"...\": \"...\"})")
+	EnablementNetworkAuditRuleCmd.Flags().StringVar(&EnablementNetworkAuditRuleFilterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"custom_attr\": [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}], \"enable\": true, \"host_comment\": [\"主机备注\"], \"...\": \"...\"})")
 }
 
 // EnablementNetworkAuditRuleParams 请求参数

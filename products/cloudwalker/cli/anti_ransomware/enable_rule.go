@@ -4,6 +4,7 @@ package anti_ransomware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enableRuleParams EnableRuleParams
+var EnableRuleCustomAttrJSON string
 
 var EnableRuleCmd = &cobra.Command{
 	Use:   "enable_rule",
 	Short: "获取规则列表",
 	Long:  `获取规则列表`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnableRuleCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(EnableRuleCustomAttrJSON), &enableRuleParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "AntiRansomwareService.EnableRule", enableRuleParams, &result)
@@ -30,8 +38,7 @@ var EnableRuleCmd = &cobra.Command{
 
 func init() {
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	EnableRuleCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	EnableRuleCmd.Flags().StringVar(&EnableRuleCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	EnableRuleCmd.Flags().BoolVar(&enableRuleParams.Enable, "enable", false, "启用规则")
 	EnableRuleCmd.Flags().BoolVar(&enableRuleParams.Enabled, "enabled", false, "是否启用")
 	EnableRuleCmd.Flags().StringSliceVar(&enableRuleParams.ExposedIp, "exposed-ip", nil, "主机外网 IP")

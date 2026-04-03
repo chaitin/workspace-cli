@@ -17,6 +17,7 @@ var GetAutoTagRuleDetailCmd = &cobra.Command{
 	Short: "获取自动打标签规则详情",
 	Long:  `获取自动打标签规则详情`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.GetAutoTagRuleDetail", getAutoTagRuleDetailParams, &result)

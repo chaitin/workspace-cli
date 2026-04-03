@@ -17,6 +17,7 @@ var GetWeakPasswordPlanCmd = &cobra.Command{
 	Short: "获取弱口令任务计划详情",
 	Long:  `获取弱口令任务计划详情`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "CrontabService.GetWeakPasswordPlan", getWeakPasswordPlanParams, &result)

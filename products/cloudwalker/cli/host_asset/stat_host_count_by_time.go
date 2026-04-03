@@ -4,6 +4,7 @@ package host_asset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var statHostCountByTimeParams StatHostCountByTimeParams
+var StatHostCountByTimeCustomAttrJSON string
 
 var StatHostCountByTimeCmd = &cobra.Command{
 	Use:   "stat_host_count_by_time",
 	Short: "获取按 探针安装时间 聚合的主机分布",
 	Long:  `获取按 探针安装时间 聚合的主机分布`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if StatHostCountByTimeCustomAttrJSON != "" {
+			if err := json.Unmarshal([]byte(StatHostCountByTimeCustomAttrJSON), &statHostCountByTimeParams.CustomAttr); err != nil {
+				cmd.PrintErrln("Error parsing custom-attr:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "HostAssetService.StatHostCountByTime", statHostCountByTimeParams, &result)
@@ -40,8 +48,7 @@ func init() {
 	StatHostCountByTimeCmd.Flags().StringSliceVar(&statHostCountByTimeParams.CpuCore, "cpu-core", nil, "CPU核心数")
 	StatHostCountByTimeCmd.Flags().StringSliceVar(&statHostCountByTimeParams.CreatedAt, "created-at", nil, "安装时间")
 	// custom_attr is complex type []map[string]interface{}, use JSON string
-	var customAttrJSON string
-	StatHostCountByTimeCmd.Flags().StringVar(&customAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
+	StatHostCountByTimeCmd.Flags().StringVar(&StatHostCountByTimeCustomAttrJSON, "custom-attr", "", "主机业务属性 (JSON, e.g. [{\"attr_name\": \"负责人\", \"attr_value\": [\"David\"]}])")
 	StatHostCountByTimeCmd.Flags().BoolVar(&statHostCountByTimeParams.EnableAutoDowngrade, "enable-auto-downgrade", false, "是否启用自动降级")
 	StatHostCountByTimeCmd.Flags().BoolVar(&statHostCountByTimeParams.EnableNetConnCollect, "enable-net-conn-collect", false, "是否启用连接采集")
 	StatHostCountByTimeCmd.Flags().StringSliceVar(&statHostCountByTimeParams.ExposedIp, "exposed-ip", nil, "主机 外网 IP")

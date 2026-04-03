@@ -4,6 +4,7 @@ package sensitive_file_scan
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chaitin/workspace-cli/products/cloudwalker/client"
@@ -11,12 +12,19 @@ import (
 )
 
 var enablementRuleParams EnablementRuleParams
+var EnablementRuleFilterJSON string
 
 var EnablementRuleCmd = &cobra.Command{
 	Use:   "enablement_rule",
 	Short: "启禁用文件完整性任务检测规则",
 	Long:  `启禁用文件完整性任务检测规则`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if EnablementRuleFilterJSON != "" {
+			if err := json.Unmarshal([]byte(EnablementRuleFilterJSON), &enablementRuleParams.Filter); err != nil {
+				cmd.PrintErrln("Error parsing filter:", err)
+				return
+			}
+		}
 		cli := client.GetClient()
 		var result map[string]interface{}
 		err := cli.Call(context.Background(), "SensitiveFileScanService.EnablementRule", enablementRuleParams, &result)
@@ -31,8 +39,7 @@ var EnablementRuleCmd = &cobra.Command{
 func init() {
 	EnablementRuleCmd.Flags().BoolVar(&enablementRuleParams.Enable, "enable", false, "是否启用")
 	// filter is object type, use JSON string
-	var filterJSON string
-	EnablementRuleCmd.Flags().StringVar(&filterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"action\": [\"\"], \"enable\": true, \"id\": [\"1\"], \"is_builtin\": true, \"level\": [2], \"path\": [\"/etc/passwd\"], \"rule_name\": [\"规则名称\"]})")
+	EnablementRuleCmd.Flags().StringVar(&EnablementRuleFilterJSON, "filter", "", "规则过滤器 (JSON, e.g. {\"action\": [\"\"], \"enable\": true, \"id\": [\"1\"], \"is_builtin\": true, \"level\": [2], \"path\": [\"/etc/passwd\"], \"rule_name\": [\"规则名称\"]})")
 	EnablementRuleCmd.Flags().BoolVar(&enablementRuleParams.Global, "global", false, "是否绑定全局探针")
 }
 
