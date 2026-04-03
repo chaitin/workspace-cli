@@ -10,17 +10,11 @@ import (
 )
 
 // Parser OpenAPI 解析器
-type Parser struct {
-	client   *Client
-	renderer Renderer
-}
+type Parser struct{}
 
 // NewParser 创建解析器
-func NewParser(client *Client, renderer Renderer) *Parser {
-	return &Parser{
-		client:   client,
-		renderer: renderer,
-	}
+func NewParser() *Parser {
+	return &Parser{}
 }
 
 // GenerateCommands 生成 Cobra 命令
@@ -122,10 +116,10 @@ func (p *Parser) createOperationCommand(method, path string, op *Operation, base
 	// 为 list 命令添加分页参数
 	if opName == "list" {
 		if cmd.Flags().Lookup("page") == nil {
-			cmd.Flags().Int("page", 1, "Page number")
+			cmd.Flags().Int("page", 1, "页码")
 		}
 		if cmd.Flags().Lookup("size") == nil {
-			cmd.Flags().Int("size", 20, "Page size")
+			cmd.Flags().Int("size", 20, "每页数量")
 		}
 	}
 
@@ -177,26 +171,31 @@ func (p *Parser) executeCommand(cmd *cobra.Command, method, path, basePath strin
 		query.Set("size", fmt.Sprintf("%d", size))
 	}
 
+	// 运行时获取 client（确保使用已加载的配置）
+	client := getClient(cmd)
+
 	// 执行请求
 	var result interface{}
 	var err error
 
 	switch method {
 	case "GET":
-		err = p.client.Get(ctx, apiPath, query, &result)
+		err = client.Get(ctx, apiPath, query, &result)
 	case "POST":
-		err = p.client.Post(ctx, apiPath, body, &result)
+		err = client.Post(ctx, apiPath, body, &result)
 	case "PUT":
-		err = p.client.Put(ctx, apiPath, body, &result)
+		err = client.Put(ctx, apiPath, body, &result)
 	case "DELETE":
-		err = p.client.Delete(ctx, apiPath, &result)
+		err = client.Delete(ctx, apiPath, &result)
 	}
 
 	if err != nil {
 		return err
 	}
 
-	return p.renderer.Render(result)
+	// 运行时获取 renderer（确保使用正确的输出格式）
+	renderer := getRenderer(cmd)
+	return renderer.Render(result)
 }
 
 func operationName(method, path string) string {
@@ -283,4 +282,3 @@ func addFlag(cmd *cobra.Command, param Parameter) {
 		cmd.MarkFlagRequired(param.Name)
 	}
 }
-
