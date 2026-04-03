@@ -10,6 +10,7 @@ require (
 	github.com/go-openapi/validate v0.25.2
 	github.com/google/uuid v1.6.0
 	github.com/iancoleman/orderedmap v0.3.0
+	github.com/joho/godotenv v1.5.1
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.21.0
 	gopkg.in/yaml.v3 v3.0.1

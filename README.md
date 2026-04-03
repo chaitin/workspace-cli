@@ -29,6 +29,32 @@ xray:
   api_key: YOUR_API_KEY
 ```
 
+You can also put the same keys into environment variables or a local `.env` file. Variable names follow `<PRODUCT>_<FIELD>`:
+
+```text
+cloudwalker.url      -> CLOUDWALKER_URL
+cloudwalker.api_key  -> CLOUDWALKER_API_KEY
+tanswer.url          -> TANSWER_URL
+tanswer.api_key      -> TANSWER_API_KEY
+xray.url             -> XRAY_URL
+xray.api_key         -> XRAY_API_KEY
+safeline-ce.url      -> SAFELINE_CE_URL
+safeline-ce.api_key  -> SAFELINE_CE_API_KEY
+safeline.url         -> SAFELINE_URL
+safeline.api_key     -> SAFELINE_API_KEY
+```
+
+Example `.env`:
+
+```bash
+SAFELINE_URL=https://safeline.example.com
+SAFELINE_API_KEY=YOUR_API_KEY
+XRAY_URL=https://xray.example.com/api/v2
+XRAY_API_KEY=YOUR_API_KEY
+```
+
+Priority is `flags > environment/.env > config.yaml`.
+
 Use root-level `--dry-run` for commands that support dry-run:
 
 ```bash

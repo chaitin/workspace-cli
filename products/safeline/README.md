@@ -10,12 +10,12 @@ go build -o safeline-cli
 
 ## 配置
 
-支持通过命令行参数或环境变量配置：
+支持通过命令行参数、环境变量或项目根目录 `.env` 配置：
 
 | 参数 | 环境变量 | 说明 |
 |------|----------|------|
-| `--base-url` | `SKYVIEW_BASE_URL` | Skyview API 地址（必填） |
-| `--token` | `SKYVIEW_TOKEN` | API Token |
+| `--url` | `SAFELINE_URL` | Skyview API 地址（必填） |
+| `--api-key` | `SAFELINE_API_KEY` | API Token |
 | `--indent` | - | 格式化 JSON 输出 |
 | `--insecure` | - | 跳过 TLS 证书验证 |
 
@@ -28,8 +28,8 @@ safeline [全局参数] <命令> [子命令] [参数]
 ### 全局参数
 
 ```bash
---base-url string   Skyview API 地址
---token string      API Token
+--url string        Skyview API 地址
+--api-key string    API Token
 --indent            格式化 JSON 输出
 --insecure          跳过 TLS 证书验证
 ```
@@ -483,8 +483,8 @@ safeline site list --indent
 
 ```bash
 # 设置环境变量
-export SKYVIEW_BASE_URL="https://your-safeline-server"
-export SKYVIEW_TOKEN="your-token"
+export SAFELINE_URL="https://your-safeline-server"
+export SAFELINE_API_KEY="your-token"
 
 # 查看统计
 safeline stats overview --duration h

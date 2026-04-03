@@ -26,6 +26,10 @@ type app struct {
 const defaultConfigPath = "config.yaml"
 
 func newApp() (*app, error) {
+	if err := config.LoadEnvFile(filepath.Join(".", ".env")); err != nil {
+		return nil, err
+	}
+
 	cfg, err := loadConfigFile(configPathFromCWD())
 	if err != nil {
 		return nil, err

@@ -29,8 +29,8 @@ Add each product under `products/<name>/` and keep its command tree self-contain
 - Import the package in [`main.go`](main.go).
 - Register it in `newApp()` with `a.registerProductCommand(...)`.
 - If `NewCommand()` can fail, return `(*cobra.Command, error)` and handle the error before registration, as `xray` does.
-- If the product needs values from `config.yaml` or root flags such as `--dry-run`, implement `ApplyRuntimeConfig(...)` in the product package and call it from `wrapProductCommand()`.
-- Parse product-specific config from `config.Raw` inside the product package; do not push product field parsing into the root command.
+- If the product needs values from `config.yaml`, environment variables, `.env`, or root flags such as `--dry-run`, implement `ApplyRuntimeConfig(...)` in the product package and call it from `wrapProductCommand()`.
+- Parse product-specific config from `config.Raw` inside the product package; environment variable overrides follow `<PRODUCT>_<FIELD>` automatically via the shared config layer. Do not push product field parsing into the root command.
 
 Keep the root command limited to shared wiring. Product behavior, flags, and config decoding should remain in the product package.
 
@@ -40,8 +40,8 @@ Write table-driven Go tests where practical and keep them in `*_test.go` files b
 
 ## Commit & Pull Request Guidelines
 
-Recent history favors short, imperative, lowercase commit subjects such as `simplify root folder` and `unify args`. Keep commits narrowly scoped. Pull requests should explain user-visible CLI changes, list new commands or flags, and mention any `config.yaml` impact. Include example invocations when behavior changes.
+Recent history favors short, imperative, lowercase commit subjects such as `simplify root folder` and `unify args`. Keep commits narrowly scoped. Pull requests should explain user-visible CLI changes, list new commands or flags, and mention any `config.yaml`, environment variable, or `.env` impact. Include example invocations when behavior changes.
 
 ## Security & Configuration Tips
 
-Do not commit real API keys or product endpoints. Start from `config.yaml.example` patterns in [`README.md`](README.md) and keep secrets in a local `config.yaml` only.
+Do not commit real API keys or product endpoints. Start from `config.yaml.example` patterns in [`README.md`](README.md) and keep secrets only in local `config.yaml`, local `.env`, or shell environment variables.

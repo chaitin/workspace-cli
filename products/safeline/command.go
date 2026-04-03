@@ -54,16 +54,15 @@ func NewCommand() *cobra.Command {
 				}
 			}
 
-			// Load from environment if not set via flags
 			if url == "" {
-				url = os.Getenv("SKYVIEW_URL")
+				url = os.Getenv("SAFELINE_URL")
 			}
 			if apiKey == "" {
-				apiKey = os.Getenv("SKYVIEW_API_KEY")
+				apiKey = os.Getenv("SAFELINE_API_KEY")
 			}
 
 			if url == "" {
-				return fmt.Errorf("URL is required (use --url or set SKYVIEW_URL)")
+				return fmt.Errorf("URL is required (use --url or set SAFELINE_URL)")
 			}
 
 			// Sync flags to cmd package for subcommands
@@ -77,8 +76,8 @@ func NewCommand() *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().StringVar(&url, "url", "", "Skyview URL (or SKYVIEW_URL)")
-	cmd.PersistentFlags().StringVar(&apiKey, "api-key", "", "API key (or SKYVIEW_API_KEY)")
+	cmd.PersistentFlags().StringVar(&url, "url", "", "Skyview URL (or SAFELINE_URL)")
+	cmd.PersistentFlags().StringVar(&apiKey, "api-key", "", "API key (or SAFELINE_API_KEY)")
 	cmd.PersistentFlags().BoolVar(&indent, "indent", false, "Pretty-print JSON output")
 	cmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Show what would be done without making changes")
 	cmd.PersistentFlags().BoolVar(&insecure, "insecure", true, "Skip TLS certificate verification")
