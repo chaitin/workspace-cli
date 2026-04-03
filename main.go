@@ -109,6 +109,9 @@ func (a *app) wrapProductCommand(cmd *cobra.Command) {
 			tanswer.ApplyRuntimeConfig(command, a.config)
 		case "xray":
 			xray.ApplyRuntimeConfig(command, a.config, a.dryRun)
+		case "safeline":
+			safeline.ApplyRuntimeConfig(command, a.config)
+			// TODO: register more products
 		}
 
 		if oldPreRun != nil {

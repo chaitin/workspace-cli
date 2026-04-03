@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/chaitin/workspace-cli/config"
 	cmdpkg "github.com/chaitin/workspace-cli/products/safeline/cmd"
 	"github.com/chaitin/workspace-cli/products/safeline/cmd/acl"
 	"github.com/chaitin/workspace-cli/products/safeline/cmd/ipgroup"
@@ -30,6 +31,11 @@ var (
 	insecure bool
 	dryRun   bool
 )
+
+type runtimeConfig struct {
+	URL    string `yaml:"url"`
+	APIKey string `yaml:"api_key"`
+}
 
 // NewCommand creates the safeline product command.
 func NewCommand() *cobra.Command {
@@ -153,4 +159,21 @@ func ReadInput(file string) (io.Reader, error) {
 		return nil, fmt.Errorf("failed to open file %s: %w", file, err)
 	}
 	return f, nil
+}
+
+// ApplyRuntimeConfig applies configuration from config.yaml to command flags.
+// If a flag is not explicitly set by the user, it uses the value from config file.
+func ApplyRuntimeConfig(cmd *cobra.Command, cfg config.Raw) {
+	productCfg, err := config.DecodeProduct[runtimeConfig](cfg, "safeline")
+	if err != nil {
+		return
+	}
+
+	if flag := cmd.Flags().Lookup("url"); flag != nil && !flag.Changed {
+		url = productCfg.URL
+	}
+
+	if flag := cmd.Flags().Lookup("api-key"); flag != nil && !flag.Changed {
+		apiKey = productCfg.APIKey
+	}
 }
