@@ -30,6 +30,7 @@ var DeleteSetCmd = &cobra.Command{
 
 func init() {
 	DeleteSetCmd.Flags().StringSliceVar(&deleteSetParams.Id, "id", nil, "策略 ID")
+	DeleteSetCmd.MarkFlagRequired("id")
 }
 
 // DeleteSetParams 请求参数

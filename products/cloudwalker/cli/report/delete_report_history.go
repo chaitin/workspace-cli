@@ -30,6 +30,7 @@ var DeleteReportHistoryCmd = &cobra.Command{
 
 func init() {
 	DeleteReportHistoryCmd.Flags().IntVar(&deleteReportHistoryParams.Id, "id", 0, "id")
+	DeleteReportHistoryCmd.MarkFlagRequired("id")
 }
 
 // DeleteReportHistoryParams 请求参数

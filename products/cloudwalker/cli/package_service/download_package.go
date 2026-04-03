@@ -30,6 +30,7 @@ var DownloadPackageCmd = &cobra.Command{
 
 func init() {
 	DownloadPackageCmd.Flags().StringVar(&downloadPackageParams.Id, "id", "", "升级包id")
+	DownloadPackageCmd.MarkFlagRequired("id")
 }
 
 // DownloadPackageParams 请求参数

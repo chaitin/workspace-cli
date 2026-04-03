@@ -30,6 +30,7 @@ var RemoteInstallStatusCmd = &cobra.Command{
 
 func init() {
 	RemoteInstallStatusCmd.Flags().StringVar(&remoteInstallStatusParams.TaskId, "task-id", "", "任务 ID")
+	RemoteInstallStatusCmd.MarkFlagRequired("task-id")
 }
 
 // RemoteInstallStatusParams 请求参数

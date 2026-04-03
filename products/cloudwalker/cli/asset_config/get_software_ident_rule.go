@@ -30,6 +30,7 @@ var GetSoftwareIdentRuleCmd = &cobra.Command{
 
 func init() {
 	GetSoftwareIdentRuleCmd.Flags().StringVar(&getSoftwareIdentRuleParams.Id, "id", "", "规则 ID")
+	GetSoftwareIdentRuleCmd.MarkFlagRequired("id")
 }
 
 // GetSoftwareIdentRuleParams 请求参数

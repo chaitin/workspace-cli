@@ -30,6 +30,7 @@ var GetAutoTagRuleDetailCmd = &cobra.Command{
 
 func init() {
 	GetAutoTagRuleDetailCmd.Flags().StringVar(&getAutoTagRuleDetailParams.Id, "id", "", "规则ID")
+	GetAutoTagRuleDetailCmd.MarkFlagRequired("id")
 }
 
 // GetAutoTagRuleDetailParams 请求参数

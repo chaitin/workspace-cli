@@ -30,6 +30,7 @@ var GetBusinessGroupDetailCmd = &cobra.Command{
 
 func init() {
 	GetBusinessGroupDetailCmd.Flags().IntVar(&getBusinessGroupDetailParams.Id, "id", 0, "id")
+	GetBusinessGroupDetailCmd.MarkFlagRequired("id")
 }
 
 // GetBusinessGroupDetailParams 请求参数

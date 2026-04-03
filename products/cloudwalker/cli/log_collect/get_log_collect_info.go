@@ -30,6 +30,7 @@ var GetLogCollectInfoCmd = &cobra.Command{
 
 func init() {
 	GetLogCollectInfoCmd.Flags().StringVar(&getLogCollectInfoParams.Id, "id", "", "日志采集 ID")
+	GetLogCollectInfoCmd.MarkFlagRequired("id")
 }
 
 // GetLogCollectInfoParams 请求参数

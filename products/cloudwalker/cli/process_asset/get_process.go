@@ -30,6 +30,7 @@ var GetProcessCmd = &cobra.Command{
 
 func init() {
 	GetProcessCmd.Flags().IntVar(&getProcessParams.Id, "id", 0, "ID")
+	GetProcessCmd.MarkFlagRequired("id")
 }
 
 // GetProcessParams 请求参数

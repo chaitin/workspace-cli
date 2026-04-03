@@ -30,6 +30,7 @@ var GetSetCmd = &cobra.Command{
 
 func init() {
 	GetSetCmd.Flags().StringVar(&getSetParams.Id, "id", "", "策略 ID")
+	GetSetCmd.MarkFlagRequired("id")
 }
 
 // GetSetParams 请求参数

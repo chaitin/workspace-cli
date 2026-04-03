@@ -30,6 +30,7 @@ var GetSecurityStrategyDetailCmd = &cobra.Command{
 
 func init() {
 	GetSecurityStrategyDetailCmd.Flags().StringVar(&getSecurityStrategyDetailParams.Id, "id", "", "安全策略 id")
+	GetSecurityStrategyDetailCmd.MarkFlagRequired("id")
 }
 
 // GetSecurityStrategyDetailParams 请求参数

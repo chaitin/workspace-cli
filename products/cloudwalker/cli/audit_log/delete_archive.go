@@ -30,6 +30,7 @@ var DeleteArchiveCmd = &cobra.Command{
 
 func init() {
 	DeleteArchiveCmd.Flags().Float64SliceVar(&deleteArchiveParams.Id, "id", nil, "归档ID")
+	DeleteArchiveCmd.MarkFlagRequired("id")
 }
 
 // DeleteArchiveParams 请求参数

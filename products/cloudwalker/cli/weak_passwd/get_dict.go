@@ -30,6 +30,7 @@ var GetDictCmd = &cobra.Command{
 
 func init() {
 	GetDictCmd.Flags().IntVar(&getDictParams.Id, "id", 0, "字典 ID")
+	GetDictCmd.MarkFlagRequired("id")
 }
 
 // GetDictParams 请求参数

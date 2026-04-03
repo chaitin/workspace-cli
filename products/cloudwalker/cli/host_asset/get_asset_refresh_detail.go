@@ -30,6 +30,7 @@ var GetAssetRefreshDetailCmd = &cobra.Command{
 
 func init() {
 	GetAssetRefreshDetailCmd.Flags().IntVar(&getAssetRefreshDetailParams.HostId, "host-id", 0, "主机ID")
+	GetAssetRefreshDetailCmd.MarkFlagRequired("host-id")
 }
 
 // GetAssetRefreshDetailParams 请求参数

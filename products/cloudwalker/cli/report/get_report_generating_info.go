@@ -30,6 +30,7 @@ var GetReportGeneratingInfoCmd = &cobra.Command{
 
 func init() {
 	GetReportGeneratingInfoCmd.Flags().IntVar(&getReportGeneratingInfoParams.Id, "id", 0, "ID")
+	GetReportGeneratingInfoCmd.MarkFlagRequired("id")
 }
 
 // GetReportGeneratingInfoParams 请求参数

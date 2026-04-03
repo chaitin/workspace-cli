@@ -30,6 +30,7 @@ var GetHoneypotRuleCmd = &cobra.Command{
 
 func init() {
 	GetHoneypotRuleCmd.Flags().StringVar(&getHoneypotRuleParams.Id, "id", "", "规则ID")
+	GetHoneypotRuleCmd.MarkFlagRequired("id")
 }
 
 // GetHoneypotRuleParams 请求参数

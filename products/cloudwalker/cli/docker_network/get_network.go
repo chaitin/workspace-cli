@@ -30,6 +30,7 @@ var GetNetworkCmd = &cobra.Command{
 
 func init() {
 	GetNetworkCmd.Flags().IntVar(&getNetworkParams.Id, "id", 0, "id")
+	GetNetworkCmd.MarkFlagRequired("id")
 }
 
 // GetNetworkParams 请求参数

@@ -30,6 +30,7 @@ var GetHostBusinessInfoCmd = &cobra.Command{
 
 func init() {
 	GetHostBusinessInfoCmd.Flags().IntVar(&getHostBusinessInfoParams.Id, "id", 0, "ID")
+	GetHostBusinessInfoCmd.MarkFlagRequired("id")
 }
 
 // GetHostBusinessInfoParams 请求参数

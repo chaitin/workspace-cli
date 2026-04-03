@@ -30,6 +30,7 @@ var CopyLogicCmd = &cobra.Command{
 
 func init() {
 	CopyLogicCmd.Flags().StringSliceVar(&copyLogicParams.Id, "id", nil, "ID")
+	CopyLogicCmd.MarkFlagRequired("id")
 }
 
 // CopyLogicParams 请求参数

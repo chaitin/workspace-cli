@@ -30,6 +30,7 @@ var GetGroupDetailCmd = &cobra.Command{
 
 func init() {
 	GetGroupDetailCmd.Flags().Float64Var(&getGroupDetailParams.EventId, "event-id", 0, "事件ID")
+	GetGroupDetailCmd.MarkFlagRequired("event-id")
 }
 
 // GetGroupDetailParams 请求参数

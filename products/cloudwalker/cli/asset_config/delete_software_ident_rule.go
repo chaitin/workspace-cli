@@ -30,6 +30,7 @@ var DeleteSoftwareIdentRuleCmd = &cobra.Command{
 
 func init() {
 	DeleteSoftwareIdentRuleCmd.Flags().StringSliceVar(&deleteSoftwareIdentRuleParams.Id, "id", nil, "软件识别规则 ID")
+	DeleteSoftwareIdentRuleCmd.MarkFlagRequired("id")
 }
 
 // DeleteSoftwareIdentRuleParams 请求参数

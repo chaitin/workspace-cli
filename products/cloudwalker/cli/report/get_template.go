@@ -30,6 +30,7 @@ var GetTemplateCmd = &cobra.Command{
 
 func init() {
 	GetTemplateCmd.Flags().IntVar(&getTemplateParams.Id, "id", 0, "id")
+	GetTemplateCmd.MarkFlagRequired("id")
 }
 
 // GetTemplateParams 请求参数

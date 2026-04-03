@@ -30,6 +30,7 @@ var GetWebsiteCmd = &cobra.Command{
 
 func init() {
 	GetWebsiteCmd.Flags().IntVar(&getWebsiteParams.Id, "id", 0, "ID")
+	GetWebsiteCmd.MarkFlagRequired("id")
 }
 
 // GetWebsiteParams 请求参数

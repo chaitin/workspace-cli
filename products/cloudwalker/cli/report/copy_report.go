@@ -30,6 +30,7 @@ var CopyReportCmd = &cobra.Command{
 
 func init() {
 	CopyReportCmd.Flags().IntVar(&copyReportParams.Id, "id", 0, "ID")
+	CopyReportCmd.MarkFlagRequired("id")
 }
 
 // CopyReportParams 请求参数

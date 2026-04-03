@@ -30,6 +30,7 @@ var GetWhitelistCmd = &cobra.Command{
 
 func init() {
 	GetWhitelistCmd.Flags().Float64Var(&getWhitelistParams.EventId, "event-id", 0, "事件 ID")
+	GetWhitelistCmd.MarkFlagRequired("event-id")
 }
 
 // GetWhitelistParams 请求参数

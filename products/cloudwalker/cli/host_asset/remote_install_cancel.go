@@ -30,6 +30,7 @@ var RemoteInstallCancelCmd = &cobra.Command{
 
 func init() {
 	RemoteInstallCancelCmd.Flags().StringVar(&remoteInstallCancelParams.TaskId, "task-id", "", "任务 ID")
+	RemoteInstallCancelCmd.MarkFlagRequired("task-id")
 }
 
 // RemoteInstallCancelParams 请求参数

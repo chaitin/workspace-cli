@@ -30,6 +30,7 @@ var GenerateWhiteRuleCmd = &cobra.Command{
 
 func init() {
 	GenerateWhiteRuleCmd.Flags().IntVar(&generateWhiteRuleParams.Id, "id", 0, "事件 ID")
+	GenerateWhiteRuleCmd.MarkFlagRequired("id")
 }
 
 // GenerateWhiteRuleParams 请求参数

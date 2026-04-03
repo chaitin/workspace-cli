@@ -30,6 +30,7 @@ var GetDecoyListCmd = &cobra.Command{
 
 func init() {
 	GetDecoyListCmd.Flags().IntVar(&getDecoyListParams.HostId, "host-id", 0, "主机 ID")
+	GetDecoyListCmd.MarkFlagRequired("host-id")
 }
 
 // GetDecoyListParams 请求参数

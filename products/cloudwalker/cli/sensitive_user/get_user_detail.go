@@ -30,6 +30,7 @@ var GetUserDetailCmd = &cobra.Command{
 
 func init() {
 	GetUserDetailCmd.Flags().Float64Var(&getUserDetailParams.EventId, "event-id", 0, "事件ID")
+	GetUserDetailCmd.MarkFlagRequired("event-id")
 }
 
 // GetUserDetailParams 请求参数

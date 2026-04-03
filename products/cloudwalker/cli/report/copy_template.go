@@ -30,6 +30,7 @@ var CopyTemplateCmd = &cobra.Command{
 
 func init() {
 	CopyTemplateCmd.Flags().IntVar(&copyTemplateParams.Id, "id", 0, "id")
+	CopyTemplateCmd.MarkFlagRequired("id")
 }
 
 // CopyTemplateParams 请求参数

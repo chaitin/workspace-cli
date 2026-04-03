@@ -30,6 +30,7 @@ var InstallCmd = &cobra.Command{
 
 func init() {
 	InstallCmd.Flags().IntVar(&installParams.HostId, "host-id", 0, "要安装防篡改模块的 Host ID")
+	InstallCmd.MarkFlagRequired("host-id")
 }
 
 // InstallParams 请求参数

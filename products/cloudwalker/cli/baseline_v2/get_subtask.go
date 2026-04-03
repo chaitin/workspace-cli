@@ -30,6 +30,7 @@ var GetSubtaskCmd = &cobra.Command{
 
 func init() {
 	GetSubtaskCmd.Flags().IntVar(&getSubtaskParams.Id, "id", 0, "ID")
+	GetSubtaskCmd.MarkFlagRequired("id")
 }
 
 // GetSubtaskParams 请求参数

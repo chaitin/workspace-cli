@@ -30,6 +30,7 @@ var GetRuleCmd = &cobra.Command{
 
 func init() {
 	GetRuleCmd.Flags().IntVar(&getRuleParams.Id, "id", 0, "规则ID")
+	GetRuleCmd.MarkFlagRequired("id")
 }
 
 // GetRuleParams 请求参数

@@ -30,6 +30,7 @@ var GetPackageCmd = &cobra.Command{
 
 func init() {
 	GetPackageCmd.Flags().IntVar(&getPackageParams.Id, "id", 0, "id")
+	GetPackageCmd.MarkFlagRequired("id")
 }
 
 // GetPackageParams 请求参数

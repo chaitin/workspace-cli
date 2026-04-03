@@ -30,6 +30,7 @@ var GetTaskCmd = &cobra.Command{
 
 func init() {
 	GetTaskCmd.Flags().IntVar(&getTaskParams.Id, "id", 0, "ID")
+	GetTaskCmd.MarkFlagRequired("id")
 }
 
 // GetTaskParams 请求参数

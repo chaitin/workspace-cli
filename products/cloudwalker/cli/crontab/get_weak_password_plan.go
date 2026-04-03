@@ -30,6 +30,7 @@ var GetWeakPasswordPlanCmd = &cobra.Command{
 
 func init() {
 	GetWeakPasswordPlanCmd.Flags().IntVar(&getWeakPasswordPlanParams.PlanId, "plan-id", 0, "计划 ID")
+	GetWeakPasswordPlanCmd.MarkFlagRequired("plan-id")
 }
 
 // GetWeakPasswordPlanParams 请求参数

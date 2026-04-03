@@ -30,6 +30,7 @@ var GetOrgInfoCmd = &cobra.Command{
 
 func init() {
 	GetOrgInfoCmd.Flags().IntVar(&getOrgInfoParams.Id, "id", 0, "机构 ID")
+	GetOrgInfoCmd.MarkFlagRequired("id")
 }
 
 // GetOrgInfoParams 请求参数

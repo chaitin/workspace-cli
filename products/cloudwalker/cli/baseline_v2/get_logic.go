@@ -30,6 +30,7 @@ var GetLogicCmd = &cobra.Command{
 
 func init() {
 	GetLogicCmd.Flags().StringSliceVar(&getLogicParams.Id, "id", nil, "ID")
+	GetLogicCmd.MarkFlagRequired("id")
 }
 
 // GetLogicParams 请求参数

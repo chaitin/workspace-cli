@@ -30,6 +30,7 @@ var DeleteCredentialCmd = &cobra.Command{
 
 func init() {
 	DeleteCredentialCmd.Flags().IntSliceVar(&deleteCredentialParams.Id, "id", nil, "凭据 ID")
+	DeleteCredentialCmd.MarkFlagRequired("id")
 }
 
 // DeleteCredentialParams 请求参数

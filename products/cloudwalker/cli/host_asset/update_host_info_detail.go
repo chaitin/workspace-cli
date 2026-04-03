@@ -30,6 +30,7 @@ var UpdateHostInfoDetailCmd = &cobra.Command{
 
 func init() {
 	UpdateHostInfoDetailCmd.Flags().IntVar(&updateHostInfoDetailParams.Id, "id", 0, "ID")
+	UpdateHostInfoDetailCmd.MarkFlagRequired("id")
 }
 
 // UpdateHostInfoDetailParams 请求参数

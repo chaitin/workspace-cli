@@ -30,6 +30,7 @@ var GetVulnCmd = &cobra.Command{
 
 func init() {
 	GetVulnCmd.Flags().IntVar(&getVulnParams.Id, "id", 0, "漏洞 ID")
+	GetVulnCmd.MarkFlagRequired("id")
 }
 
 // GetVulnParams 请求参数

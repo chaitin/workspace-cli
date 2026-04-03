@@ -30,6 +30,7 @@ var GetRefreshDateTimeCmd = &cobra.Command{
 
 func init() {
 	GetRefreshDateTimeCmd.Flags().IntVar(&getRefreshDateTimeParams.HostId, "host-id", 0, "主机 ID")
+	GetRefreshDateTimeCmd.MarkFlagRequired("host-id")
 }
 
 // GetRefreshDateTimeParams 请求参数

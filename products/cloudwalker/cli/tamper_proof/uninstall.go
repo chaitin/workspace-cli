@@ -30,6 +30,7 @@ var UninstallCmd = &cobra.Command{
 
 func init() {
 	UninstallCmd.Flags().IntVar(&uninstallParams.HostId, "host-id", 0, "要卸载防篡改模块的 Host ID")
+	UninstallCmd.MarkFlagRequired("host-id")
 }
 
 // UninstallParams 请求参数

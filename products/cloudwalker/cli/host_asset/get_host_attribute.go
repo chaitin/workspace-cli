@@ -30,6 +30,7 @@ var GetHostAttributeCmd = &cobra.Command{
 
 func init() {
 	GetHostAttributeCmd.Flags().Float64Var(&getHostAttributeParams.HostId, "host-id", 0, "主机 ID")
+	GetHostAttributeCmd.MarkFlagRequired("host-id")
 }
 
 // GetHostAttributeParams 请求参数

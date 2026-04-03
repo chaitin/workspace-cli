@@ -30,6 +30,7 @@ var GetUserAuthorizedKeysCmd = &cobra.Command{
 
 func init() {
 	GetUserAuthorizedKeysCmd.Flags().IntVar(&getUserAuthorizedKeysParams.AssetUserId, "asset-user-id", 0, "用户 ID")
+	GetUserAuthorizedKeysCmd.MarkFlagRequired("asset-user-id")
 }
 
 // GetUserAuthorizedKeysParams 请求参数

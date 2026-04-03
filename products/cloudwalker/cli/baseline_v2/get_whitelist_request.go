@@ -30,6 +30,7 @@ var GetWhitelistRequestCmd = &cobra.Command{
 
 func init() {
 	GetWhitelistRequestCmd.Flags().Float64Var(&getWhitelistRequestParams.SubtaskId, "subtask-id", 0, "子任务 ID")
+	GetWhitelistRequestCmd.MarkFlagRequired("subtask-id")
 }
 
 // GetWhitelistRequestParams 请求参数

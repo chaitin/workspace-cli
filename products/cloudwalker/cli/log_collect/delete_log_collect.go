@@ -30,6 +30,7 @@ var DeleteLogCollectCmd = &cobra.Command{
 
 func init() {
 	DeleteLogCollectCmd.Flags().StringSliceVar(&deleteLogCollectParams.Id, "id", nil, "ID")
+	DeleteLogCollectCmd.MarkFlagRequired("id")
 }
 
 // DeleteLogCollectParams 请求参数

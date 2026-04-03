@@ -30,6 +30,7 @@ var GetEventDetailsCmd = &cobra.Command{
 
 func init() {
 	GetEventDetailsCmd.Flags().IntVar(&getEventDetailsParams.Id, "id", 0, "事件 ID")
+	GetEventDetailsCmd.MarkFlagRequired("id")
 }
 
 // GetEventDetailsParams 请求参数

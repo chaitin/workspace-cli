@@ -30,6 +30,7 @@ var GetAgentInfoCmd = &cobra.Command{
 
 func init() {
 	GetAgentInfoCmd.Flags().IntVar(&getAgentInfoParams.Id, "id", 0, "ID")
+	GetAgentInfoCmd.MarkFlagRequired("id")
 }
 
 // GetAgentInfoParams 请求参数

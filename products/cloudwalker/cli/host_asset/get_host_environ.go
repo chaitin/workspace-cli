@@ -30,6 +30,7 @@ var GetHostEnvironCmd = &cobra.Command{
 
 func init() {
 	GetHostEnvironCmd.Flags().IntVar(&getHostEnvironParams.Id, "id", 0, "ID")
+	GetHostEnvironCmd.MarkFlagRequired("id")
 }
 
 // GetHostEnvironParams 请求参数

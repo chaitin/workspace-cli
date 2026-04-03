@@ -30,6 +30,7 @@ var GetPatchInfoEventCmd = &cobra.Command{
 
 func init() {
 	GetPatchInfoEventCmd.Flags().Float64Var(&getPatchInfoEventParams.Id, "id", 0, "补丁事件 ID")
+	GetPatchInfoEventCmd.MarkFlagRequired("id")
 }
 
 // GetPatchInfoEventParams 请求参数

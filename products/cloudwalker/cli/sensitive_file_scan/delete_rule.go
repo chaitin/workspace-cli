@@ -30,6 +30,7 @@ var DeleteRuleCmd = &cobra.Command{
 
 func init() {
 	DeleteRuleCmd.Flags().StringSliceVar(&deleteRuleParams.Id, "id", nil, "规则 ID")
+	DeleteRuleCmd.MarkFlagRequired("id")
 }
 
 // DeleteRuleParams 请求参数

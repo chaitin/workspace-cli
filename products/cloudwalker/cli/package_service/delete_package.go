@@ -30,6 +30,7 @@ var DeletePackageCmd = &cobra.Command{
 
 func init() {
 	DeletePackageCmd.Flags().IntVar(&deletePackageParams.Id, "id", 0, "id")
+	DeletePackageCmd.MarkFlagRequired("id")
 }
 
 // DeletePackageParams 请求参数

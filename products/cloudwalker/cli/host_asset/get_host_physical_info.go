@@ -30,6 +30,7 @@ var GetHostPhysicalInfoCmd = &cobra.Command{
 
 func init() {
 	GetHostPhysicalInfoCmd.Flags().IntVar(&getHostPhysicalInfoParams.Id, "id", 0, "ID")
+	GetHostPhysicalInfoCmd.MarkFlagRequired("id")
 }
 
 // GetHostPhysicalInfoParams 请求参数

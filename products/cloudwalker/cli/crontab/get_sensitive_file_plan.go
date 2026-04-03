@@ -30,6 +30,7 @@ var GetSensitiveFilePlanCmd = &cobra.Command{
 
 func init() {
 	GetSensitiveFilePlanCmd.Flags().IntVar(&getSensitiveFilePlanParams.PlanId, "plan-id", 0, "计划 ID")
+	GetSensitiveFilePlanCmd.MarkFlagRequired("plan-id")
 }
 
 // GetSensitiveFilePlanParams 请求参数

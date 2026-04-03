@@ -30,6 +30,7 @@ var GetEventOverViewCmd = &cobra.Command{
 
 func init() {
 	GetEventOverViewCmd.Flags().IntVar(&getEventOverViewParams.Id, "id", 0, "ID")
+	GetEventOverViewCmd.MarkFlagRequired("id")
 }
 
 // GetEventOverViewParams 请求参数

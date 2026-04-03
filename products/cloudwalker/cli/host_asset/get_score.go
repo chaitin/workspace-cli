@@ -30,6 +30,7 @@ var GetScoreCmd = &cobra.Command{
 
 func init() {
 	GetScoreCmd.Flags().IntVar(&getScoreParams.Id, "id", 0, "ID")
+	GetScoreCmd.MarkFlagRequired("id")
 }
 
 // GetScoreParams 请求参数

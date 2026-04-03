@@ -30,6 +30,7 @@ var GetTemplateLogicCmd = &cobra.Command{
 
 func init() {
 	GetTemplateLogicCmd.Flags().StringVar(&getTemplateLogicParams.Id, "id", "", "快速自定义核查项ID")
+	GetTemplateLogicCmd.MarkFlagRequired("id")
 }
 
 // GetTemplateLogicParams 请求参数

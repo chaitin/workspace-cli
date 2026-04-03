@@ -30,6 +30,7 @@ var GetModuleDetailCmd = &cobra.Command{
 
 func init() {
 	GetModuleDetailCmd.Flags().IntVar(&getModuleDetailParams.Id, "id", 0, "id")
+	GetModuleDetailCmd.MarkFlagRequired("id")
 }
 
 // GetModuleDetailParams 请求参数

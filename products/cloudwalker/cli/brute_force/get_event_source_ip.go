@@ -30,6 +30,7 @@ var GetEventSourceIpCmd = &cobra.Command{
 
 func init() {
 	GetEventSourceIpCmd.Flags().IntVar(&getEventSourceIpParams.Id, "id", 0, "事件 ID")
+	GetEventSourceIpCmd.MarkFlagRequired("id")
 }
 
 // GetEventSourceIpParams 请求参数

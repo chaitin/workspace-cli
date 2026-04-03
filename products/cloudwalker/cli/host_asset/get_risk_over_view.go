@@ -30,6 +30,7 @@ var GetRiskOverViewCmd = &cobra.Command{
 
 func init() {
 	GetRiskOverViewCmd.Flags().IntVar(&getRiskOverViewParams.Id, "id", 0, "主机 ID")
+	GetRiskOverViewCmd.MarkFlagRequired("id")
 }
 
 // GetRiskOverViewParams 请求参数
