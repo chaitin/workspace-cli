@@ -14,16 +14,16 @@ import (
 
 func TestNewClient(t *testing.T) {
 	cfg := &Config{
-		Endpoint: "https://example.com:9443",
-		Token:    "test-token",
+		URL:    "https://example.com:9443",
+		APIKey: "test-token",
 	}
 	client := NewClient(cfg)
 
 	if client.baseURL != "https://example.com:9443" {
 		t.Errorf("baseURL = %q, want %q", client.baseURL, "https://example.com:9443")
 	}
-	if client.config.Token != "test-token" {
-		t.Errorf("Token = %q, want %q", client.config.Token, "test-token")
+	if client.config.APIKey != "test-token" {
+		t.Errorf("APIKey = %q, want %q", client.config.APIKey, "test-token")
 	}
 }
 
@@ -39,7 +39,7 @@ func TestClientDo(t *testing.T) {
 		}))
 		defer server.Close()
 
-		cfg := &Config{Endpoint: server.URL, Token: "test-token"}
+		cfg := &Config{URL: server.URL, APIKey: "test-token"}
 		client := NewClient(cfg)
 
 		var result map[string]interface{}
@@ -65,7 +65,7 @@ func TestClientDo(t *testing.T) {
 		}))
 		defer server.Close()
 
-		cfg := &Config{Endpoint: server.URL, Token: "test-token"}
+		cfg := &Config{URL: server.URL, APIKey: "test-token"}
 		client := NewClient(cfg)
 
 		err := client.Get(context.Background(), "/test", nil, nil)
@@ -87,8 +87,8 @@ func TestClientDo(t *testing.T) {
 
 	t.Run("network error", func(t *testing.T) {
 		cfg := &Config{
-			Endpoint: "http://nonexistent-host-12345:9999",
-			Token:    "test-token",
+			URL:    "http://nonexistent-host-12345:9999",
+			APIKey: "test-token",
 		}
 		client := NewClient(cfg)
 		client.httpClient.Timeout = 1 * time.Second
@@ -128,7 +128,7 @@ func TestClientDo(t *testing.T) {
 		}))
 		defer server.Close()
 
-		cfg := &Config{Endpoint: server.URL, Token: "test-token"}
+		cfg := &Config{URL: server.URL, APIKey: "test-token"}
 		client := NewClient(cfg)
 
 		body := map[string]interface{}{"name": "test"}
@@ -151,7 +151,7 @@ func TestClient_TokenInjection(t *testing.T) {
 	}))
 	defer server.Close()
 
-	cfg := &Config{Endpoint: server.URL, Token: "secret-token"}
+	cfg := &Config{URL: server.URL, APIKey: "secret-token"}
 	client := NewClient(cfg)
 
 	tests := []struct {
@@ -174,7 +174,7 @@ func TestClient_TokenInjection(t *testing.T) {
 }
 
 func TestClient_BuildURL(t *testing.T) {
-	cfg := &Config{Endpoint: "https://example.com", Token: "token"}
+	cfg := &Config{URL: "https://example.com", APIKey: "token"}
 	client := NewClient(cfg)
 
 	tests := []struct {
@@ -210,7 +210,7 @@ func TestClient_QueryParams(t *testing.T) {
 	}))
 	defer server.Close()
 
-	cfg := &Config{Endpoint: server.URL, Token: "token"}
+	cfg := &Config{URL: server.URL, APIKey: "token"}
 	client := NewClient(cfg)
 
 	query := url.Values{}
@@ -224,7 +224,7 @@ func TestClient_QueryParams(t *testing.T) {
 }
 
 func TestClient_HandleError(t *testing.T) {
-	cfg := &Config{Endpoint: "https://example.com", Token: "token"}
+	cfg := &Config{URL: "https://example.com", APIKey: "token"}
 	client := NewClient(cfg)
 
 	t.Run("API error with message", func(t *testing.T) {

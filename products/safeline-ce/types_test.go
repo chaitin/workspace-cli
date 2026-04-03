@@ -12,8 +12,8 @@ func TestLoadConfig(t *testing.T) {
 		tmpDir := t.TempDir()
 		configPath := filepath.Join(tmpDir, "config.yaml")
 		configContent := `safeline-ce:
-  endpoint: "https://example.com:9443"
-  token: "test-token-123"
+  url: "https://example.com:9443"
+  api_key: "test-token-123"
 `
 		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 			t.Fatalf("failed to write config file: %v", err)
@@ -24,11 +24,11 @@ func TestLoadConfig(t *testing.T) {
 			t.Fatalf("LoadConfig() error = %v", err)
 		}
 
-		if cfg.Endpoint != "https://example.com:9443" {
-			t.Errorf("Endpoint = %q, want %q", cfg.Endpoint, "https://example.com:9443")
+		if cfg.URL != "https://example.com:9443" {
+			t.Errorf("URL = %q, want %q", cfg.URL, "https://example.com:9443")
 		}
-		if cfg.Token != "test-token-123" {
-			t.Errorf("Token = %q, want %q", cfg.Token, "test-token-123")
+		if cfg.APIKey != "test-token-123" {
+			t.Errorf("APIKey = %q, want %q", cfg.APIKey, "test-token-123")
 		}
 	})
 
@@ -43,7 +43,7 @@ func TestLoadConfig(t *testing.T) {
 		tmpDir := t.TempDir()
 		configPath := filepath.Join(tmpDir, "config.yaml")
 		configContent := `other-product:
-  endpoint: "https://example.com"
+  url: "https://example.com"
 `
 		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 			t.Fatalf("failed to write config file: %v", err)
@@ -55,11 +55,11 @@ func TestLoadConfig(t *testing.T) {
 		}
 	})
 
-	t.Run("missing endpoint", func(t *testing.T) {
+	t.Run("missing url", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		configPath := filepath.Join(tmpDir, "config.yaml")
 		configContent := `safeline-ce:
-  token: "test-token"
+  api_key: "test-token"
 `
 		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 			t.Fatalf("failed to write config file: %v", err)
@@ -67,15 +67,15 @@ func TestLoadConfig(t *testing.T) {
 
 		_, err := LoadConfig(configPath)
 		if err == nil {
-			t.Error("LoadConfig() expected error for missing endpoint")
+			t.Error("LoadConfig() expected error for missing url")
 		}
 	})
 
-	t.Run("missing token", func(t *testing.T) {
+	t.Run("missing api_key", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		configPath := filepath.Join(tmpDir, "config.yaml")
 		configContent := `safeline-ce:
-  endpoint: "https://example.com"
+  url: "https://example.com"
 `
 		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 			t.Fatalf("failed to write config file: %v", err)
@@ -83,32 +83,32 @@ func TestLoadConfig(t *testing.T) {
 
 		_, err := LoadConfig(configPath)
 		if err == nil {
-			t.Error("LoadConfig() expected error for missing token")
+			t.Error("LoadConfig() expected error for missing api_key")
 		}
 	})
 }
 
 func TestConfig_ApplyEnvOverrides(t *testing.T) {
 	cfg := &Config{
-		Endpoint: "https://original.com",
-		Token:    "original-token",
+		URL:    "https://original.com",
+		APIKey: "original-token",
 	}
 
 	// 设置环境变量
-	os.Setenv("SAFELINE_CE_ENDPOINT", "https://override.com")
-	os.Setenv("SAFELINE_CE_TOKEN", "override-token")
+	os.Setenv("SAFELINE_CE_URL", "https://override.com")
+	os.Setenv("SAFELINE_CE_API_KEY", "override-token")
 	defer func() {
-		os.Unsetenv("SAFELINE_CE_ENDPOINT")
-		os.Unsetenv("SAFELINE_CE_TOKEN")
+		os.Unsetenv("SAFELINE_CE_URL")
+		os.Unsetenv("SAFELINE_CE_API_KEY")
 	}()
 
 	cfg.ApplyEnvOverrides()
 
-	if cfg.Endpoint != "https://override.com" {
-		t.Errorf("Endpoint = %q, want %q", cfg.Endpoint, "https://override.com")
+	if cfg.URL != "https://override.com" {
+		t.Errorf("URL = %q, want %q", cfg.URL, "https://override.com")
 	}
-	if cfg.Token != "override-token" {
-		t.Errorf("Token = %q, want %q", cfg.Token, "override-token")
+	if cfg.APIKey != "override-token" {
+		t.Errorf("APIKey = %q, want %q", cfg.APIKey, "override-token")
 	}
 }
 
@@ -121,22 +121,22 @@ func TestConfig_Validate(t *testing.T) {
 		{
 			name: "valid config",
 			config: Config{
-				Endpoint: "https://example.com",
-				Token:    "token",
+				URL:    "https://example.com",
+				APIKey: "token",
 			},
 			wantErr: false,
 		},
 		{
-			name: "missing endpoint",
+			name: "missing url",
 			config: Config{
-				Token: "token",
+				APIKey: "token",
 			},
 			wantErr: true,
 		},
 		{
-			name: "missing token",
+			name: "missing api_key",
 			config: Config{
-				Endpoint: "https://example.com",
+				URL: "https://example.com",
 			},
 			wantErr: true,
 		},

@@ -19,8 +19,8 @@ var (
 )
 
 type runtimeConfig struct {
-	Endpoint string `yaml:"endpoint"`
-	Token    string `yaml:"token"`
+	URL    string `yaml:"url"`
+	APIKey string `yaml:"api_key"`
 }
 
 // NewCommand 创建 safeline-ce 命令
@@ -33,8 +33,8 @@ func NewCommand() *cobra.Command {
 快速入门:
   # 1. 创建配置文件 config.yaml
   safeline-ce:
-    endpoint: https://your-server:9443
-    token: your-api-token
+    url: https://your-server:9443
+    api_key: your-api-key
 
   # 2. 查看帮助
   cws safeline-ce --help
@@ -59,8 +59,8 @@ func NewCommand() *cobra.Command {
 
 	// 全局 flags
 	cmd.PersistentFlags().String("config", "", "Config file path (default: ./config.yaml)")
-	cmd.PersistentFlags().String("endpoint", "", "API endpoint (e.g. https://your-server:9443)")
-	cmd.PersistentFlags().String("token", "", "API token for authentication")
+	cmd.PersistentFlags().String("url", "", "API URL (e.g. https://your-server:9443)")
+	cmd.PersistentFlags().String("api-key", "", "API key for authentication")
 	cmd.PersistentFlags().StringP("output", "o", "table", "Output format (table|json)")
 	cmd.PersistentFlags().Bool("verbose", false, "Verbose output")
 
@@ -85,11 +85,11 @@ func ApplyRuntimeConfig(cmd *cobra.Command, cfg config.Raw) {
 // applyRuntimeConfig 应用运行时配置到命令 flags
 func applyRuntimeConfig(cmd *cobra.Command) {
 	// 如果 flag 未设置，使用配置文件的值
-	if flag := cmd.Flags().Lookup("endpoint"); flag != nil && !flag.Changed && runtimeCfg.Endpoint != "" {
-		_ = cmd.Flags().Set("endpoint", runtimeCfg.Endpoint)
+	if flag := cmd.Flags().Lookup("url"); flag != nil && !flag.Changed && runtimeCfg.URL != "" {
+		_ = cmd.Flags().Set("url", runtimeCfg.URL)
 	}
-	if flag := cmd.Flags().Lookup("token"); flag != nil && !flag.Changed && runtimeCfg.Token != "" {
-		_ = cmd.Flags().Set("token", runtimeCfg.Token)
+	if flag := cmd.Flags().Lookup("api-key"); flag != nil && !flag.Changed && runtimeCfg.APIKey != "" {
+		_ = cmd.Flags().Set("api-key", runtimeCfg.APIKey)
 	}
 }
 
@@ -108,8 +108,8 @@ func loadConfigFromFile(cmd *cobra.Command) {
 	}
 
 	// 将配置存入 runtimeCfg
-	runtimeCfg.Endpoint = cfg.Endpoint
-	runtimeCfg.Token = cfg.Token
+	runtimeCfg.URL = cfg.URL
+	runtimeCfg.APIKey = cfg.APIKey
 }
 
 // loadDynamicCommands 从嵌入的 OpenAPI 定义加载动态命令
@@ -154,12 +154,12 @@ func getRenderer(cmd *cobra.Command) Renderer {
 
 // getClient 从命令创建客户端
 func getClient(cmd *cobra.Command) *Client {
-	endpoint, _ := cmd.Flags().GetString("endpoint")
-	token, _ := cmd.Flags().GetString("token")
+	url, _ := cmd.Flags().GetString("url")
+	apiKey, _ := cmd.Flags().GetString("api-key")
 
 	cfg := &Config{
-		Endpoint: endpoint,
-		Token:    token,
+		URL:    url,
+		APIKey: apiKey,
 	}
 
 	return NewClient(cfg)

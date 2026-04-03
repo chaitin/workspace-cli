@@ -34,7 +34,7 @@ func NewClient(cfg *Config) *Client {
 				},
 			},
 		},
-		baseURL: strings.TrimSuffix(cfg.Endpoint, "/"),
+		baseURL: strings.TrimSuffix(cfg.URL, "/"),
 	}
 }
 
@@ -123,7 +123,7 @@ func (c *Client) UploadFile(ctx context.Context, path string, files map[string]s
 	}
 
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set("X-SLCE-API-TOKEN", c.config.Token)
+	req.Header.Set("X-SLCE-API-TOKEN", c.config.APIKey)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -142,7 +142,7 @@ func (c *Client) buildURL(path string) string {
 }
 
 func (c *Client) injectHeaders(req *http.Request, isMultipart bool) {
-	req.Header.Set("X-SLCE-API-TOKEN", c.config.Token)
+	req.Header.Set("X-SLCE-API-TOKEN", c.config.APIKey)
 	if !isMultipart {
 		req.Header.Set("Content-Type", "application/json")
 	}

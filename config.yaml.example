@@ -11,8 +11,8 @@ xray:
   api_key: ""
 
 safeline-ce:
-  endpoint: ""
-  token: ""
+  url: ""
+  api_key: ""
 
 safeline:
   url: ""

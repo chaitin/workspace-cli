@@ -19,8 +19,8 @@ const (
 
 // Config 配置结构
 type Config struct {
-	Endpoint string `yaml:"endpoint"`
-	Token    string `yaml:"token"`
+	URL     string `yaml:"url"`
+	APIKey  string `yaml:"api_key"`
 }
 
 // LoadConfig 从文件和环境变量加载配置
@@ -55,21 +55,21 @@ func LoadConfig(path string) (*Config, error) {
 
 // ApplyEnvOverrides 应用环境变量覆盖
 func (c *Config) ApplyEnvOverrides() {
-	if v := os.Getenv("SAFELINE_CE_ENDPOINT"); v != "" {
-		c.Endpoint = v
+	if v := os.Getenv("SAFELINE_CE_URL"); v != "" {
+		c.URL = v
 	}
-	if v := os.Getenv("SAFELINE_CE_TOKEN"); v != "" {
-		c.Token = v
+	if v := os.Getenv("SAFELINE_CE_API_KEY"); v != "" {
+		c.APIKey = v
 	}
 }
 
 // Validate 验证配置
 func (c *Config) Validate() error {
-	if c.Endpoint == "" {
-		return fmt.Errorf("endpoint is required")
+	if c.URL == "" {
+		return fmt.Errorf("url is required")
 	}
-	if c.Token == "" {
-		return fmt.Errorf("token is required")
+	if c.APIKey == "" {
+		return fmt.Errorf("api_key is required")
 	}
 	return nil
 }
