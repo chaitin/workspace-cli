@@ -18,7 +18,7 @@ func TestNewCommand(t *testing.T) {
 	}
 
 	got := stdout.String()
-	want := "SafeLine Community Edition"
+	want := "SafeLine CE CLI"
 	if !bytes.Contains([]byte(got), []byte(want)) {
 		t.Fatalf("unexpected output: got %q, want to contain %q", got, want)
 	}

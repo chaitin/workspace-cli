@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -49,15 +48,25 @@ func (p *Parser) GenerateCommands(api *OpenAPI) ([]*cobra.Command, error) {
 				tag = op.operation.Tags[0]
 			}
 
-			if _, exists := tagCommands[tag]; !exists {
-				tagCommands[tag] = &cobra.Command{
-					Use:   tag,
-					Short: fmt.Sprintf("%s commands", tag),
+			// 解析嵌套命令 (如 "log/attack" -> parent="log", child="attack")
+			parentTag, childTag := parseNestedTag(tag)
+
+			// 确保父命令存在
+			if _, exists := tagCommands[parentTag]; !exists {
+				tagCommands[parentTag] = &cobra.Command{
+					Use:   parentTag,
+					Short: fmt.Sprintf("%s commands", parentTag),
 				}
 			}
 
+			// 如果是嵌套命令，确保子命令存在
+			targetCmd := tagCommands[parentTag]
+			if childTag != "" {
+				targetCmd = getOrCreateChildCommand(tagCommands[parentTag], childTag)
+			}
+
 			cmd := p.createOperationCommand(op.method, path, op.operation, api.BasePath)
-			tagCommands[tag].AddCommand(cmd)
+			targetCmd.AddCommand(cmd)
 		}
 	}
 
@@ -67,6 +76,31 @@ func (p *Parser) GenerateCommands(api *OpenAPI) ([]*cobra.Command, error) {
 	}
 
 	return commands, nil
+}
+
+// parseNestedTag 解析嵌套 tag (如 "log/attack" -> "log", "attack")
+func parseNestedTag(tag string) (parent, child string) {
+	parts := strings.SplitN(tag, "/", 2)
+	if len(parts) == 2 {
+		return parts[0], parts[1]
+	}
+	return parts[0], ""
+}
+
+// getOrCreateChildCommand 获取或创建子命令
+func getOrCreateChildCommand(parent *cobra.Command, childName string) *cobra.Command {
+	for _, cmd := range parent.Commands() {
+		if cmd.Use == childName {
+			return cmd
+		}
+	}
+
+	child := &cobra.Command{
+		Use:   childName,
+		Short: fmt.Sprintf("%s %s commands", parent.Use, childName),
+	}
+	parent.AddCommand(child)
+	return child
 }
 
 func (p *Parser) createOperationCommand(method, path string, op *Operation, basePath string) *cobra.Command {
@@ -166,9 +200,62 @@ func (p *Parser) executeCommand(cmd *cobra.Command, method, path, basePath strin
 }
 
 func operationName(method, path string) string {
+	// 特殊路径处理 - cert 相关
+	switch {
+	case strings.HasSuffix(path, "/system") && method == "GET":
+		return "info"
+	case strings.HasSuffix(path, "/system") && method == "PUT":
+		return "update"
+	case strings.HasSuffix(path, "/system/authorize") && method == "GET":
+		return "get"
+	case strings.HasSuffix(path, "/system/authorize") && method == "DELETE":
+		return "delete"
+	case strings.HasSuffix(path, "/cert") && method == "POST":
+		return "upload"
+	}
+
+	// switch 相关处理
+	if strings.Contains(path, "/switch") {
+		// policy/switch 直接返回 switch
+		if strings.Contains(path, "/policy/switch") {
+			return "switch"
+		}
+		// skynet/rule/switch 返回 get/set
+		switch method {
+		case "GET":
+			return "get"
+		case "PUT":
+			return "set"
+		}
+	}
+
+	// 其他特殊路径处理
+	switch {
+	case strings.Contains(path, "/detail"):
+		return "get"
+	case strings.Contains(path, "/append"):
+		return "append"
+	case strings.Contains(path, "/qps"):
+		return "qps"
+	case strings.Contains(path, "/advance/access") && !strings.Contains(path, "/trend"):
+		return "access"
+	case strings.Contains(path, "/advance/attack") || strings.Contains(path, "/advance/intercept"):
+		return "attack"
+	case strings.Contains(path, "/trend/access"):
+		return "access"
+	case strings.Contains(path, "/trend/intercept"):
+		return "intercept"
+	case strings.Contains(path, "/global/mode"):
+		if method == "GET" {
+			return "get"
+		}
+		return "update"
+	}
+
+	// 默认根据 HTTP method 判断
 	switch method {
 	case "GET":
-		if strings.Contains(path, "{id}") || strings.Contains(path, "{") {
+		if strings.Contains(path, "{id}") || strings.Contains(path, ":id") {
 			return "get"
 		}
 		return "list"
@@ -197,10 +284,3 @@ func addFlag(cmd *cobra.Command, param Parameter) {
 	}
 }
 
-func newRenderer(cmd *cobra.Command) Renderer {
-	format := FormatTable
-	if o, _ := cmd.Flags().GetString("output"); o == "json" {
-		format = FormatJSON
-	}
-	return NewRenderer(format, os.Stdout)
-}
