@@ -123,6 +123,20 @@ ln -s ./bin/cws ./chaitin
 ./bin/cws chaitin
 ```
 
+## AI Agent Skill
+
+本项目提供了 AI Agent skill，安装后 AI Agent（Claude Code、Cursor 等）可以直接调用 `cws` 命令管理长亭安全产品。
+
+```bash
+npx skills add chaitin/workspace-cli
+```
+
+安装后，向 AI Agent 描述需求即可，例如：
+
+- "帮我查看 SafeLine 最近的攻击日志"
+- "在 X-Ray 中创建一个扫描任务"
+- "列出 CloudWalker 中的漏洞事件"
+
 ## 常用任务
 
 ```bash
