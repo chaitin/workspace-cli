@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/chaitin/workspace-cli/config"
+	"github.com/chaitin/chaitin-cli/config"
 )
 
 func TestParseJWTClaims(t *testing.T) {

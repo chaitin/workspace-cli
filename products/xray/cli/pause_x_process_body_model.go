@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/chaitin/workspace-cli/products/xray/models"
+	"github.com/chaitin/chaitin-cli/products/xray/models"
 )
 
 // Schema cli for PauseXProcessBody

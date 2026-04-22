@@ -187,7 +187,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/chaitin/workspace-cli/products/safeline/pkg/client"
+	"github.com/chaitin/chaitin-cli/products/safeline/pkg/client"
 	"github.com/spf13/cobra"
 )
 
@@ -300,11 +300,11 @@ var registerTmpl = template.Must(template.New("register").Parse(`// Code generat
 package modules
 
 import (
-	"github.com/chaitin/workspace-cli/products/safeline/pkg/client"
+	"github.com/chaitin/chaitin-cli/products/safeline/pkg/client"
 	"github.com/spf13/cobra"
 )
 {{range $name := .}}
-import {{$name}} "github.com/chaitin/workspace-cli/products/safeline/modules/{{$name}}"
+import {{$name}} "github.com/chaitin/chaitin-cli/products/safeline/modules/{{$name}}"
 {{end}}
 
 // RegisterAll registers all safeline module commands.

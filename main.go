@@ -6,14 +6,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/chaitin/workspace-cli/config"
-	"github.com/chaitin/workspace-cli/products/chaitin"
-	"github.com/chaitin/workspace-cli/products/cloudwalker"
-	"github.com/chaitin/workspace-cli/products/ddr"
-	"github.com/chaitin/workspace-cli/products/safeline"
-	safelinece "github.com/chaitin/workspace-cli/products/safeline-ce"
-	"github.com/chaitin/workspace-cli/products/tanswer"
-	"github.com/chaitin/workspace-cli/products/xray"
+	"github.com/chaitin/chaitin-cli/config"
+	"github.com/chaitin/chaitin-cli/products/chaitin"
+	"github.com/chaitin/chaitin-cli/products/cloudwalker"
+	"github.com/chaitin/chaitin-cli/products/ddr"
+	"github.com/chaitin/chaitin-cli/products/safeline"
+	safelinece "github.com/chaitin/chaitin-cli/products/safeline-ce"
+	"github.com/chaitin/chaitin-cli/products/tanswer"
+	"github.com/chaitin/chaitin-cli/products/xray"
 	"github.com/spf13/cobra"
 )
 

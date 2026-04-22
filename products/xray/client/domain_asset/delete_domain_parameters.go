@@ -13,7 +13,7 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
-	"github.com/chaitin/workspace-cli/products/xray/models"
+	"github.com/chaitin/chaitin-cli/products/xray/models"
 )
 
 // NewDeleteDomainParams creates a new DeleteDomainParams object,

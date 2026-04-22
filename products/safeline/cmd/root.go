@@ -10,8 +10,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/chaitin/workspace-cli/products/safeline/pkg/auth"
-	"github.com/chaitin/workspace-cli/products/safeline/pkg/client"
+	"github.com/chaitin/chaitin-cli/products/safeline/pkg/auth"
+	"github.com/chaitin/chaitin-cli/products/safeline/pkg/client"
 	"github.com/spf13/cobra"
 )
 

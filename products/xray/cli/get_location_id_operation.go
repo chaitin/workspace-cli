@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/chaitin/workspace-cli/products/xray/client/asset_property"
+	"github.com/chaitin/chaitin-cli/products/xray/client/asset_property"
 
 	"github.com/spf13/cobra"
 

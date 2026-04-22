@@ -11,7 +11,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
 
-	"github.com/chaitin/workspace-cli/products/xray/models"
+	"github.com/chaitin/chaitin-cli/products/xray/models"
 )
 
 // GetProjectReader is a Reader for the GetProject structure.
