@@ -1,8 +1,8 @@
 package xray
 
 import (
-	"github.com/chaitin/workspace-cli/config"
-	"github.com/chaitin/workspace-cli/products/xray/cli"
+	"github.com/chaitin/chaitin-cli/config"
+	"github.com/chaitin/chaitin-cli/products/xray/cli"
 	"github.com/spf13/cobra"
 )
 

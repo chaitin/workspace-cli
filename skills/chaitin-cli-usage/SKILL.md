@@ -1,12 +1,12 @@
 ---
-name: workspace-cli-usage
+name: chaitin-cli-usage
 description: "Use when running cws commands to manage Chaitin security products: SafeLine WAF (site management, IP blocking, ACL, policy rules, attack logs), X-Ray vulnerability scanner (scan tasks, results, assets), CloudWalker CWPP (events, vulnerabilities, assets), and T-Answer (firewall rules, blocklists)."
 version: 1.0.0
 author: chaitin
 tags: [cws, safeline, xray, cloudwalker, tanswer, waf, security, chaitin, cli]
 ---
 
-# workspace-cli (cws) Usage Guide
+# chaitin-cli (cws) Usage Guide
 
 > Unified CLI for Chaitin security products. Manage SafeLine WAF, X-Ray scanner, CloudWalker CWPP, and T-Answer through a single tool.
 
@@ -14,11 +14,11 @@ tags: [cws, safeline, xray, cloudwalker, tanswer, waf, security, chaitin, cli]
 
 ```bash
 # Download pre-built binary from GitHub Releases
-# https://github.com/chaitin/workspace-cli/releases
+# https://github.com/chaitin/chaitin-cli/releases
 
 # Or build from source
-git clone https://github.com/chaitin/workspace-cli.git
-cd workspace-cli
+git clone https://github.com/chaitin/chaitin-cli.git
+cd chaitin-cli
 go build -o cws .
 
 # Run
@@ -460,7 +460,7 @@ cws xray plan DeletePlanID --id=<id>
 | `cws xray insight` | Data insight and analytics |
 | `cws xray ip_asset` | IP/host asset management |
 | `cws xray plan` | Scan task management |
-| `cws xray project` | Project/workspace management |
+| `cws xray project` | Project management |
 | `cws xray report` | Report management |
 | `cws xray result` | Scan result management |
 | `cws xray role` | Role management |

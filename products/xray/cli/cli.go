@@ -9,10 +9,10 @@ import (
 	"net/http"
 	neturl "net/url"
 
-	"github.com/chaitin/workspace-cli/config"
+	"github.com/chaitin/chaitin-cli/config"
 	"github.com/spf13/cobra"
 
-	"github.com/chaitin/workspace-cli/products/xray/client"
+	"github.com/chaitin/chaitin-cli/products/xray/client"
 	"github.com/go-openapi/runtime"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"

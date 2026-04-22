@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/chaitin/workspace-cli/products/xray/client"
-	"github.com/chaitin/workspace-cli/products/xray/client/plan"
-	"github.com/chaitin/workspace-cli/products/xray/client/template"
-	"github.com/chaitin/workspace-cli/products/xray/models"
+	"github.com/chaitin/chaitin-cli/products/xray/client"
+	"github.com/chaitin/chaitin-cli/products/xray/client/plan"
+	"github.com/chaitin/chaitin-cli/products/xray/client/template"
+	"github.com/chaitin/chaitin-cli/products/xray/models"
 
 	"github.com/spf13/cobra"
 )

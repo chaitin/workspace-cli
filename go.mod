@@ -1,4 +1,4 @@
-module github.com/chaitin/workspace-cli
+module github.com/chaitin/chaitin-cli
 
 go 1.25.0
 

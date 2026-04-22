@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/chaitin/workspace-cli/config"
+	"github.com/chaitin/chaitin-cli/config"
 	"github.com/spf13/cobra"
 )
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chaitin/workspace-cli/products/safeline/cmd"
+	"github.com/chaitin/chaitin-cli/products/safeline/cmd"
 	"github.com/spf13/cobra"
 )
 
